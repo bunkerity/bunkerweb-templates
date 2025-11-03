@@ -68,7 +68,11 @@ jobs:
 
           rm -f "${zip_path}"
           echo "Creating combined archive ${zip_path} containing ${#templates[@]} template directories"
-          zip -r -9 "${zip_path}" "${templates_root}"
+          (
+            cd "${templates_root}"
+            shopt -s dotglob
+            zip -r -9 "../${zip_path}" -- ./*
+          )
 
           if [[ ! -f "${zip_path}" ]]; then
             echo "::error::Archive was not created at ${zip_path}"
