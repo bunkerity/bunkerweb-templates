@@ -31,6 +31,7 @@
 - Branch from `main`; target PRs against `main` with a clear summary plus validation notes (see `CONTRIBUTING.md`).
 - Keep directory names lowercase-kebab-case and limit filenames to ASCII.
 - Mention testing environment (Docker/Kubernetes versions, etc.) in template READMEs so reviewers know the context.
+- Update `CHANGELOG.md` under `## Unreleased` for every change using the bullet format `- [@github-handle] Summary of the change` so manual releases stay accurate and attribution remains clear.
 
 ## External References
 

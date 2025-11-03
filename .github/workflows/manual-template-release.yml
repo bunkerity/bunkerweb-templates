@@ -79,14 +79,64 @@ jobs:
             exit 1
           fi
 
+      - name: Determine release notes
+        id: prepare-release-notes
+        shell: bash
+        env:
+          INPUT_RELEASE_NOTES: ${{ inputs.release_notes }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          changelog_path="CHANGELOG.md"
+          notes="${INPUT_RELEASE_NOTES}"
+
+          if [[ -z "${notes}" && -f "${changelog_path}" ]]; then
+            release_tag="${RELEASE_TAG}"
+            tag_regex=$(printf '%s\n' "${release_tag}" | sed 's/[].[^$*+?(){}|\\]/\\&/g')
+            section=$(
+              awk -v tag_regex="${tag_regex}" '
+                BEGIN { capture = 0 }
+                /^##[[:space:]]+/ {
+                  if (capture) {
+                    exit
+                  }
+                  header = $0
+                  if (match(header, "^##[[:space:]]+Templates release[[:space:]]+" tag_regex "[[:space:]]*-")) {
+                    capture = 1
+                    print header
+                    next
+                  }
+                }
+                capture { print }
+              ' "${changelog_path}"
+            )
+
+            if [[ -n "${section//[[:space:]]/}" ]]; then
+              notes="${section}"
+            else
+              notes="$(cat "${changelog_path}")"
+            fi
+          fi
+
+          if [[ -z "${notes//[[:space:]]/}" ]]; then
+            notes="Templates release ${RELEASE_TAG}"
+          fi
+
+          {
+            echo "resolved_release_notes<<'EOF'"
+            printf '%s\n' "${notes}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
       - name: Create GitHub release and upload assets
         uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
         with:
           tag_name: ${{ inputs.tag }}
           target_commitish: ${{ github.sha }}
           name: ${{ env.RESOLVED_RELEASE_NAME }}
-          body: ${{ inputs.release_notes }}
-          draft: false
+          body: ${{ steps.prepare-release-notes.outputs.resolved_release_notes }}
+          draft: true
           prerelease: false
           files: ${{ env.RELEASE_DIR }}/${{ env.ARCHIVE_NAME }}
         env:

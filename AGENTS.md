@@ -22,3 +22,5 @@ There is no automated test harness; rely on targeted validation. For new templat
 ## Commit & Pull Request Guidelines
 
 Write commits in the imperative mood (“Add Jellyfin template configs”) and keep histories focused on a single concern. Pull requests must describe the service or docs touched, note validation steps, and link related issues. Before opening a PR, ensure the pre-commit suite passes, `template.json` references only in-repo files, and documentation explains how to import or deploy the template. Include screenshots when UI-facing docs change.
+
+Always record changes in `CHANGELOG.md` under the `## Unreleased` section using the bullet format `- [@github-handle] Summary of the change`. Releases track template updates from that list, so keep entries current and attribute the work clearly.

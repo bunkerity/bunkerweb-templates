@@ -16,13 +16,14 @@ We follow the tone and values of the BunkerWeb community: be respectful, be incl
    - Ensure the `prettier` CLI is available on your PATH (for example `npm install --global prettier` or via your package manager) so the formatting hook can run.
 4. **Implement your update** (add a template, adjust docs, etc.) following the guidelines in this document and in [TEMPLATE_GUIDE.md](TEMPLATE_GUIDE.md).
 5. **Test and lint** your contribution. Run `pre-commit run --all-files` and address any issues it reports. For templates, also validate configuration files where possible (e.g. `docker compose config`, `kubectl apply --server-dry-run`, schema validation).
-6. **Commit** with clear messages that describe the change and reference any related issues.
-7. **Open a Pull Request** against `main`:
+6. **Update the changelog**. Add a line under the `## Unreleased` section in `CHANGELOG.md` summarizing your change using the format `- [@github-handle] Short description of the change`.
+7. **Commit** with clear messages that describe the change and reference any related issues.
+8. **Open a Pull Request** against `main`:
    - Summarize the motivation and changes.
    - Highlight testing steps and expected outcomes.
    - Link issues or discussions that provide additional context.
-8. **Participate in the review**. Address comments, push revisions, and keep the conversation open and collaborative.
-9. Once approved, a maintainer will merge your PR.
+9. **Participate in the review**. Address comments, push revisions, and keep the conversation open and collaborative.
+10. Once approved, a maintainer will merge your PR.
 
 ## Template Submission Guidelines
 
@@ -53,6 +54,7 @@ Before submitting, double-check the following:
 - [ ] `template.json` is valid and references only files included in the template directory.
 - [ ] Template README (if provided) explains prerequisites, setup steps, and how to import the template (UI Raw import, recommended, vs. plugin bundle).
 - [ ] I updated or added tests, examples, or documentation as needed.
+- [ ] I added or updated an entry in `CHANGELOG.md` under `## Unreleased` using the format `- [@github-handle] Summary of the change`.
 - [ ] I confirmed that all files include the necessary license headers if required.
 - [ ] I linked related issues or discussions in the PR description.
 

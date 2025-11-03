@@ -126,6 +126,7 @@ For deeper background on BunkerWeb concepts referenced in this guide, see the of
 - Validate JSON before submitting (`jq . template.json`) and lint NGINX snippets locally where possible.
 - Keep secrets and credentials out of the repository. Use placeholders and explain where real values belong.
 - Prefer declarative configuration over shell scripts; if a script is required, explain why in the template README.
+- Log every change in `CHANGELOG.md` by adding a bullet under `## Unreleased` using the format `- [@github-handle] What changed`. This keeps manual releases accurate and makes it easy to track ownership.
 - When updating an existing template, note the review date or version in the template README so users see it is maintained.
 
 ## Licensing Reminder
