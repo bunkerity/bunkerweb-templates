@@ -124,7 +124,7 @@ jobs:
           fi
 
           {
-            echo "resolved_release_notes<<'EOF'"
+            echo "resolved_release_notes<<EOF"
             printf '%s\n' "${notes}"
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
