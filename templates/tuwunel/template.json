@@ -1,5 +1,5 @@
 {
-  "id": "wordpress",
+  "id": "tuwunel",
   "name": "Tuwunel secure template with essential hardening defaults",
   "settings": {
     "SERVER_NAME": "www.example.com",
