@@ -49,10 +49,9 @@
     "SERVE_FILES": "no",
     "USE_CLIENT_CACHE": "no",
     "USE_GZIP": "yes",
-    "USE_BROTLI": "yes,
+    "USE_BROTLI": "yes",
     "HTTP3": "no",
     "LISTEN_HTTP": "no",
     "BAD_BEHAVIOR_STATUS_CODES": "405 444",
     "BAD_BEHAVIOR_THRESHOLD": "100"
-"
   },
