@@ -43,5 +43,5 @@
     "HTTP3": "no",
     "LISTEN_HTTP": "no",
     "BAD_BEHAVIOR_STATUS_CODES": "405",
-    "BAD_BEHAVIOR_THRESHOLD": "10"
+    "BAD_BEHAVIOR_THRESHOLD": "100"
   },
