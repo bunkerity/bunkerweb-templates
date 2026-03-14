@@ -66,6 +66,7 @@ This repository packages those JSON definitions alongside their configuration sn
 | [NetBird](templates/netbird/)     | Self-hosted template with gRPC and websocket routing  | `templates/netbird/`   |
 | [Tomcat](templates/tomcat/)       | Reverse proxy template with servlet-friendly defaults | `templates/tomcat/`    |
 | [WordPress](templates/wordpress/) | Secure template with essential hardening defaults     | `templates/wordpress/` |
+| [Tuwunel](templates/tuwunel/) | Secure template with essential hardening defaults for the Tuwunel matrix server     | `templates/tuwunel/` |
 
 ```text
 templates/
