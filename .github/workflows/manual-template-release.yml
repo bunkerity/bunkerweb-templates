@@ -1,5 +1,7 @@
 name: Manual Template Release
 
+permissions: read-all
+
 on:
   workflow_dispatch:
     inputs:
@@ -19,8 +21,16 @@ on:
         default: ""
 
 jobs:
+  plumber:
+    uses: ./.github/workflows/plumber.yml
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+
   package-and-release:
     name: Package templates and publish release
+    needs: plumber
     runs-on: ubuntu-latest
     permissions:
       contents: write

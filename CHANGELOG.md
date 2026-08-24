@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add Plumber CI/CD security scanning: `.github/workflows/plumber.yml` as a reusable workflow (weekly cron plus `workflow_call`), gated at `min-score: B` with `soft-fail: false`, wired as a `needs:` dependency on both release workflows, with a `plumber.yaml` policy that extends `plumber:default` and allowlists `softprops/action-gh-release`. Add the Plumber score badge to the README.
 - [@TheophileDiot] Fix the Nextcloud template: move the CRS exclusion toggle (`900130`) to `configs/modsec-crs/` so it loads before the CRS rules, drop the redundant `900200` allowed-methods rule that BunkerWeb already generates from `ALLOWED_METHODS`, lower `MAX_CLIENT_SIZE` from `10G` to `512m` (it also drives ModSecurity's in-memory `SecRequestBodyLimit`), set `LIMIT_REQ_URL=/` with `LIMIT_REQ_RATE=15r/s` in place of BunkerWeb's implicit `2r/s` catch-all, and remove `401` from `BAD_BEHAVIOR_STATUS_CODES` since Nextcloud returns it on unauthenticated WebDAV requests.
 - [@TheophileDiot] Expand the Nextcloud template README: reverse-proxy requirements (`trusted_proxies`, `overwriteprotocol`), upload sizing, rate-limit slots and matching semantics, CRS plugin pinning, CalDAV/CardDAV discovery checks, and validation commands.
 
