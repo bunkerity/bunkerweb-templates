@@ -10,12 +10,20 @@ bad-behavior counting around API traffic rather than around a classic web page.
 Because the API surface depends entirely on your collections and permissions, treat the defaults
 below as a starting point and expect to adjust body size, rate limits and CORS.
 
+Validated against Directus 11 and BunkerWeb 1.6.14 with OWASP CRS 4.29: the admin app, schema
+and field creation, item reads and writes, Directus `filter` syntax, GraphQL, multipart uploads
+and anonymous access were all exercised through the proxy.
+
 ## Prerequisites
 
 - A reachable Directus instance (container, VM, or bare metal) that trusts the BunkerWeb proxy IP.
 - Directus configured with `PUBLIC_URL` set to the public `https://` URL, so generated asset and
   OAuth redirect links point at BunkerWeb instead of the internal address.
 - Access to the BunkerWeb UI or environment variables to apply template settings.
+- `MAX_PAYLOAD_SIZE` raised on the Directus side if you send bodies over 1 MB. Directus caps
+  JSON payloads at `1mb` by default and answers `400 INVALID_PAYLOAD` above it, whatever the
+  proxy allows. Verified by sending the same 2 MB body straight to Directus with BunkerWeb out
+  of the path: identical `400`.
 
 ## Setup
 
@@ -63,6 +71,74 @@ with `SecRequestBodyLimitAction Reject`, so raising it costs memory on every buf
 The defaults here allow 1 GB asset uploads and 10 MB non-file bodies (bulk `PATCH /items/...`
 writes, imports, large GraphQL queries). Lower `MAX_CLIENT_SIZE` if you do not serve large assets.
 
+Measured on `POST /items/<collection>` with a JSON body, changing nothing but this one setting:
+
+| JSON body | `MODSECURITY_REQ_BODY_NO_FILES_LIMIT=131072` (default) | `=10485760` (this template) |
+| --------- | ------------------------------------------------------ | --------------------------- |
+| 100 KB    | `200`                                                  | `200`                       |
+| 500 KB    | `400`                                                  | `200`                       |
+| 900 KB    | `400`                                                  | `200`                       |
+
+The rejection is a `400`, not a `413`: ModSecurity truncates the body at the limit and rule
+200002 then fails to parse it. Nothing in the error mentions a size, which is what makes this
+one expensive to diagnose from the Directus side.
+
+## The Expect header, and the CRS exclusion that ships with this template
+
+CRS 4 lists `/expect/` among its always-forbidden headers, so rule 920450 answers `403` to any
+request carrying `Expect: 100-continue`. curl adds that header by itself once a body passes 1 KB,
+as do several HTTP client libraries, so scripted imports and bulk writes fail with a `403` that
+looks like it came from Directus.
+
+`configs/modsec-crs/directus_crs_tuning.conf` re-sets the CRS policy variable with `/expect/`
+removed and every other entry kept. It is a `modsec-crs` config because rule 901165 defaults that
+variable only while it is unset; the same rule placed in `modsec/` would load after CRS
+initialisation and do nothing.
+
+Verified after applying it — `Expect: 100-continue` passes, and every other restricted header is
+still refused:
+
+| Request                                       | Result |
+| --------------------------------------------- | ------ |
+| `Expect: 100-continue`                        | `200`  |
+| `Proxy: http://evil.example`                  | `403`  |
+| `X-HTTP-Method-Override: DELETE`              | `403`  |
+| `Lock-Token`, `Content-Range`                 | `403`  |
+
+## Rich text and code samples will trip the CRS
+
+Directus stores whatever your editors type, and a CMS field holding HTML or a code sample reads
+exactly like an attack payload. Measured on `POST /items/<collection>`:
+
+| Field content                                        | Rules that fired                     | Score |
+| ---------------------------------------------------- | ------------------------------------ | ----- |
+| `<h2>..</h2><p>..<img src="..">..</p>` (WYSIWYG)     | 941160                               | 5     |
+| `document.cookie` / `alert(1)` in a code block       | 941180, 941390                       | 10    |
+| `cat /etc/passwd \| grep root` in a code block        | 930120, 932160, 932235, 932260       | 20    |
+
+No exclusion for these ships with the template, and that is deliberate: the target is
+`ARGS:json.<field>`, and the field name is whatever you called it, so there is nothing generic to
+exclude. A blanket removal of the XSS and RCE rules on `/items/` would strip protection from the
+main write endpoint of the API.
+
+If your collections hold rich text, scope an exclusion to the one field, taking the target name
+from `matched_var_name` in the logs:
+
+```conf
+# configs/modsec/directus_false_positives.conf
+# Editors post rich HTML into articles.body. POST/PUT/PATCH under /items/articles only.
+# t:normalizePath is required: REQUEST_FILENAME is URL-decoded but not normalised.
+SecRule REQUEST_FILENAME "@rx ^/items/articles(?:/|$)" \
+    "id:3000110,phase:1,pass,nolog,t:none,t:normalizePath,chain,\
+    ctl:ruleRemoveTargetById=941160;ARGS:json.body,\
+    ctl:ruleRemoveTargetById=941180;ARGS:json.body"
+SecRule REQUEST_METHOD "@rx ^(?:POST|PUT|PATCH)$" \
+    "t:none,nolog"
+```
+
+Remove targets, never whole rules, and confirm the same payload is still refused on another
+field, another path and another method before you keep it.
+
 ## CORS is off-origin only
 
 `USE_CORS` matters only when a decoupled front end on another origin calls the API. The template
@@ -77,10 +153,9 @@ would carry the user's session. If no separate front end exists, set `USE_CORS=n
 
 - Review the rate limits: `LIMIT_REQ_RATE=25r/s` covers an admin app that fans out many parallel
   requests per page view, but a busy public API may need more.
-- ModSecurity runs in blocking mode with the CRS defaults. Rich-text fields and complex `filter`
-  query parameters are the usual sources of false positives; capture `matched_var_name` from the
-  logs and add a scoped exclusion under `configs/modsec/` rather than switching the engine to
-  `DetectionOnly`, which disables blocking site-wide.
+- ModSecurity runs in blocking mode. Directus `filter` syntax, GraphQL, deep `fields=*.*` reads,
+  aggregates and multipart uploads were all exercised against CRS 4.29 and none of them tripped a
+  rule, so no exclusion ships for them.
 - Directus sets its own security headers, so `KEEP_UPSTREAM_HEADERS` preserves them and BunkerWeb's
   own CSP stays report-only. Review what the application sends at
   `https://<your-domain>/admin/settings/project` before tightening either side.
@@ -109,6 +184,8 @@ REVERSE_PROXY_SEND_TIMEOUT=3600s
 ALLOWED_METHODS=GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS
 MAX_CLIENT_SIZE=1024m
 MODSECURITY_REQ_BODY_NO_FILES_LIMIT=10485760
+USE_MODSECURITY=yes
+MODSECURITY_SEC_RULE_ENGINE=On
 SERVE_FILES=no
 USE_CORS=yes
 CORS_ALLOW_ORIGIN=self

@@ -17,6 +17,8 @@
     "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS",
     "MAX_CLIENT_SIZE": "1024m",
     "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "10485760",
+    "USE_MODSECURITY": "yes",
+    "MODSECURITY_SEC_RULE_ENGINE": "On",
     "SERVE_FILES": "no",
     "USE_CORS": "yes",
     "CORS_ALLOW_ORIGIN": "self",
@@ -38,7 +40,7 @@
     "USE_GZIP": "yes",
     "GZIP_PROXIED": "expired no-cache no-store private auth"
   },
-  "configs": [],
+  "configs": ["modsec-crs/directus_crs_tuning.conf"],
   "steps": [
     {
       "title": "Web service - Front service",
@@ -112,6 +114,12 @@
       "title": "Performance - Client optimisation",
       "subtitle": "Compress proxied API responses; static files are served by Directus, not BunkerWeb.",
       "settings": ["USE_GZIP", "GZIP_PROXIED"]
+    },
+    {
+      "title": "Security - WAF tuning",
+      "subtitle": "CRS 4 forbids the Expect header, which curl sends by itself on bodies over 1 KB; this exclusion drops that one entry and keeps the rest.",
+      "settings": ["USE_MODSECURITY", "MODSECURITY_SEC_RULE_ENGINE"],
+      "configs": ["modsec-crs/directus_crs_tuning.conf"]
     }
   ]
 }
