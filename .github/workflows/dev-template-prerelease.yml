@@ -1,11 +1,21 @@
 name: Dev Template Pre-release
 
+permissions: read-all
+
 on:
   workflow_dispatch:
 
 jobs:
+  plumber:
+    uses: ./.github/workflows/plumber.yml
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+
   package-and-publish:
     name: Package templates and publish dev pre-release
+    needs: plumber
     runs-on: ubuntu-latest
     permissions:
       contents: write
