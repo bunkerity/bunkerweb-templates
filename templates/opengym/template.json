@@ -1,0 +1,129 @@
+{
+  "id": "opengym",
+  "name": "openGym passkey workout tracker template with JSON sync and WebAuthn tuning",
+  "settings": {
+    "SERVER_NAME": "www.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_LETS_ENCRYPT_STAGING": "no",
+    "USE_LETS_ENCRYPT_WILDCARD": "no",
+    "LETS_ENCRYPT_CHALLENGE": "http",
+    "LETS_ENCRYPT_DNS_PROVIDER": "",
+    "LETS_ENCRYPT_DNS_PROPAGATION": "default",
+    "LETS_ENCRYPT_DNS_CREDENTIAL_ITEM": "",
+    "USE_CUSTOM_SSL": "no",
+    "CUSTOM_SSL_CERT_PRIORITY": "file",
+    "CUSTOM_SSL_CERT": "",
+    "CUSTOM_SSL_KEY": "",
+    "CUSTOM_SSL_CERT_DATA": "",
+    "CUSTOM_SSL_KEY_DATA": "",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://myopengym:80",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "MAX_CLIENT_SIZE": "6m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "6291456",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT",
+    "USE_LIMIT_REQ": "yes",
+    "LIMIT_REQ_URL": "/",
+    "LIMIT_REQ_RATE": "15r/s",
+    "LIMIT_REQ_URL_1": "^/api/(login|register|pair)/",
+    "LIMIT_REQ_RATE_1": "20r/m",
+    "LIMIT_REQ_URL_2": "^/api/coach/",
+    "LIMIT_REQ_RATE_2": "60r/m",
+    "LIMIT_CONN_MAX_HTTP1": "30",
+    "LIMIT_CONN_MAX_HTTP2": "200",
+    "LIMIT_CONN_MAX_HTTP3": "200",
+    "COOKIE_FLAGS": "* HttpOnly SameSite=Lax",
+    "COOKIE_AUTO_SECURE_FLAG": "yes",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Content-Security-Policy-Report-Only Permissions-Policy X-Frame-Options Referrer-Policy",
+    "STRICT_TRANSPORT_SECURITY": "max-age=63072000; includeSubDomains; preload",
+    "SERVE_FILES": "no",
+    "USE_GZIP": "yes",
+    "USE_BAD_BEHAVIOR": "yes",
+    "BAD_BEHAVIOR_STATUS_CODE": "400 403 404 405 429 444",
+    "BLACKLIST_URI": "^/api/health$"
+  },
+  "configs": ["modsec/opengym_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Front service",
+      "subtitle": "Point the template at your openGym hostname(s).",
+      "settings": [
+        "SERVER_NAME",
+        "AUTO_LETS_ENCRYPT",
+        "USE_LETS_ENCRYPT_STAGING",
+        "USE_LETS_ENCRYPT_WILDCARD",
+        "LETS_ENCRYPT_CHALLENGE",
+        "LETS_ENCRYPT_DNS_PROVIDER",
+        "LETS_ENCRYPT_DNS_PROPAGATION",
+        "LETS_ENCRYPT_DNS_CREDENTIAL_ITEM",
+        "USE_CUSTOM_SSL",
+        "CUSTOM_SSL_CERT_PRIORITY",
+        "CUSTOM_SSL_CERT",
+        "CUSTOM_SSL_KEY",
+        "CUSTOM_SSL_CERT_DATA",
+        "CUSTOM_SSL_KEY_DATA"
+      ]
+    },
+    {
+      "title": "Web service - Upstream server",
+      "subtitle": "Direct the reverse proxy to the nginx front end bundled with openGym, not to the API container.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_INTERCEPT_ERRORS"
+      ]
+    },
+    {
+      "title": "HTTP - openGym sync constraints",
+      "subtitle": "Allow the PUT sync method and keep both body limits above the 5 MB application cap.",
+      "settings": [
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT",
+        "ALLOWED_METHODS"
+      ]
+    },
+    {
+      "title": "Security - Passkey endpoint throttling",
+      "subtitle": "openGym ships no rate limiting of its own, so the reverse proxy is the only brake.",
+      "settings": [
+        "USE_LIMIT_REQ",
+        "LIMIT_REQ_URL",
+        "LIMIT_REQ_RATE",
+        "LIMIT_REQ_URL_1",
+        "LIMIT_REQ_RATE_1",
+        "LIMIT_REQ_URL_2",
+        "LIMIT_REQ_RATE_2",
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3"
+      ]
+    },
+    {
+      "title": "Security - Headers and session cookie",
+      "subtitle": "Add HSTS, keep the stricter upstream headers, and leave the __Host- prefixed cookie intact.",
+      "settings": [
+        "COOKIE_FLAGS",
+        "COOKIE_AUTO_SECURE_FLAG",
+        "KEEP_UPSTREAM_HEADERS",
+        "STRICT_TRANSPORT_SECURITY"
+      ]
+    },
+    {
+      "title": "Performance - Client optimisation",
+      "subtitle": "Control compression and static file serving.",
+      "settings": ["SERVE_FILES", "USE_GZIP"]
+    },
+    {
+      "title": "Security - Review WAF tuning and exposure",
+      "subtitle": "Keep the WebAuthn CRS exclusions and decide whether to expose the health endpoint.",
+      "configs": ["modsec/opengym_false_positives.conf"],
+      "settings": [
+        "USE_BAD_BEHAVIOR",
+        "BAD_BEHAVIOR_STATUS_CODE",
+        "BLACKLIST_URI"
+      ]
+    }
+  ]
+}
