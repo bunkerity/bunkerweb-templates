@@ -1,115 +1,117 @@
 {
   "id": "directus",
-  "name": "Directus secure template for the open source project called Directus no-code-friendly platform for turning an existing SQL database into APIs and an admin app.",
+  "name": "Directus secure template with API-aware defaults",
   "settings": {
-    "IS_DRAFT": "no",
     "SERVER_NAME": "example.com",
-    "BAD_BEHAVIOR_THRESHOLD": "20",
-    "CLIENT_CACHE_ETAG": "no",
-    "USE_CORS": "yes",
-    "CORS_ALLOW_METHODS": "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
-    "CORS_ALLOW_HEADERS": "Content-Type,Authorization,X-Requested-With,Accept,Origin,Cache-Control",
-    "CORS_ALLOW_CREDENTIALS": "yes",
-    "USE_CROWDSEC": "yes",
-    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
-    "GZIP_PROXIED": "expired no-cache no-store private auth",
-    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy Access-Control-Allow-Origin Access-Control-Allow-Credentials Access-Control-Allow-Headers Access-Control-Allow-Methods Access-Control-Expose-Headers Access-Control-Max-Age",
-    "CONTENT_SECURITY_POLICY_REPORT_ONLY": "yes",
     "AUTO_LETS_ENCRYPT": "yes",
     "EMAIL_LETS_ENCRYPT": "registration@example.com",
-    "LIMIT_CONN_MAX_HTTP1": "50",
-    "LIMIT_CONN_MAX_HTTP2": "500",
-    "LIMIT_CONN_MAX_HTTP3": "500",
-    "LIMIT_REQ_RATE": "25r/s",
-    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS",
-    "MAX_CLIENT_SIZE": "1024m",
-    "SERVE_FILES": "no",
-    "MODSECURITY_SEC_RULE_ENGINE": "DetectionOnly",
     "USE_REVERSE_PROXY": "yes",
-    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
-    "REVERSE_PROXY_HOST": "http://ip-address:8055",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://directus:8055",
     "REVERSE_PROXY_WS": "yes",
     "REVERSE_PROXY_BUFFERING": "no",
     "REVERSE_PROXY_REQUEST_BUFFERING": "no",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
     "REVERSE_PROXY_READ_TIMEOUT": "3600s",
     "REVERSE_PROXY_SEND_TIMEOUT": "3600s",
-    "USE_ROBOTSTXT": "yes"
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS",
+    "MAX_CLIENT_SIZE": "1024m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "10485760",
+    "SERVE_FILES": "no",
+    "USE_CORS": "yes",
+    "CORS_ALLOW_ORIGIN": "self",
+    "CORS_ALLOW_METHODS": "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
+    "CORS_ALLOW_HEADERS": "Content-Type,Authorization,X-Requested-With,Accept,Origin,Cache-Control",
+    "CORS_ALLOW_CREDENTIALS": "yes",
+    "USE_LIMIT_REQ": "yes",
+    "LIMIT_REQ_URL": "/",
+    "LIMIT_REQ_RATE": "25r/s",
+    "LIMIT_CONN_MAX_HTTP1": "50",
+    "LIMIT_CONN_MAX_HTTP2": "500",
+    "LIMIT_CONN_MAX_HTTP3": "500",
+    "BAD_BEHAVIOR_STATUS_CODES": "400 405 444",
+    "BAD_BEHAVIOR_THRESHOLD": "20",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy Access-Control-Allow-Origin Access-Control-Allow-Credentials Access-Control-Allow-Headers Access-Control-Allow-Methods Access-Control-Expose-Headers Access-Control-Max-Age",
+    "CONTENT_SECURITY_POLICY_REPORT_ONLY": "yes",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
+    "USE_ROBOTSTXT": "yes",
+    "USE_GZIP": "yes",
+    "GZIP_PROXIED": "expired no-cache no-store private auth"
   },
   "configs": [],
   "steps": [
     {
-      "title": "SSL / Let's Encrypt",
-      "subtitle": "Configure ssl / let's encrypt settings.",
-      "settings": [
-        "AUTO_LETS_ENCRYPT",
-        "EMAIL_LETS_ENCRYPT"
-      ]
+      "title": "Web service - Front service",
+      "subtitle": "Point the template at your Directus hostname(s).",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {
-      "title": "Reverse Proxy",
-      "subtitle": "Configure reverse proxy settings.",
+      "title": "Web service - Upstream server",
+      "subtitle": "Direct the reverse proxy at Directus and keep long-lived requests alive. Buffering stays off so realtime and large asset transfers stream through.",
       "settings": [
         "USE_REVERSE_PROXY",
-        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_URL",
         "REVERSE_PROXY_HOST",
         "REVERSE_PROXY_WS",
         "REVERSE_PROXY_BUFFERING",
         "REVERSE_PROXY_REQUEST_BUFFERING",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
         "REVERSE_PROXY_READ_TIMEOUT",
         "REVERSE_PROXY_SEND_TIMEOUT"
       ]
     },
     {
-      "title": "Rate Limiting",
-      "subtitle": "Configure rate limiting settings.",
+      "title": "HTTP - Directus API constraints",
+      "subtitle": "Allow the REST verbs Directus uses and keep both body limits above your largest payload. MAX_CLIENT_SIZE also drives ModSecurity's SecRequestBodyLimit.",
       "settings": [
-        "LIMIT_CONN_MAX_HTTP1",
-        "LIMIT_CONN_MAX_HTTP2",
-        "LIMIT_CONN_MAX_HTTP3",
-        "LIMIT_REQ_RATE"
-      ]
-    },
-    {
-      "title": "Security",
-      "subtitle": "Configure security settings.",
-      "settings": [
-        "BAD_BEHAVIOR_THRESHOLD",
-        "MODSECURITY_SEC_RULE_ENGINE"
-      ]
-    },
-    {
-      "title": "Performance",
-      "subtitle": "Configure performance settings.",
-      "settings": [
-        "CLIENT_CACHE_ETAG",
-        "GZIP_PROXIED",
+        "ALLOWED_METHODS",
         "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT",
         "SERVE_FILES"
       ]
     },
     {
-      "title": "Server / Core",
-      "subtitle": "Configure server / core settings.",
+      "title": "HTTP - Cross-origin access",
+      "subtitle": "Only needed for a decoupled front end. Replace the origin with your app's own; never pair a wildcard with credentials.",
       "settings": [
-        "IS_DRAFT",
-        "SERVER_NAME",
-        "INTERCEPTED_ERROR_CODES",
-        "ALLOWED_METHODS"
+        "USE_CORS",
+        "CORS_ALLOW_ORIGIN",
+        "CORS_ALLOW_METHODS",
+        "CORS_ALLOW_HEADERS",
+        "CORS_ALLOW_CREDENTIALS"
       ]
     },
     {
-      "title": "Other",
-      "subtitle": "Configure other settings.",
+      "title": "Security - Rate and connection limits",
+      "subtitle": "Directus admin app fans out many parallel requests per page, so the limits sit well above BunkerWeb defaults.",
       "settings": [
-        "USE_CORS",
-        "CORS_ALLOW_METHODS",
-        "CORS_ALLOW_HEADERS",
-        "CORS_ALLOW_CREDENTIALS",
-        "USE_CROWDSEC",
+        "USE_LIMIT_REQ",
+        "LIMIT_REQ_URL",
+        "LIMIT_REQ_RATE",
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3"
+      ]
+    },
+    {
+      "title": "Security - Bad behavior",
+      "subtitle": "401, 403 and 404 are dropped from the counted codes: Directus returns them on every anonymous or permission-denied API call.",
+      "settings": ["BAD_BEHAVIOR_STATUS_CODES", "BAD_BEHAVIOR_THRESHOLD"]
+    },
+    {
+      "title": "Security - Headers and exposure",
+      "subtitle": "Directus ships its own CSP for the admin app, so the upstream headers are kept and BunkerWeb's policy stays report-only.",
+      "settings": [
         "KEEP_UPSTREAM_HEADERS",
         "CONTENT_SECURITY_POLICY_REPORT_ONLY",
+        "INTERCEPTED_ERROR_CODES",
         "USE_ROBOTSTXT"
       ]
+    },
+    {
+      "title": "Performance - Client optimisation",
+      "subtitle": "Compress proxied API responses; static files are served by Directus, not BunkerWeb.",
+      "settings": ["USE_GZIP", "GZIP_PROXIED"]
     }
   ]
 }
