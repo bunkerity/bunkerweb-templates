@@ -130,6 +130,7 @@ plugins/
 
 | Template                                  | Summary                                                          | Directory                  |
 | ----------------------------------------- | ---------------------------------------------------------------- | -------------------------- |
+| [Directus](templates/directus/)           | Headless CMS template with REST and GraphQL API defaults         | `templates/directus/`      |
 | [Drupal](templates/drupal/)               | Secure template with CMS-aware defaults                          | `templates/drupal/`        |
 | [Jellyfin](templates/jellyfin/)           | Media streaming template with reverse proxy tuning               | `templates/jellyfin/`      |
 | [Nextcloud](templates/nextcloud/)         | Secure template with WebDAV-aware defaults                       | `templates/nextcloud/`     |
