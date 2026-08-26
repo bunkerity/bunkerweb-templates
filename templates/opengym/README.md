@@ -103,7 +103,7 @@ and exposes no route on either verb.
 - `BLACKLIST_URI` blocks `/api/health`, which reports the total number of registered users. The
   container health check reaches it over loopback, so blocking it externally costs nothing. Point
   external uptime monitoring at `/` instead, or remove the entry if you need the endpoint public.
-- `BAD_BEHAVIOR_STATUS_CODE` omits `401` on purpose. `GET /api/me` returns `401` to every anonymous
+- `BAD_BEHAVIOR_STATUS_CODES` omits `401` on purpose. `GET /api/me` returns `401` to every anonymous
   visitor on first page load, so the stock list bans ordinary users.
 - `KEEP_UPSTREAM_HEADERS` preserves the application's own `Content-Security-Policy`,
   `X-Frame-Options`, `Referrer-Policy` and `Permissions-Policy`, all of which are stricter than the

@@ -40,7 +40,7 @@
     "SERVE_FILES": "no",
     "USE_GZIP": "yes",
     "USE_BAD_BEHAVIOR": "yes",
-    "BAD_BEHAVIOR_STATUS_CODE": "400 403 404 405 429 444",
+    "BAD_BEHAVIOR_STATUS_CODES": "400 403 404 405 429 444",
     "BLACKLIST_URI": "^/api/health$"
   },
   "configs": ["modsec/opengym_false_positives.conf"],
@@ -121,7 +121,7 @@
       "configs": ["modsec/opengym_false_positives.conf"],
       "settings": [
         "USE_BAD_BEHAVIOR",
-        "BAD_BEHAVIOR_STATUS_CODE",
+        "BAD_BEHAVIOR_STATUS_CODES",
         "BLACKLIST_URI"
       ]
     }
