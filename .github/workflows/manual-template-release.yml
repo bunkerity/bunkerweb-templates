@@ -1,5 +1,7 @@
 name: Manual Template Release
 
+permissions: read-all
+
 on:
   workflow_dispatch:
     inputs:
@@ -19,8 +21,16 @@ on:
         default: ""
 
 jobs:
+  plumber:
+    uses: ./.github/workflows/plumber.yml
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+
   package-and-release:
     name: Package templates and publish release
+    needs: plumber
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -33,9 +43,10 @@ jobs:
       RESOLVED_RELEASE_NAME: ${{ inputs.release_name != '' && inputs.release_name || format('Templates release {0}', inputs.tag) }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Package templates into a single zip archive
         shell: bash
@@ -130,7 +141,7 @@ jobs:
           } >> "${GITHUB_OUTPUT}"
 
       - name: Create GitHub release and upload assets
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ inputs.tag }}
           target_commitish: ${{ github.sha }}

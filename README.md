@@ -8,6 +8,7 @@
   <a href="https://github.com/bunkerity/bunkerweb-templates/issues"><img src="https://img.shields.io/github/issues/bunkerity/bunkerweb-templates?label=issues" alt="Open issues" /></a>
   <a href="https://github.com/bunkerity/bunkerweb-templates/pulls"><img src="https://img.shields.io/github/issues-pr/bunkerity/bunkerweb-templates?label=PRs" alt="Open pull requests" /></a>
   <a href="https://github.com/bunkerity/bunkerweb-templates/commits"><img src="https://img.shields.io/github/last-commit/bunkerity/bunkerweb-templates?label=last%20update" alt="Last update" /></a>
+  <a href="https://score.getplumber.io/github.com/bunkerity/bunkerweb-templates"><img src="https://score.getplumber.io/github.com/bunkerity/bunkerweb-templates.svg" alt="Plumber CI/CD security score" /></a>
   <a href="https://discord.gg/YEdMKqztMZ"><img src="https://img.shields.io/badge/community-Discord-5865F2?logo=discord&logoColor=white" alt="Join the Discord" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome" /></a>
 </p>
@@ -129,11 +130,14 @@ plugins/
 
 | Template                                  | Summary                                                          | Directory                  |
 | ----------------------------------------- | ---------------------------------------------------------------- | -------------------------- |
+| [Directus](templates/directus/)           | Headless CMS template with REST and GraphQL API defaults         | `templates/directus/`      |
 | [Drupal](templates/drupal/)               | Secure template with CMS-aware defaults                          | `templates/drupal/`        |
 | [Jellyfin](templates/jellyfin/)           | Media streaming template with reverse proxy tuning               | `templates/jellyfin/`      |
 | [Nextcloud](templates/nextcloud/)         | Secure template with WebDAV-aware defaults                       | `templates/nextcloud/`     |
 | [NetBird](templates/netbird/)             | Self-hosted template with gRPC and websocket routing             | `templates/netbird/`       |
+| [openGym](templates/opengym/)             | Passkey PWA template with JSON sync and WebAuthn tuning          | `templates/opengym/`       |
 | [Pi-hole](templates/pi-hole/)             | Reverse proxy template with admin UI and API tuning              | `templates/pi-hole/`       |
+| [Seafile](templates/seafile/)             | File sharing template with WebDAV-aware proxy defaults           | `templates/seafile/`       |
 | [Synapse](templates/synapse/)             | Matrix homeserver template with well-known delegation           | `templates/synapse/`       |
 | [Tomcat](templates/tomcat/)               | Reverse proxy template with servlet-friendly defaults            | `templates/tomcat/`        |
 | [Tuwunel](templates/tuwunel/)             | Matrix homeserver reverse proxy with WebSocket and delegation    | `templates/tuwunel/`       |

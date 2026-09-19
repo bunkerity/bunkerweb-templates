@@ -4,7 +4,7 @@
 
 Provision a BunkerWeb configuration tailored for a self-hosted NetBird stack.
 The template wires relay, websocket, REST API, OAuth2, and gRPC endpoints with
-long-lived timeout defaults suited for control-plane traffic.
+custom headers and long-lived timeout defaults suited for control-plane traffic.
 
 ## Prerequisites
 
@@ -40,6 +40,7 @@ long-lived timeout defaults suited for control-plane traffic.
 
 - Keep `REVERSE_PROXY_WS=yes` and `REVERSE_PROXY_WS_1=yes` for relay and
   websocket routes.
+- Use `REVERSE_PROXY_HEADERS` to pass custom headers like `X-Real-Port` to upstreams (the relay needs to know the client's original port / address).
 - If you run NetBird on non-default ports, update both HTTP and gRPC upstream
   hosts together.
 - Lower `LIMIT_REQ_RATE` or `LIMIT_CONN_MAX_HTTP*` only after confirming your

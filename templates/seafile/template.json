@@ -1,0 +1,92 @@
+{
+  "id": "seafile",
+  "name": "Seafile file sharing with WebDAV-aware proxy defaults",
+  "settings": {
+    "SERVER_NAME": "seafile.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://seafile",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "REVERSE_PROXY_REQUEST_BUFFERING": "no",
+    "REVERSE_PROXY_READ_TIMEOUT": "1200s",
+    "REVERSE_PROXY_SEND_TIMEOUT": "1200s",
+    "MAX_CLIENT_SIZE": "512m",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS|PROPFIND|PROPPATCH|MKCOL|COPY|MOVE|LOCK|UNLOCK",
+    "USE_LIMIT_REQ": "yes",
+    "LIMIT_REQ_URL": "/",
+    "LIMIT_REQ_RATE": "25r/s",
+    "LIMIT_REQ_URL_1": "^/api2/",
+    "LIMIT_REQ_RATE_1": "50r/s",
+    "LIMIT_REQ_URL_2": "^/seafhttp/",
+    "LIMIT_REQ_RATE_2": "50r/s",
+    "LIMIT_CONN_MAX_HTTP1": "50",
+    "LIMIT_CONN_MAX_HTTP2": "500",
+    "LIMIT_CONN_MAX_HTTP3": "500",
+    "SERVE_FILES": "no",
+    "USE_GZIP": "yes",
+    "GZIP_PROXIED": "expired no-cache no-store private auth",
+    "USE_ANTIBOT": "javascript",
+    "ANTIBOT_IGNORE_URI": "^/api/ ^/api2/ ^/seafhttp/ ^/seafdav(?:/|$) ^/share/ ^/uploads(?:/|$) ^/zip-downloads(?:/|$) ^/thumbnail/ ^/office-convert/ ^/seafile-office-web/ ^/notification(?:/|$)",
+    "BAD_BEHAVIOR_THRESHOLD": "20",
+    "BAD_BEHAVIOR_STATUS_CODES": "400 405 429 444",
+    "COOKIE_FLAGS_4": "sfcsrftoken SameSite=Lax"
+  },
+  "steps": [
+    {
+      "title": "Web service - Front door",
+      "subtitle": "Configure the public hostname and TLS certificate.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Seafile upstream",
+      "subtitle": "Route requests to Seafile and tune long-running transfers.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_BUFFERING",
+        "REVERSE_PROXY_REQUEST_BUFFERING",
+        "REVERSE_PROXY_READ_TIMEOUT",
+        "REVERSE_PROXY_SEND_TIMEOUT"
+      ]
+    },
+    {
+      "title": "HTTP - Uploads, WebDAV, and limits",
+      "subtitle": "Set request sizes, allowed methods, and traffic limits.",
+      "settings": [
+        "MAX_CLIENT_SIZE",
+        "ALLOWED_METHODS",
+        "USE_LIMIT_REQ",
+        "LIMIT_REQ_URL",
+        "LIMIT_REQ_RATE",
+        "LIMIT_REQ_URL_1",
+        "LIMIT_REQ_RATE_1",
+        "LIMIT_REQ_URL_2",
+        "LIMIT_REQ_RATE_2",
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3"
+      ]
+    },
+    {
+      "title": "Performance",
+      "subtitle": "Leave file serving to Seafile and compress suitable responses.",
+      "settings": ["SERVE_FILES", "USE_GZIP", "GZIP_PROXIED"]
+    },
+    {
+      "title": "Security and client compatibility",
+      "subtitle": "Protect browser routes without challenging API and WebDAV clients.",
+      "settings": [
+        "USE_ANTIBOT",
+        "ANTIBOT_IGNORE_URI",
+        "BAD_BEHAVIOR_THRESHOLD",
+        "BAD_BEHAVIOR_STATUS_CODES",
+        "COOKIE_FLAGS_4"
+      ]
+    }
+  ]
+}

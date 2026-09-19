@@ -1,11 +1,21 @@
 name: Dev Template Pre-release
 
+permissions: read-all
+
 on:
   workflow_dispatch:
 
 jobs:
+  plumber:
+    uses: ./.github/workflows/plumber.yml
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+
   package-and-publish:
     name: Package templates and publish dev pre-release
+    needs: plumber
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -19,9 +29,10 @@ jobs:
       ARCHIVE_NAME: templates-dev.zip
     steps:
       - name: Check out repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Package templates into a single zip archive
         shell: bash
@@ -111,13 +122,18 @@ jobs:
 
       - name: Move dev tag to current commit
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -f "${RELEASE_TAG}" "${GITHUB_SHA}"
-          git push origin "refs/tags/${RELEASE_TAG}" --force
+          tag_ref="repos/${GITHUB_REPOSITORY}/git/refs/tags/${RELEASE_TAG}"
+          if gh api "${tag_ref}" >/dev/null 2>&1; then
+            gh api --method PATCH "${tag_ref}" -f sha="${GITHUB_SHA}" -F force=true >/dev/null
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref="refs/tags/${RELEASE_TAG}" -f sha="${GITHUB_SHA}" >/dev/null
+          fi
 
       - name: Delete existing dev release (if any)
         shell: bash
@@ -131,7 +147,7 @@ jobs:
           fi
 
       - name: Create or update GitHub pre-release and upload assets
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
