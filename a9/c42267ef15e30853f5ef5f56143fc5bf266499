@@ -1,0 +1,21 @@
+.github/workflows/manual-template-release.yml
+  s_b01a6cbecd2b27::t_a7b5a6cf847605 49
+.github/workflows/dev-template-prerelease.yml
+  s_b01a6cbecd2b27::t_a7b5a6cf847605 35,125-126,130-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a9c42267ef15e30853f5ef5f56143fc5bf266499",
+  "prompts": {},
+  "sessions": {
+    "s_b01a6cbecd2b27": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0b9f1-ddc1-7d01-ac78-23a6b3ca4aed",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
