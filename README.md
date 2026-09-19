@@ -137,6 +137,7 @@ plugins/
 | [NetBird](templates/netbird/)             | Self-hosted template with gRPC and websocket routing             | `templates/netbird/`       |
 | [openGym](templates/opengym/)             | Passkey PWA template with JSON sync and WebAuthn tuning          | `templates/opengym/`       |
 | [Pi-hole](templates/pi-hole/)             | Reverse proxy template with admin UI and API tuning              | `templates/pi-hole/`       |
+| [Seafile](templates/seafile/)             | File sharing template with WebDAV-aware proxy defaults           | `templates/seafile/`       |
 | [Synapse](templates/synapse/)             | Matrix homeserver template with well-known delegation           | `templates/synapse/`       |
 | [Tomcat](templates/tomcat/)               | Reverse proxy template with servlet-friendly defaults            | `templates/tomcat/`        |
 | [Tuwunel](templates/tuwunel/)             | Matrix homeserver reverse proxy with WebSocket and delegation    | `templates/tuwunel/`       |
