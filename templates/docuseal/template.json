@@ -1,0 +1,113 @@
+{
+  "id": "docuseal",
+  "name": "Open source DocuSign alternative. Create, fill, and sign digital documents ✍️",
+  "settings": {
+    "SERVER_NAME": "docuseal.example.com",
+    "USE_ANTIBOT": "javascript",
+    "ANTIBOT_IGNORE_URI": "^/api/",
+    "CLIENT_CACHE_CONTROL": "public, max-age=604800",
+    "BLACKLIST_COUNTRY": "CF CN IN RU ZA",
+    "CROWDSEC_API": "http://127.0.0.1:8080",
+    "CROWDSEC_API_KEY": "replace-with-your-crowdsec-api-key",
+    "CROWDSEC_APPSEC_URL": "http://127.0.0.1:7422",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
+    "GZIP_PROXIED": "expired no-cache no-store private auth",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "LIMIT_CONN_MAX_HTTP1": "25",
+    "LIMIT_CONN_MAX_HTTP2": "200",
+    "LIMIT_CONN_MAX_HTTP3": "200",
+    "LIMIT_REQ_RATE": "60r/s",
+    "ALLOWED_METHODS": "GET|PUT|POST|HEAD|QUERY|DELETE|PATCH",
+    "MAX_CLIENT_SIZE": "50m",
+    "SERVE_FILES": "no",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_HOST": "http://docuseal",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "WHITELIST_IP": "194.163.173.229 57.129.118.35 57.129.118.37",
+    "WHITELIST_URI": "acme-v01.api.letsencrypt.org acme-staging.api.letsencrypt.org acme-v02.api.letsencrypt.org acme-staging-v02.api.letsencrypt.org"
+  },
+  "configs": [],
+  "steps": [
+    {
+      "title": "Web service - Front door",
+      "subtitle": "Configure server / core settings.",
+      "settings": [
+        "SERVER_NAME"
+      ]
+    },
+    {
+      "title": "SSL / Let's Encrypt",
+      "subtitle": "Configure ssl / let's encrypt settings.",
+      "settings": [
+        "AUTO_LETS_ENCRYPT",
+        "EMAIL_LETS_ENCRYPT"
+      ]
+    },
+    {
+      "title": "Reverse Proxy",
+      "subtitle": "Configure reverse proxy settings.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_BUFFERING"
+      ]
+    },
+    {
+      "title": "Rate Limiting",
+      "subtitle": "Configure rate limiting settings.",
+      "settings": [
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3",
+        "LIMIT_REQ_RATE"
+      ]
+    },
+    {
+      "title": "Security",
+      "subtitle": "Configure security settings.",
+      "settings": [
+        "USE_ANTIBOT",
+        "CROWDSEC_API",
+        "CROWDSEC_API_KEY",
+        "CROWDSEC_APPSEC_URL"
+      ]
+    },
+    {
+      "title": "Performance",
+      "subtitle": "Configure performance settings.",
+      "settings": [
+        "GZIP_PROXIED",
+        "MAX_CLIENT_SIZE",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "Whitelist / Allowlist",
+      "subtitle": "Configure whitelist / allowlist settings.",
+      "settings": [
+        "WHITELIST_IP"
+      ]
+    },
+    {
+      "title": "Other",
+      "subtitle": "Configure other settings.",
+      "settings": [
+        "KEEP_UPSTREAM_HEADERS"
+      ]
+    },
+    {
+      "title": "Other settings",
+      "subtitle": "Additional settings for this service.",
+      "settings": [
+        "ANTIBOT_IGNORE_URI",
+        "CLIENT_CACHE_CONTROL",
+        "BLACKLIST_COUNTRY",
+        "INTERCEPTED_ERROR_CODES",
+        "ALLOWED_METHODS",
+        "WHITELIST_URI"
+      ]
+    }
+  ]
+}
