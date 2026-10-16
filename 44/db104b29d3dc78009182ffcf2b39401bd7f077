@@ -1,0 +1,39 @@
+CHANGELOG.md
+  s_e8917a61014dbb::t_b0602fe0b2344c 16
+templates/synapse/README.md
+  s_e8917a61014dbb::t_dd1b98c6d70011 23,51-68
+templates/synapse/configs/modsec-crs/synapse_false_positives.conf
+  s_6693ab8e04c897::t_70cc52b0b3d441 1-46
+templates/synapse/template.json
+  s_e8917a61014dbb::t_bc2906aa720ad7 47-50,99-100
+templates/tuwunel/README.md
+  s_e8917a61014dbb::t_e49562c42c137e 16,34-51,56
+templates/tuwunel/configs/modsec-crs/tuwunel_false_positives.conf
+  s_6693ab8e04c897::t_7072606fd794af 1-46
+templates/tuwunel/template.json
+  s_e8917a61014dbb::t_274bcb4b61e70e 48-51,99-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "44db104b29d3dc78009182ffcf2b39401bd7f077",
+  "prompts": {},
+  "sessions": {
+    "s_6693ab8e04c897": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e4b289d-3338-4e29-b32c-4ed1deee71a3",
+        "model": "unknown"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_e8917a61014dbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ff350ad-bc0b-4556-8679-17b87e179e57",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
