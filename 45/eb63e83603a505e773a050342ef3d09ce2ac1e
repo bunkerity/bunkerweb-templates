@@ -1,0 +1,23 @@
+templates/seafile/template.json
+  s_dbc40e8182d88a::t_e1982d34424c28 11,51
+templates/seafile/README.md
+  s_dbc40e8182d88a::t_21c2472bd6e3bb 40-44
+CHANGELOG.md
+  s_dbc40e8182d88a::t_d66b33c704c81a 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "45eb63e83603a505e773a050342ef3d09ce2ac1e",
+  "prompts": {},
+  "sessions": {
+    "s_dbc40e8182d88a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a571009-8538-4a79-a1e3-212651aba2a9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
