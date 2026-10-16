@@ -30,8 +30,20 @@ environment allows it:
   genuine bad actor out without causing long self-lockouts on a fat-fingered day.
 - **`LIMIT_REQ_RATE=20r/s`** — the admin dashboard polls its own API several times
   a second, so a lower rate would throttle normal use.
+- **`ALLOWED_METHODS=GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE`**: the Pi-hole API changes
+  settings with `PATCH`, and creates, updates and deletes entries with `PUT` and `DELETE`.
+  BunkerWeb's default list answers `405` to all three.
+- **`MAX_CLIENT_SIZE=100m`**: a Teleporter backup import can reach 20 MB or more, above the
+  `10m` default that answers `413`.
 - **`USE_METRICS=no`** — metrics are disabled to keep small instances light.
   Re-enable it if you want BunkerWeb's metrics page.
+
+## Host header
+
+Pi-hole answers `403` on `/` unless the request carries `Host: pi.hole`, because its web
+server redirects by host name. The template sets `REVERSE_PROXY_CUSTOM_HOST=pi.hole`, so
+BunkerWeb sends `pi.hole` as the upstream `Host` header instead of the public host name. The
+setting is unsuffixed: `REVERSE_PROXY_CUSTOM_HOST_1` has no effect.
 
 ## Cloudflare real IP assumption
 
@@ -66,6 +78,8 @@ EMAIL_LETS_ENCRYPT=registration@example.com
 LIMIT_CONN_MAX_HTTP2=50
 LIMIT_CONN_MAX_HTTP3=50
 LIMIT_REQ_RATE=20r/s
+MAX_CLIENT_SIZE=100m
+ALLOWED_METHODS=GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE
 USE_METRICS=no
 USE_REAL_IP=yes
 REAL_IP_FROM=172.64.0.0/13 104.16.0.0/13
@@ -73,6 +87,7 @@ REAL_IP_HEADER=CF-Connecting-IP
 USE_REVERSE_PROXY=yes
 REVERSE_PROXY_URL_1=/
 REVERSE_PROXY_HOST_1=http://pihole-server-ip:80
+REVERSE_PROXY_CUSTOM_HOST=pi.hole
 REVERSE_PROXY_WS_1=yes
 REVERSE_PROXY_KEEPALIVE_1=yes
 REVERSE_PROXY_HIDE_HEADERS_1=
