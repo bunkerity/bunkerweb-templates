@@ -19,6 +19,8 @@ instance stays reachable and protected.
   It is a `modsec-crs` config on purpose: those load **before** the CRS rules, which is the only point
   where `tx.crs_exclusions_nextcloud` is still read. The same file under `modsec/` would load after the
   CRS and do nothing.
+  It also lets WebDAV `UNLOCK` under `/remote.php/dav/files/` carry a `Lock-Token` header: the plugin
+  covers `If` but not `Lock-Token`, so CRS rule `920450` would otherwise answer `403`.
 
 ## Setup
 
@@ -125,6 +127,9 @@ earn a ban during normal operation.
 - CRS plugins require CRS v4. If you drop the service to `MODSECURITY_CRS_VERSION=3`, the plugin setting
   is ignored and `configs/modsec-crs/nextcloud_false_positives.conf` takes over by setting
   `tx.crs_exclusions_nextcloud=1`, which activates the exclusion set shipped inside CRS v3.
+- The `UNLOCK` exception rewrites `tx.restricted_headers_basic` for that one request, with the list
+  copied from the CRS bundled with BunkerWeb. Re-check the list in
+  `configs/modsec-crs/nextcloud_false_positives.conf` after a BunkerWeb upgrade that bumps the CRS.
 - `ALLOWED_METHODS` is enforced by BunkerWeb itself (405 on anything not listed), not by the CRS.
   BunkerWeb also generates the CRS `tx.allowed_methods` rule (id `900200`) from that same setting, so
   redefining `900200` in a custom config is redundant.
