@@ -19,6 +19,8 @@ allow lists tuned for typical Java web applications.
 
 - `template.json` – Template definition that guides TLS, reverse proxy, and
   servlet tuning configuration.
+- `configs/modsec-crs/tomcat_false_positives.conf` – ModSecurity CRS exclusion for the
+  Manager WAR deployment.
 
 ## Setup
 
@@ -39,6 +41,12 @@ allow lists tuned for typical Java web applications.
 
 - Increase `MAX_CLIENT_SIZE` if your application handles large uploads (such as
   multi-gigabyte WAR deployments).
+- `REVERSE_PROXY_WS=yes` forwards WebSocket upgrades to the servlets. Set it to `no` if your
+  applications do not use WebSockets.
+- The Manager text interface deploys a WAR with `PUT /manager/text/deploy` and an
+  `application/octet-stream` body, which CRS rule `920420` blocks. `modsec-crs/tomcat_false_positives.conf`
+  removes that rule for this method and path only. Keep Tomcat's `RemoteAddrValve` on the
+  Manager application so that only trusted addresses can deploy.
 - Narrow `ALLOWED_METHODS` when you know the servlet endpoints only accept a
   subset of verbs.
 - Disable `USE_CLIENT_CACHE` for highly dynamic applications that must bypass

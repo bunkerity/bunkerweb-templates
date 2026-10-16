@@ -19,12 +19,14 @@
     "USE_REVERSE_PROXY": "yes",
     "REVERSE_PROXY_URL": "/",
     "REVERSE_PROXY_HOST": "http://mytomcat:8080",
+    "REVERSE_PROXY_WS": "yes",
     "SERVE_FILES": "no",
     "USE_CLIENT_CACHE": "yes",
     "USE_GZIP": "yes",
     "MAX_CLIENT_SIZE": "100m",
     "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|OPTIONS"
   },
+  "configs": ["modsec-crs/tomcat_false_positives.conf"],
   "steps": [
     {
       "title": "Web service - Front service",
@@ -52,7 +54,8 @@
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_HOST",
-        "REVERSE_PROXY_URL"
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_WS"
       ]
     },
     {
@@ -63,7 +66,8 @@
     {
       "title": "HTTP - Servlet tuning",
       "subtitle": "Adjust request limits and allowed methods for Tomcat apps.",
-      "settings": ["MAX_CLIENT_SIZE", "ALLOWED_METHODS"]
+      "settings": ["MAX_CLIENT_SIZE", "ALLOWED_METHODS"],
+      "configs": ["modsec-crs/tomcat_false_positives.conf"]
     }
   ]
 }
