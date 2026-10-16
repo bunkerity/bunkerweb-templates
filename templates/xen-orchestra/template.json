@@ -1,7 +1,7 @@
 {
   "id": "xen-orchestra",
   "name": "Xen Orchestra reverse proxy with WebSocket support",
-  "configs": ["modsec/xen-orchestra_false_positives.conf"],
+  "configs": ["modsec-crs/xen-orchestra_false_positives.conf"],
   "settings": {
     "SERVER_NAME": "xo.example.com",
     "USE_REVERSE_PROXY": "yes",
@@ -32,8 +32,6 @@
     "USE_MODSECURITY_CRS": "yes",
     "SECURITY_MODE": "block",
     "LIMIT_REQ_RATE": "6r/s",
-    "LIMIT_REQ_URL_1": "/jsonrpc",
-    "LIMIT_REQ_RATE_1": "15r/s",
     "LIMIT_CONN_MAX_HTTP1": "50",
     "LIMIT_CONN_MAX_HTTP2": "200",
     "LIMIT_CONN_MAX_HTTP3": "200",
@@ -83,11 +81,9 @@
     },
     {
       "title": "Rate limiting",
-      "subtitle": "Configure connection and request limits — /jsonrpc is given a higher limit to allow Xen Orchestra's API polling",
+      "subtitle": "Configure connection and request limits for Xen Orchestra traffic",
       "settings": [
         "LIMIT_REQ_RATE",
-        "LIMIT_REQ_URL_1",
-        "LIMIT_REQ_RATE_1",
         "LIMIT_CONN_MAX_HTTP1",
         "LIMIT_CONN_MAX_HTTP2",
         "LIMIT_CONN_MAX_HTTP3"
@@ -111,7 +107,7 @@
         "COOKIE_FLAGS",
         "INTERCEPTED_ERROR_CODES"
       ],
-      "configs": ["modsec/xen-orchestra_false_positives.conf"]
+      "configs": ["modsec-crs/xen-orchestra_false_positives.conf"]
     }
   ]
 }
