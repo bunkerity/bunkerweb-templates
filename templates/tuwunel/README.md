@@ -42,7 +42,9 @@ This template delegates federation to port `443` via `/.well-known/matrix/server
 ## Customization Tips
 
 - Update `REVERSE_PROXY_HOST` to point at your Tuwunel instance (e.g. `http://tuwunel:8008`).
+- `REVERSE_PROXY_INTERCEPT_ERRORS` is `no` so Matrix clients receive Tuwunel's JSON errors (`M_FORBIDDEN`, `M_NOT_FOUND`) instead of BunkerWeb's HTML error page.
 - Adjust `MAX_CLIENT_SIZE` if you need to support larger media uploads.
+- Tuwunel's own `max_request_size` defaults to 24 MiB, below `MAX_CLIENT_SIZE`; raise it in `tuwunel.toml` to match when you need larger uploads.
 - Tune `LIMIT_REQ_RATE` if your homeserver serves many clients and the default `15r/s` is too strict.
 - The crawler whitelist is disabled by default (`USE_WHITELIST=no`): a Matrix homeserver serves an API, not crawlable pages, so rDNS crawler bypass adds no value. Set `USE_WHITELIST=yes` (and add `WHITELIST_RDNS`) only if you have a specific reason.
 
