@@ -1,0 +1,19 @@
+templates/drupal/configs/modsec-crs/drupal_false_positives.conf
+  s_e8917a61014dbb::t_e4a737159e7d2a 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8949153808ffdf94018757de3dee047d5800160c",
+  "prompts": {},
+  "sessions": {
+    "s_e8917a61014dbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ff350ad-bc0b-4556-8679-17b87e179e57",
+        "model": "unknown"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
