@@ -1,0 +1,25 @@
+CHANGELOG.md
+  s_e8917a61014dbb::t_f5c7c8eb5e02e9 15
+templates/wordpress/README.md
+  s_e8917a61014dbb::t_089db26404371c 7,9-11,27,42-44
+templates/wordpress/configs/modsec-crs/wordpress_crs_tuning.conf
+  s_e8917a61014dbb::t_97b3c52908c127 25-54
+templates/wordpress/template.json
+  s_e8917a61014dbb::t_4c254f014a3703 23,26-28,83-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "277dbf2ec1693a08c15ef240be6631296ed12ab6",
+  "prompts": {},
+  "sessions": {
+    "s_e8917a61014dbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ff350ad-bc0b-4556-8679-17b87e179e57",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
