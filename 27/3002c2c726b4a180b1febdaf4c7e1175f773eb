@@ -1,0 +1,23 @@
+CHANGELOG.md
+  s_e8917a61014dbb::t_970d9d65a8e001 14
+templates/pi-hole/README.md
+  s_e8917a61014dbb::t_41cc90e46330d7 33-37,41-47,81-82,90
+templates/pi-hole/template.json
+  s_e8917a61014dbb::t_36c8c089150bc7 18-19,27,48,66-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "273002c2c726b4a180b1febdaf4c7e1175f773eb",
+  "prompts": {},
+  "sessions": {
+    "s_e8917a61014dbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ff350ad-bc0b-4556-8679-17b87e179e57",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
