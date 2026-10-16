@@ -13,6 +13,7 @@ Provision a curated BunkerWeb configuration for [Tuwunel](https://github.com/mat
 ## Files
 
 - `template.json` – BunkerWeb template definition containing default settings, configs, and guided steps.
+- `configs/modsec-crs/tuwunel_false_positives.conf` – ModSecurity CRS exclusions for Matrix clients.
 - `configs/server-http/well-known.conf` – Serves the `/.well-known/matrix/client` and `/.well-known/matrix/server` delegation endpoints.
 
 ## DNS and .well-known Delegation
@@ -30,11 +31,29 @@ The wildcard `Access-Control-Allow-Origin` header on those endpoints is required
 
 This template delegates federation to port `443` via `/.well-known/matrix/server`, so other homeservers reach you over standard HTTPS through BunkerWeb — no need to expose the dedicated Matrix federation port `8448`. If you prefer serving federation directly on `8448` instead of delegating, drop the `/.well-known/matrix/server` block and open that port to Tuwunel separately.
 
+## ModSecurity exclusions
+
+`configs/modsec-crs/tuwunel_false_positives.conf` removes three CRS false positives that Matrix
+clients trigger. Each rule is limited to one method and one path shape:
+
+- `920440` (restricted file extension) on `GET`, `PUT`, and `DELETE` of
+  `/_matrix/client/{r0,v3}/profile/<id>`, `.../rooms/<room>/typing/<id>`, and
+  `.../directory/room/<alias>` when the user id or alias ends in `.com`.
+  Identifiers ending in any other restricted extension stay blocked.
+- `920420` (content type) on `POST` and `PUT` of `/_matrix/media/{r0,v3}/upload`, the media
+  upload sent as `application/octet-stream`.
+- `942100` (SQL injection) on the `body` and `formatted_body` JSON fields of
+  `PUT /_matrix/client/{r0,v3}/rooms/<room>/send/<type>/<txn>`, which hold chat text that can
+  mention SQL. Every other SQL injection rule, field, and path stays active.
+
+Chat messages that contain shell commands still trigger the `930120`, `932xxx`, and `941xxx`
+rules; the template does not exclude them because that would need an exclusion on all chat text.
+
 ## Setup
 
 1. **Import the template**
    - Follow the repository's [installation guide](../../README.md#installing-templates) for the web UI or
-     plugin bundle method. When prompted for custom configs, upload `configs/server-http/well-known.conf`.
+     plugin bundle method. When prompted for custom configs, upload `configs/server-http/well-known.conf` and `configs/modsec-crs/tuwunel_false_positives.conf`.
 2. **Assign the template** to your Matrix service via the easy-mode UI or by setting `USE_TEMPLATE=tuwunel`.
 3. **Customize the settings** highlighted in the template steps (server name, upstream host, TLS options) and edit `well-known.conf` as described above.
 4. **Reload the service** and verify that `https://<your-domain>/.well-known/matrix/client` and `/.well-known/matrix/server` return your delegation JSON.

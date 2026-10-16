@@ -44,7 +44,10 @@
     "USE_GZIP": "yes",
     "USE_BROTLI": "yes"
   },
-  "configs": ["server-http/well-known.conf"],
+  "configs": [
+    "server-http/well-known.conf",
+    "modsec-crs/synapse_false_positives.conf"
+  ],
   "steps": [
     {
       "title": "Web service - Front service",
@@ -93,7 +96,8 @@
         "LIMIT_REQ_URL",
         "LIMIT_REQ_RATE",
         "INTERCEPTED_ERROR_CODES"
-      ]
+      ],
+      "configs": ["modsec-crs/synapse_false_positives.conf"]
     },
     {
       "title": "Security - Access whitelisting",

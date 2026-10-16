@@ -20,6 +20,7 @@ clients and federating servers can discover the homeserver.
 
 - `template.json` – Template definition with steps for TLS, reverse proxy, HTTP
   limits, whitelisting, and well-known delegation.
+- `configs/modsec-crs/synapse_false_positives.conf` – ModSecurity CRS exclusions for Matrix clients.
 - `configs/server-http/well-known.conf` – Serves `/.well-known/matrix/client`
   and `/.well-known/matrix/server` for delegation. **Replace the placeholder
   `example.com` with your own Matrix hostname before importing.**
@@ -46,6 +47,24 @@ proxy TURN.
 `MAX_CLIENT_SIZE` is set to `50m` so media uploads succeed. Align this with the
 `max_upload_size` configured in your Synapse `homeserver.yaml`, and raise both
 if you expect larger files.
+
+## ModSecurity exclusions
+
+`configs/modsec-crs/synapse_false_positives.conf` removes three CRS false positives that Matrix
+clients trigger. Each rule is limited to one method and one path shape:
+
+- `920440` (restricted file extension) on `GET`, `PUT`, and `DELETE` of
+  `/_matrix/client/{r0,v3}/profile/<id>`, `.../rooms/<room>/typing/<id>`, and
+  `.../directory/room/<alias>` when the user id or alias ends in `.com`.
+  Identifiers ending in any other restricted extension stay blocked.
+- `920420` (content type) on `POST` and `PUT` of `/_matrix/media/{r0,v3}/upload`, the media
+  upload sent as `application/octet-stream`.
+- `942100` (SQL injection) on the `body` and `formatted_body` JSON fields of
+  `PUT /_matrix/client/{r0,v3}/rooms/<room>/send/<type>/<txn>`, which hold chat text that can
+  mention SQL. Every other SQL injection rule, field, and path stays active.
+
+Chat messages that contain shell commands still trigger the `930120`, `932xxx`, and `941xxx`
+rules; the template does not exclude them because that would need an exclusion on all chat text.
 
 ## Setup
 

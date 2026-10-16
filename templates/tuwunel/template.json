@@ -45,7 +45,10 @@
     "BAD_BEHAVIOR_STATUS_CODES": "405",
     "BAD_BEHAVIOR_THRESHOLD": "100"
   },
-  "configs": ["server-http/well-known.conf"],
+  "configs": [
+    "server-http/well-known.conf",
+    "modsec-crs/tuwunel_false_positives.conf"
+  ],
   "steps": [
     {
       "title": "Web service - Front service",
@@ -93,7 +96,8 @@
         "USE_LIMIT_REQ",
         "LIMIT_REQ_URL",
         "LIMIT_REQ_RATE"
-      ]
+      ],
+      "configs": ["modsec-crs/tuwunel_false_positives.conf"]
     },
     {
       "title": "Security - Access control",
