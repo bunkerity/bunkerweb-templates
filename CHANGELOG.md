@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Fix the Seafile template: add `REVERSE_PROXY_HEADERS` with `X-Forwarded-Protocol ""` and expose it in the guided step. BunkerWeb sends both `X-Forwarded-Proto` and `X-Forwarded-Protocol`, and Seafile's gunicorn answered `400` to every request that carried the pair.
 - [@alfi4000] Add a Seafile template with upload, WebDAV, rate-limit, and reverse-proxy defaults.
 - [@TheophileDiot] Fix the NetBird template: add `REVERSE_PROXY_HEADERS` with `X-Real-Port $remote_port` so the relay receives the client's original port, expose it in the guided step, and document the header in the README.
 - [@TheophileDiot] Fix the openGym template: the bad-behavior code list was named `BAD_BEHAVIOR_STATUS_CODE`, which is not a BunkerWeb setting and was silently ignored, so the default list applied and `401` still counted toward the ban threshold — the opposite of what the template intended. Renamed to `BAD_BEHAVIOR_STATUS_CODES` in the settings, the guided step and the README.

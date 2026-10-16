@@ -37,6 +37,11 @@ The `COOKIE_FLAGS_4` override deliberately omits `HttpOnly` for Seafile's `sfcsr
 narrows BunkerWeb's wildcard cookie policy so Seahub can read the CSRF token without weakening the
 flags on other cookies.
 
+`REVERSE_PROXY_HEADERS` blanks `X-Forwarded-Protocol`. BunkerWeb sends both `X-Forwarded-Proto` and
+`X-Forwarded-Protocol`, and Seafile's gunicorn answers `400` to every request that carries the pair.
+Seahub only reads `X-Forwarded-Proto`, so removing the duplicate is enough. Keep this header override
+if you add routes of your own that proxy to Seahub.
+
 ## Uploads, WebDAV, and notifications
 
 `MAX_CLIENT_SIZE=512m` limits each request, not the total file size used by chunked clients. Raising it
