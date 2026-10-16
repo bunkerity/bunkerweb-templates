@@ -20,10 +20,12 @@
     "REVERSE_PROXY_URL": "/",
     "REVERSE_PROXY_HOST": "http://mywp",
     "MAX_CLIENT_SIZE": "50m",
-    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|DELETE",
     "USE_LIMIT_REQ": "yes",
     "LIMIT_REQ_URL": "/",
-    "LIMIT_REQ_RATE": "5r/s",
+    "LIMIT_REQ_RATE": "50r/s",
+    "LIMIT_REQ_URL_1": "/wp-login.php",
+    "LIMIT_REQ_RATE_1": "2r/s",
     "INTERCEPTED_ERROR_CODES": "400 401 403 404 405 413 429 501 502 503 504",
     "USE_WHITELIST": "yes",
     "WHITELIST_IP": "",
@@ -78,6 +80,8 @@
         "USE_LIMIT_REQ",
         "LIMIT_REQ_URL",
         "LIMIT_REQ_RATE",
+        "LIMIT_REQ_URL_1",
+        "LIMIT_REQ_RATE_1",
         "INTERCEPTED_ERROR_CODES"
       ]
     },
