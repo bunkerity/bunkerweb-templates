@@ -24,11 +24,14 @@
     "USE_GZIP": "yes",
     "USE_LIMIT_REQ": "yes",
     "LIMIT_REQ_URL": "/",
-    "LIMIT_REQ_RATE": "2r/s",
+    "LIMIT_REQ_RATE": "50r/s",
     "LIMIT_REQ_URL_1": "/core/install.php",
     "LIMIT_REQ_RATE_1": "5r/s",
+    "MAX_CLIENT_SIZE": "100m",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PATCH|DELETE",
     "MODSECURITY_CRS_PLUGINS": "drupal-rule-exclusions"
   },
+  "configs": ["modsec-crs/drupal_false_positives.conf"],
   "steps": [
     {
       "title": "Web service - Front service",
@@ -66,15 +69,18 @@
     },
     {
       "title": "Security - Drupal hardening",
-      "subtitle": "Rate-limit the installer and enable Drupal CRS exclusions.",
+      "subtitle": "Rate-limit the installer, allow JSON:API methods and uploads, and enable Drupal CRS exclusions.",
       "settings": [
         "USE_LIMIT_REQ",
         "LIMIT_REQ_URL",
         "LIMIT_REQ_RATE",
         "LIMIT_REQ_URL_1",
         "LIMIT_REQ_RATE_1",
+        "MAX_CLIENT_SIZE",
+        "ALLOWED_METHODS",
         "MODSECURITY_CRS_PLUGINS"
-      ]
+      ],
+      "configs": ["modsec-crs/drupal_false_positives.conf"]
     }
   ]
 }

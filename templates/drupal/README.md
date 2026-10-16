@@ -20,6 +20,8 @@ reliable.
 
 - `template.json` – Template definition with guided steps for TLS, upstream, and
   hardening options.
+- `configs/modsec-crs/drupal_false_positives.conf` – ModSecurity CRS tuning for the JSON:API
+  content type and file uploads.
 
 ## Setup
 
@@ -42,7 +44,16 @@ reliable.
 - Set `REVERSE_PROXY_HOST` to the internal scheme and port of your Drupal
   service.
 - Increase `LIMIT_REQ_RATE_*` temporarily if scripted migrations or updates need
-  higher throughput.
+  higher throughput. `LIMIT_REQ_RATE` is `50r/s` on `/`: a lower rate answers `429` while the
+  installer or an admin page loads its assets.
+- `MAX_CLIENT_SIZE=100m` lets large image and file uploads through (the BunkerWeb default of
+  `10m` answers `413`). Keep it in line with PHP's `upload_max_filesize` and `post_max_size`.
+- `ALLOWED_METHODS` includes `PATCH`, `DELETE`, and `OPTIONS`, which JSON:API clients and CORS
+  preflights need. Drop them if you do not expose JSON:API.
+- `modsec-crs/drupal_false_positives.conf` allows the `application/vnd.api+json` content type
+  and arms the JSON body parser for it, so request bodies stay inspected. It also lets
+  `application/octet-stream` through for `POST /jsonapi/<entity>/<bundle>[/<uuid>]/field_*`,
+  the JSON:API file upload route, and nowhere else.
 - Leave `SERVE_FILES=no` so Drupal handles asset delivery; enable it only if you
   move static files to an object store behind BunkerWeb.
 - `MODSECURITY_CRS_PLUGINS=drupal-rule-exclusions` keeps Drupal management
