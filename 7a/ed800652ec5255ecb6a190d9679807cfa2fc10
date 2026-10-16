@@ -1,0 +1,23 @@
+templates/nextcloud/README.md
+  s_dbc40e8182d88a::t_eb77a7852f1cf4 22-23,130-132
+CHANGELOG.md
+  s_dbc40e8182d88a::t_d66b33c704c81a 10
+templates/nextcloud/configs/modsec-crs/nextcloud_false_positives.conf
+  s_dbc40e8182d88a::t_b46a933f8577fb 19-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7aed800652ec5255ecb6a190d9679807cfa2fc10",
+  "prompts": {},
+  "sessions": {
+    "s_dbc40e8182d88a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a571009-8538-4a79-a1e3-212651aba2a9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
