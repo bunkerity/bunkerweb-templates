@@ -1,0 +1,143 @@
+{
+  "id": "projectsend",
+  "name": "Share files with your clients, from your own server. Free, open source (GPLv2), self-hosted — or use ProjectSend Cloud, the official hosted version run by the same team.",
+  "settings": {
+    "SERVER_NAME": "projectsend.example.com",
+    "USE_ANTIBOT": "javascript",
+    "ANTIBOT_IGNORE_URI": "^/build/ ^/api/ ^/share/ ^/uploads ^/zip-downloads",
+    "BAD_BEHAVIOR_THRESHOLD": "20",
+    "CLIENT_CACHE_ETAG": "no",
+    "USE_CROWDSEC": "yes",
+    "CROWDSEC_API": "http://127.0.0.1:8080",
+    "CROWDSEC_API_KEY": "replace-with-your-crowdsec-api-key",
+    "CROWDSEC_APPSEC_URL": "http://127.0.0.1:7422/",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
+    "GZIP_PROXIED": "expired no-cache no-store private auth",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy",
+    "CONTENT_SECURITY_POLICY_REPORT_ONLY": "yes",
+    "COOKIE_FLAGS_2": "projectsend_xsrf SameSite=Lax",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "LIMIT_CONN_MAX_HTTP1": "50",
+    "LIMIT_CONN_MAX_HTTP2": "500",
+    "LIMIT_CONN_MAX_HTTP3": "500",
+    "LIMIT_REQ_RATE": "25r/s",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS",
+    "MAX_CLIENT_SIZE": "10m",
+    "SERVE_FILES": "no",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "PROXY_BUFFERS": "8 32k",
+    "PROXY_BUFFER_SIZE": "32k",
+    "PROXY_BUSY_BUFFERS_SIZE": "64k",
+    "REVERSE_PROXY_HOST": "http://projectsend",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "REVERSE_PROXY_REQUEST_BUFFERING": "no",
+    "REVERSE_PROXY_READ_TIMEOUT": "3600s",
+    "REVERSE_PROXY_SEND_TIMEOUT": "3600s",
+    "USE_ROBOTSTXT": "yes",
+    "WHITELIST_IP": ""
+  },
+  "configs": [
+    "modsec-crs/modsec-crs-exclude-projectsend.conf"
+  ],
+  "steps": [
+    {
+      "title": "Web service - Front door",
+      "subtitle": "Configure server / core settings.",
+      "settings": [
+        "SERVER_NAME"
+      ]
+    },
+    {
+      "title": "SSL / Let's Encrypt",
+      "subtitle": "Configure ssl / let's encrypt settings.",
+      "settings": [
+        "AUTO_LETS_ENCRYPT",
+        "EMAIL_LETS_ENCRYPT"
+      ]
+    },
+    {
+      "title": "Reverse Proxy",
+      "subtitle": "Configure reverse proxy settings.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_BUFFERING",
+        "REVERSE_PROXY_REQUEST_BUFFERING",
+        "REVERSE_PROXY_READ_TIMEOUT",
+        "REVERSE_PROXY_SEND_TIMEOUT"
+      ]
+    },
+    {
+      "title": "Rate Limiting",
+      "subtitle": "Configure rate limiting settings.",
+      "settings": [
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3",
+        "LIMIT_REQ_RATE"
+      ]
+    },
+    {
+      "title": "Security",
+      "subtitle": "Configure security settings.",
+      "settings": [
+        "USE_ANTIBOT",
+        "ANTIBOT_IGNORE_URI",
+        "BAD_BEHAVIOR_THRESHOLD",
+        "USE_CROWDSEC",
+        "CROWDSEC_API",
+        "CROWDSEC_API_KEY"
+      ]
+    },
+    {
+      "title": "Performance",
+      "subtitle": "Configure performance settings.",
+      "settings": [
+        "CLIENT_CACHE_ETAG",
+        "GZIP_PROXIED",
+        "MAX_CLIENT_SIZE",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "Whitelist / Allowlist",
+      "subtitle": "Configure whitelist / allowlist settings.",
+      "settings": [
+        "WHITELIST_IP"
+      ]
+    },
+    {
+      "title": "Other",
+      "subtitle": "Configure other settings.",
+      "settings": [
+        "KEEP_UPSTREAM_HEADERS",
+        "PROXY_BUFFERS",
+        "PROXY_BUFFER_SIZE",
+        "PROXY_BUSY_BUFFERS_SIZE",
+        "USE_ROBOTSTXT"
+      ]
+    },
+    {
+      "title": "Fale Positives - False Positives Exclusion config",
+      "subtitle": "Modsec CRS Config file to prevent false positives.",
+      "settings": [],
+      "configs": [
+        "modsec-crs/modsec-crs-exclude-projectsend.conf"
+      ]
+    },
+    {
+      "title": "Other settings",
+      "subtitle": "Additional settings for this service.",
+      "settings": [
+        "CROWDSEC_APPSEC_URL",
+        "INTERCEPTED_ERROR_CODES",
+        "CONTENT_SECURITY_POLICY_REPORT_ONLY",
+        "COOKIE_FLAGS_2",
+        "ALLOWED_METHODS"
+      ]
+    }
+  ]
+}
