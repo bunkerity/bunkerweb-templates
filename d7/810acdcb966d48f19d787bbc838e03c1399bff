@@ -1,0 +1,47 @@
+templates/filestash-office/README.md
+  s_bd46f1bb0b944f::t_a90a98a7e7a4a5 1-25,27-177
+  s_bd46f1bb0b944f::t_44e0b1bd7ddcfb 26
+templates/filestash-office/template.json
+  s_bd46f1bb0b944f::t_d40ecbe32d1d74 3,9,13,16-28,30-31,36-38,41-42,49,51-54,58-64,73-75,78-79,87-89
+  s_bd46f1bb0b944f::t_43de128af251e1 82
+templates/filestash/template.json
+  s_bd46f1bb0b944f::t_43de128af251e1 94
+  s_bd46f1bb0b944f::t_f57ea8745e1289 3,9,13,16-33,35-36,38,41-43,46-47,54,56-59,63-69,80-81,86,90-91,99-101,104-107
+templates/filestash/configs/modsec-crs/filestash_false_positives.conf
+  s_665e5c98c08a53::t_150585005cd25b 28-30,41-43
+  s_665e5c98c08a53::t_bc92f414a29547 8-10
+  s_665e5c98c08a53::t_eaacc40ebad0e6 6-7
+  s_bd46f1bb0b944f::t_461a310667e345 1-5,12-27,31-40,44-57
+templates/filestash/README.md
+  s_bd46f1bb0b944f::t_3fd87cfae5fbdb 5-24,29-69,72-170,173-174,178-181,183-237,242-271
+  s_665e5c98c08a53::t_a79a50de6b1866 171,175-177
+  s_bd46f1bb0b944f::t_52ab67b1807b02 238-241
+  s_665e5c98c08a53::t_3e14df29b13e3f 182
+  s_bd46f1bb0b944f::t_ddb597e3114715 25-26
+  s_bd46f1bb0b944f::t_c27e90a1a32581 71
+  s_665e5c98c08a53::t_f087cbffbb98df 172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d7810acdcb966d48f19d787bbc838e03c1399bff",
+  "prompts": {},
+  "sessions": {
+    "s_665e5c98c08a53": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c49a8341-1f4f-4a8d-bce5-8bd12848ca83",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_bd46f1bb0b944f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ae12a9ab-edac-4d4d-bf22-80c966fdbd1e",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
