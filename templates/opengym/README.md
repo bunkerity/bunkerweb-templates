@@ -2,13 +2,13 @@
 
 ## Overview
 
-Provision a curated BunkerWeb configuration for openGym, the passkey-only workout tracking PWA. This
+Provision a curated BunkerWeb configuration for openGym, the workout tracking PWA. This
 template ships sensible defaults for TLS, reverse proxying, request throttling on the passkey and
-pairing endpoints, HSTS, and CRS exclusions tuned for WebAuthn traffic, so a self-hosted instance
-works through BunkerWeb without breaking sign-in or cloud sync.
+pairing endpoints, HSTS, and CRS exclusions tuned for WebAuthn, Web Push and workout notes, so a
+self-hosted instance works through BunkerWeb without breaking sign-in or cloud sync.
 
 openGym deliberately ships no rate limiting of its own and no HSTS, leaving both to the reverse
-proxy. Validated against openGym v1.2.11 and BunkerWeb 1.6.x with CRS 4.
+proxy. Validated against openGym v1.4.1 and BunkerWeb 1.6.17 with CRS 4.29.0.
 
 ## The session cookie is `__Host-` prefixed
 
@@ -54,13 +54,15 @@ Default (sync returns 405, then 413 once the method is allowed):
 Updated (sync works):
 
 ```text
-"ALLOWED_METHODS": "GET|POST|HEAD|PUT"
+"ALLOWED_METHODS": "GET|POST|HEAD|PUT|OPTIONS|DELETE"
 "MAX_CLIENT_SIZE": "6m"
 "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "6291456"
 ```
 
-`OPTIONS` and `DELETE` are omitted on purpose: openGym is same-origin only, emits no CORS headers,
-and exposes no route on either verb.
+`OPTIONS` reaches the API so the official mobile app can complete its CORS preflight. The API
+reflects `Origin` without allowing credentials, and the paired app authenticates with a Bearer
+token. `DELETE` serves the account password, email and passkey removal routes. These handlers live
+in `api/server.js`; the web PWA itself remains same-origin.
 
 ## Prerequisites
 
@@ -75,7 +77,7 @@ and exposes no route on either verb.
 - `template.json` – BunkerWeb template definition containing default settings, configs, and guided
   steps.
 - `configs/modsec/opengym_false_positives.conf` – ModSecurity CRS tuning for the base64url WebAuthn
-  ceremony bodies and the Web Push subscription endpoint.
+  ceremony bodies, the Web Push subscription endpoint and user-authored state sync.
 
 ## Setup
 
@@ -123,7 +125,12 @@ and exposes no route on either verb.
 - Review and narrow the WebAuthn exclusions in `configs/modsec/opengym_false_positives.conf` for
   your installation. They remove individual JSON parameters with `ctl:ruleRemoveTargetById`, scoped
   by an anchored path and the request method, so each CRS rule stays active everywhere else.
-  `PUT /api/data` deliberately keeps full CRS coverage.
+  `PUT /api/data` instead excludes the `attack-sqli` and `attack-rce` families for that exact path
+  and method. Routine and workout notes are free text, and openGym stores the state as a per-user
+  JSON file (`api/server.js`), never as SQL or a shell command. Array indices vary, and regex
+  runtime target exclusions fail to parse on the tested BunkerWeb 1.6.17 build, so this exception
+  covers the whole request, including query arguments, headers and sync metadata outside `state`.
+  XSS, LFI, PHP and protocol checks remain active, and anomaly scoring is unchanged.
 - If you raise the CRS paranoia level to 4, add an exclusion for rule 920273 as well. It matches
   base64url bodies but is inert at the default level 1, and it targets `REQUEST_BODY` rather than a
   named parameter, so it is left out of the shipped file.
@@ -132,34 +139,32 @@ and exposes no route on either verb.
 
 Run `jq . template.json` to confirm the JSON definition is valid before importing via the UI.
 
-To confirm the ModSecurity snippet parses against the same CRS your instance runs, load it
-alongside the rule set and check that the rule count rises by the three chains it adds:
+Load the snippet as a service-scoped `modsec` custom config on a multisite BunkerWeb instance,
+then run `nginx -t` in its BunkerWeb container before reloading it. A syntax error names the
+file and line; a successful parse alone does not prove an exclusion matches a request.
 
-```bash
-cat > main.conf <<'CONF'
-SecRuleEngine DetectionOnly
-Include /path/to/crs-setup.conf
-Include /path/to/coreruleset/rules/*.conf
-Include /path/to/configs/modsec/opengym_false_positives.conf
-CONF
+Local validation used `bunkerity/bunkerweb-all-in-one:1.6.17`, libmodsecurity 3.0.17, CRS 4.29.0,
+and a dummy upstream that always answered 200. All four chains parsed and reloaded together.
+JSON state bodies included `state`, `stamped`, `baseRev` and `baseWid`:
 
-cat > test.conf <<'CONF'
-load_module modules/ngx_http_modsecurity_module.so;
-events {}
-http {
-  modsecurity on;
-  server { listen 8099; modsecurity_rules_file main.conf; }
-}
-CONF
+| Request or note | Before sync exclusion | After |
+| --- | --- | --- |
+| `PUT /api/data`, note containing `; history` | 403 | 200 |
+| `PUT /api/data`, `21–15–9; load not reported` | 403 | 200 |
+| `PUT /api/data`, French workout note containing `; wall` | 403 | 200 |
+| `PUT /api/data`, reconstructed `20 kg bar` note with `; load not reported; sos` | 403 | 200 |
+| Same blocked note on `PUT /api/other` | 403 | 403 |
+| Same blocked note on `POST /api/data` | 403 | 403 |
+| `<script>alert(1)</script>` in a note on `PUT /api/data` | 403 | 403 |
 
-nginx -t -c "$PWD/test.conf"
-```
+The bar note's full production text was unavailable in the truncated audit log. The reconstruction
+reproduced a SQLi-family block, not the original libinjection fingerprint `sos` (`942100`).
 
-nginx prints the loaded rule count on start-up; it should rise by three against a run with the
-last `Include` removed. A wrong rule ID or a malformed `ctl:` action fails the parse and names the
-offending line and column.
+When rechecking a deployment, keep bad-behavior bans disabled on the isolated test instance so
+negative controls do not ban the test client. Reproduce the note's 403 before adding the exclusion;
+afterwards, require the path, method and XSS controls above to remain blocked by CRS.
 
-After a real sign-in, confirm the exclusions matched the parameters they were meant to. Set
-`SecDebugLogLevel 9` and look for `Skipped rule id` on `/api/login/verify`. If a CRS rule still
+After a real sign-in, confirm the WebAuthn exclusions matched the parameters they were meant to.
+Set `SecDebugLogLevel 9` and look for `Skipped rule id` on `/api/login/verify`. If a CRS rule still
 fires there, read `matched_var_name` from the log line: that is the exact target name to add to the
 chain, and it is the only reliable source for it.

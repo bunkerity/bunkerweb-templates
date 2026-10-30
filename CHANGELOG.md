@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Fix the openGym template: user-authored workout notes blocked every `PUT /api/data` sync and fed device bans. Exclude SQLi/RCE rule families only on that path and method, retaining XSS and other CRS checks; validate on BunkerWeb 1.6.17 and openGym v1.4.1. Allow official mobile app CORS preflights and account DELETE routes.
 - [@TheophileDiot] Fix the Seafile template: add `REVERSE_PROXY_HEADERS` with `X-Forwarded-Protocol ""` and expose it in the guided step. BunkerWeb sends both `X-Forwarded-Proto` and `X-Forwarded-Protocol`, and Seafile's gunicorn answered `400` to every request that carried the pair.
 - [@TheophileDiot] Fix the Tuwunel template: set `REVERSE_PROXY_INTERCEPT_ERRORS` to `no` so Matrix clients receive Tuwunel's JSON errors (`M_FORBIDDEN`, `M_NOT_FOUND`) instead of BunkerWeb's HTML error page, as the Synapse template already does. Document that Tuwunel's `max_request_size` defaults below `MAX_CLIENT_SIZE`.
 - [@TheophileDiot] Fix the Nextcloud template: add a `modsec-crs` rule that drops `/lock-token/` from `tx.restricted_headers_basic` for WebDAV `UNLOCK` under `/remote.php/dav/files/`, so CRS rule `920450` stops answering `403` to the `Lock-Token` header, which the `nextcloud-rule-exclusions` plugin does not cover.

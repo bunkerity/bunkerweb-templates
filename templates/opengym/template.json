@@ -22,7 +22,7 @@
     "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
     "MAX_CLIENT_SIZE": "6m",
     "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "6291456",
-    "ALLOWED_METHODS": "GET|POST|HEAD|PUT",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|OPTIONS|DELETE",
     "USE_LIMIT_REQ": "yes",
     "LIMIT_REQ_URL": "/",
     "LIMIT_REQ_RATE": "15r/s",
@@ -77,7 +77,7 @@
     },
     {
       "title": "HTTP - openGym sync constraints",
-      "subtitle": "Allow the PUT sync method and keep both body limits above the 5 MB application cap.",
+      "subtitle": "Allow sync, mobile preflights and account DELETE routes; keep both body limits above the 5 MB cap.",
       "settings": [
         "MAX_CLIENT_SIZE",
         "MODSECURITY_REQ_BODY_NO_FILES_LIMIT",
@@ -117,7 +117,7 @@
     },
     {
       "title": "Security - Review WAF tuning and exposure",
-      "subtitle": "Keep the WebAuthn CRS exclusions and decide whether to expose the health endpoint.",
+      "subtitle": "Review the WebAuthn, push and sync CRS exclusions, and decide whether to expose the health endpoint.",
       "configs": ["modsec/opengym_false_positives.conf"],
       "settings": [
         "USE_BAD_BEHAVIOR",
