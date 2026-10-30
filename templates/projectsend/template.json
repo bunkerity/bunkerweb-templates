@@ -1,0 +1,108 @@
+{
+  "id": "projectsend",
+  "name": "ProjectSend file sharing with chunked-upload-aware defaults",
+  "settings": {
+    "SERVER_NAME": "projectsend.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_HOST": "http://projectsend:80",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "REVERSE_PROXY_REQUEST_BUFFERING": "no",
+    "REVERSE_PROXY_READ_TIMEOUT": "3600s",
+    "REVERSE_PROXY_SEND_TIMEOUT": "3600s",
+    "PROXY_BUFFERS": "8 32k",
+    "PROXY_BUFFER_SIZE": "32k",
+    "PROXY_BUSY_BUFFERS_SIZE": "64k",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS",
+    "MAX_CLIENT_SIZE": "100m",
+    "LIMIT_CONN_MAX_HTTP1": "50",
+    "LIMIT_CONN_MAX_HTTP2": "500",
+    "LIMIT_CONN_MAX_HTTP3": "500",
+    "LIMIT_REQ_RATE": "25r/s",
+    "USE_ANTIBOT": "javascript",
+    "ANTIBOT_IGNORE_URI": "^/build/ ^/api/ ^/s/ ^/uploads(?:/|$) ^/zip-downloads(?:/|$)",
+    "BAD_BEHAVIOR_THRESHOLD": "20",
+    "COOKIE_FLAGS_2": "projectsend_xsrf SameSite=Lax",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy",
+    "CONTENT_SECURITY_POLICY_REPORT_ONLY": "yes",
+    "USE_GZIP": "yes",
+    "GZIP_PROXIED": "expired no-cache no-store private auth",
+    "SERVE_FILES": "no",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
+    "USE_ROBOTSTXT": "yes"
+  },
+  "configs": ["modsec-crs/projectsend_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Front door",
+      "subtitle": "Set the public hostname ProjectSend answers on.",
+      "settings": ["SERVER_NAME"]
+    },
+    {
+      "title": "SSL / Let's Encrypt",
+      "subtitle": "Obtain and renew the certificate automatically.",
+      "settings": ["AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse Proxy",
+      "subtitle": "Point BunkerWeb at the ProjectSend container and tune streaming for large uploads.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_BUFFERING",
+        "REVERSE_PROXY_REQUEST_BUFFERING",
+        "REVERSE_PROXY_READ_TIMEOUT",
+        "REVERSE_PROXY_SEND_TIMEOUT",
+        "PROXY_BUFFERS",
+        "PROXY_BUFFER_SIZE",
+        "PROXY_BUSY_BUFFERS_SIZE"
+      ]
+    },
+    {
+      "title": "Web service - ProjectSend specific settings",
+      "subtitle": "Allow the methods and the chunk size the resumable uploader needs.",
+      "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE"]
+    },
+    {
+      "title": "Rate Limiting",
+      "subtitle": "Cap concurrent connections and the request rate per client IP.",
+      "settings": [
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3",
+        "LIMIT_REQ_RATE"
+      ]
+    },
+    {
+      "title": "Security",
+      "subtitle": "Challenge bots, ban bad behavior and harden cookies and headers.",
+      "settings": [
+        "USE_ANTIBOT",
+        "ANTIBOT_IGNORE_URI",
+        "BAD_BEHAVIOR_THRESHOLD",
+        "COOKIE_FLAGS_2",
+        "KEEP_UPSTREAM_HEADERS",
+        "CONTENT_SECURITY_POLICY_REPORT_ONLY"
+      ]
+    },
+    {
+      "title": "Performance",
+      "subtitle": "Compress proxied responses and leave file serving to ProjectSend.",
+      "settings": ["USE_GZIP", "GZIP_PROXIED", "SERVE_FILES"]
+    },
+    {
+      "title": "Error pages and robots",
+      "subtitle": "Choose which upstream errors BunkerWeb replaces and serve a robots.txt.",
+      "settings": ["INTERCEPTED_ERROR_CODES", "USE_ROBOTSTXT"]
+    },
+    {
+      "title": "Security - ModSecurity false positives",
+      "subtitle": "Let the chunked upload part request through the OWASP Core Rule Set.",
+      "settings": [],
+      "configs": ["modsec-crs/projectsend_false_positives.conf"]
+    }
+  ]
+}
