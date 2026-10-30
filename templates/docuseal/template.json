@@ -1,0 +1,73 @@
+{
+  "id": "docuseal",
+  "name": "DocuSeal secure template with API-aware defaults",
+  "settings": {
+    "SERVER_NAME": "docuseal.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_HOST": "http://docuseal:3000",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "ALLOWED_METHODS": "GET|PUT|POST|HEAD|DELETE|PATCH|OPTIONS",
+    "MAX_CLIENT_SIZE": "50m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "10485760",
+    "SERVE_FILES": "no",
+    "LIMIT_CONN_MAX_HTTP1": "25",
+    "LIMIT_CONN_MAX_HTTP2": "200",
+    "LIMIT_CONN_MAX_HTTP3": "200",
+    "LIMIT_REQ_RATE": "60r/s",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
+    "USE_GZIP": "yes",
+    "GZIP_PROXIED": "expired no-cache no-store private auth"
+  },
+  "configs": [],
+  "steps": [
+    {
+      "title": "Web service - Front service",
+      "subtitle": "Point the template at your DocuSeal hostname.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream server",
+      "subtitle": "Send traffic to the DocuSeal container on port 3000 and let its JSON API errors reach clients unchanged.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_BUFFERING",
+        "REVERSE_PROXY_INTERCEPT_ERRORS"
+      ]
+    },
+    {
+      "title": "HTTP - API and upload constraints",
+      "subtitle": "Allow the REST verbs DocuSeal uses and keep both body limits above your largest payload. MAX_CLIENT_SIZE also drives ModSecurity's SecRequestBodyLimit.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "Security - Rate and connection limits",
+      "subtitle": "Limits per client IP, sized for the signing and admin pages.",
+      "settings": [
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3",
+        "LIMIT_REQ_RATE"
+      ]
+    },
+    {
+      "title": "Security - Headers and error pages",
+      "subtitle": "DocuSeal sends its own nonce-based Content-Security-Policy, so BunkerWeb keeps it instead of replacing it.",
+      "settings": ["KEEP_UPSTREAM_HEADERS", "INTERCEPTED_ERROR_CODES"]
+    },
+    {
+      "title": "Performance - Client optimisation",
+      "subtitle": "Compress proxied responses; static files are served by DocuSeal, not BunkerWeb.",
+      "settings": ["USE_GZIP", "GZIP_PROXIED"]
+    }
+  ]
+}
