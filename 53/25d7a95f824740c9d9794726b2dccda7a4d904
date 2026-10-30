@@ -1,0 +1,25 @@
+CHANGELOG.md
+  s_5da5bbfa5ba592::t_4dbea1a038ea52 8
+templates/opengym/README.md
+  s_5da5bbfa5ba592::t_eac13c7e556481 5,7-8,11,57,62-65,80,128-133,142-168
+templates/opengym/configs/modsec/opengym_false_positives.conf
+  s_5da5bbfa5ba592::t_7fe62435458505 1,13-15,119-138,148-150
+templates/opengym/template.json
+  s_5da5bbfa5ba592::t_bdd79b40b2b75f 25,80,120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5325d7a95f824740c9d9794726b2dccda7a4d904",
+  "prompts": {},
+  "sessions": {
+    "s_5da5bbfa5ba592": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18cb6-9d90-7af2-bda7-bf0aa8cda022",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
