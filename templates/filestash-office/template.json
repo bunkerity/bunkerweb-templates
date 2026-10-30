@@ -1,0 +1,92 @@
+{
+  "id": "filestash-office",
+  "name": "Filestash Collabora (WOPI) host with WebSocket proxy defaults",
+  "settings": {
+    "SERVER_NAME": "filestash-office.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_HOST": "http://filestash-office:9980",
+    "REVERSE_PROXY_WS": "yes",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "REVERSE_PROXY_REQUEST_BUFFERING": "no",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_READ_TIMEOUT": "3600s",
+    "REVERSE_PROXY_SEND_TIMEOUT": "3600s",
+    "PROXY_BUFFERS": "8 32k",
+    "PROXY_BUFFER_SIZE": "32k",
+    "PROXY_BUSY_BUFFERS_SIZE": "64k",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS",
+    "MAX_CLIENT_SIZE": "50m",
+    "SERVE_FILES": "no",
+    "LIMIT_CONN_MAX_HTTP1": "50",
+    "LIMIT_CONN_MAX_HTTP2": "500",
+    "LIMIT_CONN_MAX_HTTP3": "500",
+    "LIMIT_REQ_RATE": "25r/s",
+    "BAD_BEHAVIOR_THRESHOLD": "20",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy X-Frame-Options",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
+    "USE_ROBOTSTXT": "yes",
+    "USE_GZIP": "yes",
+    "GZIP_PROXIED": "expired no-cache no-store private auth"
+  },
+  "configs": [],
+  "steps": [
+    {
+      "title": "Web service - Front service",
+      "subtitle": "Point the template at the hostname that fronts Collabora.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream server",
+      "subtitle": "Direct the reverse proxy at the Collabora container and keep its WebSockets alive.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_WS",
+        "REVERSE_PROXY_BUFFERING",
+        "REVERSE_PROXY_REQUEST_BUFFERING",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_READ_TIMEOUT",
+        "REVERSE_PROXY_SEND_TIMEOUT",
+        "PROXY_BUFFERS",
+        "PROXY_BUFFER_SIZE",
+        "PROXY_BUSY_BUFFERS_SIZE"
+      ]
+    },
+    {
+      "title": "HTTP - Collabora specific settings",
+      "subtitle": "Collabora only needs GET, POST, HEAD and OPTIONS and modest request bodies.",
+      "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE", "SERVE_FILES"]
+    },
+    {
+      "title": "Security - Rate and connection limits",
+      "subtitle": "The editor loads many assets and keeps WebSockets open, so the limits sit above the defaults.",
+      "settings": [
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3",
+        "LIMIT_REQ_RATE"
+      ]
+    },
+    {
+      "title": "Security - Bad behavior",
+      "subtitle": "Ban clients that repeatedly trigger error responses.",
+      "settings": ["BAD_BEHAVIOR_THRESHOLD"]
+    },
+    {
+      "title": "Security - Headers and exposure",
+      "subtitle": "Keep the frame headers Collabora sets so Filestash can embed the editor.",
+      "settings": [
+        "KEEP_UPSTREAM_HEADERS",
+        "INTERCEPTED_ERROR_CODES",
+        "USE_ROBOTSTXT"
+      ]
+    },
+    {
+      "title": "Performance - Client optimization",
+      "subtitle": "Compress proxied responses; Collabora serves its own files.",
+      "settings": ["USE_GZIP", "GZIP_PROXIED"]
+    }
+  ]
+}

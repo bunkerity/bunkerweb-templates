@@ -1,0 +1,110 @@
+{
+  "id": "filestash",
+  "name": "Filestash file manager with WebDAV-aware proxy defaults",
+  "settings": {
+    "SERVER_NAME": "filestash.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_HOST": "http://filestash:8334",
+    "REVERSE_PROXY_WS": "yes",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "REVERSE_PROXY_REQUEST_BUFFERING": "no",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_READ_TIMEOUT": "3600s",
+    "REVERSE_PROXY_SEND_TIMEOUT": "3600s",
+    "PROXY_BUFFERS": "8 32k",
+    "PROXY_BUFFER_SIZE": "32k",
+    "PROXY_BUSY_BUFFERS_SIZE": "64k",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS|PROPFIND|MKCOL|COPY|MOVE|LOCK|UNLOCK",
+    "MAX_CLIENT_SIZE": "2g",
+    "SERVE_FILES": "no",
+    "LIMIT_CONN_MAX_HTTP1": "50",
+    "LIMIT_CONN_MAX_HTTP2": "500",
+    "LIMIT_CONN_MAX_HTTP3": "500",
+    "LIMIT_REQ_RATE": "50r/s",
+    "LIMIT_REQ_URL_1": "^/api/files/",
+    "LIMIT_REQ_RATE_1": "200r/s",
+    "USE_ANTIBOT": "javascript",
+    "ANTIBOT_IGNORE_URI": "^/api/",
+    "BAD_BEHAVIOR_STATUS_CODES": "400 401 403 405 444",
+    "BAD_BEHAVIOR_THRESHOLD": "40",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy X-Frame-Options",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
+    "USE_ROBOTSTXT": "yes",
+    "USE_GZIP": "yes",
+    "GZIP_PROXIED": "expired no-cache no-store private auth"
+  },
+  "configs": ["modsec-crs/filestash_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Front service",
+      "subtitle": "Point the template at your Filestash hostname.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream server",
+      "subtitle": "Direct the reverse proxy at Filestash and keep long uploads and WebSockets alive.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_WS",
+        "REVERSE_PROXY_BUFFERING",
+        "REVERSE_PROXY_REQUEST_BUFFERING",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_READ_TIMEOUT",
+        "REVERSE_PROXY_SEND_TIMEOUT",
+        "PROXY_BUFFERS",
+        "PROXY_BUFFER_SIZE",
+        "PROXY_BUSY_BUFFERS_SIZE"
+      ]
+    },
+    {
+      "title": "HTTP - Filestash specific settings",
+      "subtitle": "Allow the WebDAV verbs and large uploads, and let Filestash serve its own files.",
+      "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE", "SERVE_FILES"]
+    },
+    {
+      "title": "Security - Rate and connection limits",
+      "subtitle": "File listings and uploads fan out many parallel requests, so the limits sit above the defaults.",
+      "settings": [
+        "LIMIT_CONN_MAX_HTTP1",
+        "LIMIT_CONN_MAX_HTTP2",
+        "LIMIT_CONN_MAX_HTTP3",
+        "LIMIT_REQ_RATE",
+        "LIMIT_REQ_URL_1",
+        "LIMIT_REQ_RATE_1"
+      ]
+    },
+    {
+      "title": "Security - Antibot and bad behavior",
+      "subtitle": "Challenge browsers but skip the API, which clients cannot solve, and ban repeated errors.",
+      "settings": [
+        "USE_ANTIBOT",
+        "ANTIBOT_IGNORE_URI",
+        "BAD_BEHAVIOR_STATUS_CODES",
+        "BAD_BEHAVIOR_THRESHOLD"
+      ]
+    },
+    {
+      "title": "Security - Headers and exposure",
+      "subtitle": "Keep the security headers Filestash sets itself on served files and pages.",
+      "settings": [
+        "KEEP_UPSTREAM_HEADERS",
+        "INTERCEPTED_ERROR_CODES",
+        "USE_ROBOTSTXT"
+      ]
+    },
+    {
+      "title": "Performance - Client optimization",
+      "subtitle": "Compress proxied responses; Filestash serves its own files.",
+      "settings": ["USE_GZIP", "GZIP_PROXIED"]
+    },
+    {
+      "title": "Security - WAF tuning",
+      "subtitle": "Allow the editor save and the uploads that the CRS content type check rejects, one request at a time.",
+      "settings": [],
+      "configs": ["modsec-crs/filestash_false_positives.conf"]
+    }
+  ]
+}
