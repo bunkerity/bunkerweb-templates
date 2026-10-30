@@ -1,81 +1,72 @@
 {
   "id": "filestash",
-  "name": "Filestash is a Universal File Storage Client.",
+  "name": "Filestash file manager with WebDAV-aware proxy defaults",
   "settings": {
     "SERVER_NAME": "filestash.example.com",
-    "USE_ANTIBOT": "javascript",
-    "ANTIBOT_IGNORE_URI": "^/api/ ^/api2/",
-    "BAD_BEHAVIOR_STATUS_CODES": "400 401 403 405 444",
-    "BAD_BEHAVIOR_THRESHOLD": "40",
-    "CLIENT_CACHE_ETAG": "no",
-    "USE_CROWDSEC": "yes",
-    "CROWDSEC_API": "http://127.0.0.1:8080",
-    "CROWDSEC_API_KEY": "replace-with-your-crowdsec-api-key",
-    "CROWDSEC_APPSEC_URL": "http://127.0.0.1:7422/",
-    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
-    "GZIP_PROXIED": "expired no-cache no-store private auth",
-    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy",
     "AUTO_LETS_ENCRYPT": "yes",
     "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_HOST": "http://filestash:8334",
+    "REVERSE_PROXY_WS": "yes",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "REVERSE_PROXY_REQUEST_BUFFERING": "no",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_READ_TIMEOUT": "3600s",
+    "REVERSE_PROXY_SEND_TIMEOUT": "3600s",
+    "PROXY_BUFFERS": "8 32k",
+    "PROXY_BUFFER_SIZE": "32k",
+    "PROXY_BUSY_BUFFERS_SIZE": "64k",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS|PROPFIND|MKCOL|COPY|MOVE|LOCK|UNLOCK",
+    "MAX_CLIENT_SIZE": "2g",
+    "SERVE_FILES": "no",
     "LIMIT_CONN_MAX_HTTP1": "50",
     "LIMIT_CONN_MAX_HTTP2": "500",
     "LIMIT_CONN_MAX_HTTP3": "500",
     "LIMIT_REQ_RATE": "50r/s",
     "LIMIT_REQ_URL_1": "^/api/files/",
     "LIMIT_REQ_RATE_1": "200r/s",
-    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS|PROPFIND|MKCOL|COPY|MOVE|LOCK|UNLOCK",
-    "MAX_CLIENT_SIZE": "2g",
-    "SERVE_FILES": "no",
-    "USE_REVERSE_PROXY": "yes",
-    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
-    "PROXY_BUFFERS": "8 32k",
-    "PROXY_BUFFER_SIZE": "32k",
-    "PROXY_BUSY_BUFFERS_SIZE": "64k",
-    "REVERSE_PROXY_HOST": "http://filestash",
-    "REVERSE_PROXY_WS": "yes",
-    "REVERSE_PROXY_BUFFERING": "no",
-    "REVERSE_PROXY_REQUEST_BUFFERING": "no",
-    "REVERSE_PROXY_READ_TIMEOUT": "3600s",
-    "REVERSE_PROXY_SEND_TIMEOUT": "3600s",
+    "USE_ANTIBOT": "javascript",
+    "ANTIBOT_IGNORE_URI": "^/api/",
+    "BAD_BEHAVIOR_STATUS_CODES": "400 401 403 405 444",
+    "BAD_BEHAVIOR_THRESHOLD": "40",
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy X-Frame-Options",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
     "USE_ROBOTSTXT": "yes",
-    "WHITELIST_IP": ""
+    "USE_GZIP": "yes",
+    "GZIP_PROXIED": "expired no-cache no-store private auth"
   },
-  "configs": [
-    "modsec-crs/modsec-crs-exclude-filestash.conf"
-  ],
+  "configs": ["modsec-crs/filestash_false_positives.conf"],
   "steps": [
     {
-      "title": "Web service - Front door",
-      "subtitle": "Configure server / core settings.",
-      "settings": [
-        "SERVER_NAME"
-      ]
+      "title": "Web service - Front service",
+      "subtitle": "Point the template at your Filestash hostname.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {
-      "title": "SSL / Let's Encrypt",
-      "subtitle": "Configure ssl / let's encrypt settings.",
-      "settings": [
-        "AUTO_LETS_ENCRYPT",
-        "EMAIL_LETS_ENCRYPT"
-      ]
-    },
-    {
-      "title": "Reverse Proxy",
-      "subtitle": "Configure reverse proxy settings.",
+      "title": "Web service - Upstream server",
+      "subtitle": "Direct the reverse proxy at Filestash and keep long uploads and WebSockets alive.",
       "settings": [
         "USE_REVERSE_PROXY",
-        "REVERSE_PROXY_INTERCEPT_ERRORS",
         "REVERSE_PROXY_HOST",
         "REVERSE_PROXY_WS",
         "REVERSE_PROXY_BUFFERING",
         "REVERSE_PROXY_REQUEST_BUFFERING",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
         "REVERSE_PROXY_READ_TIMEOUT",
-        "REVERSE_PROXY_SEND_TIMEOUT"
+        "REVERSE_PROXY_SEND_TIMEOUT",
+        "PROXY_BUFFERS",
+        "PROXY_BUFFER_SIZE",
+        "PROXY_BUSY_BUFFERS_SIZE"
       ]
     },
     {
-      "title": "Rate Limiting",
-      "subtitle": "Configure rate limiting settings.",
+      "title": "HTTP - Filestash specific settings",
+      "subtitle": "Allow the WebDAV verbs and large uploads, and let Filestash serve its own files.",
+      "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE", "SERVE_FILES"]
+    },
+    {
+      "title": "Security - Rate and connection limits",
+      "subtitle": "File listings and uploads fan out many parallel requests, so the limits sit above the defaults.",
       "settings": [
         "LIMIT_CONN_MAX_HTTP1",
         "LIMIT_CONN_MAX_HTTP2",
@@ -86,62 +77,34 @@
       ]
     },
     {
-      "title": "Security",
-      "subtitle": "Configure security settings.",
+      "title": "Security - Antibot and bad behavior",
+      "subtitle": "Challenge browsers but skip the API, which clients cannot solve, and ban repeated errors.",
       "settings": [
         "USE_ANTIBOT",
         "ANTIBOT_IGNORE_URI",
         "BAD_BEHAVIOR_STATUS_CODES",
-        "BAD_BEHAVIOR_THRESHOLD",
-        "USE_CROWDSEC",
-        "CROWDSEC_API",
-        "CROWDSEC_API_KEY",
-        "CROWDSEC_APPSEC_URL"
+        "BAD_BEHAVIOR_THRESHOLD"
       ]
     },
     {
-      "title": "Performance",
-      "subtitle": "Configure performance settings.",
-      "settings": [
-        "CLIENT_CACHE_ETAG",
-        "GZIP_PROXIED",
-        "MAX_CLIENT_SIZE",
-        "SERVE_FILES"
-      ]
-    },
-    {
-      "title": "Whitelist / Allowlist",
-      "subtitle": "Configure whitelist / allowlist settings.",
-      "settings": [
-        "WHITELIST_IP"
-      ]
-    },
-    {
-      "title": "Other",
-      "subtitle": "Configure other settings.",
+      "title": "Security - Headers and exposure",
+      "subtitle": "Keep the security headers Filestash sets itself on served files and pages.",
       "settings": [
         "KEEP_UPSTREAM_HEADERS",
-        "PROXY_BUFFERS",
-        "PROXY_BUFFER_SIZE",
-        "PROXY_BUSY_BUFFERS_SIZE",
+        "INTERCEPTED_ERROR_CODES",
         "USE_ROBOTSTXT"
       ]
     },
     {
-      "title": "Fale Positives - False Positives Exclusion config",
-      "subtitle": "Modsec CRS Config file to prevent false positives.",
-      "settings": [],
-      "configs": [
-        "modsec-crs/modsec-crs-exclude-filestash.conf"
-      ]
+      "title": "Performance - Client optimization",
+      "subtitle": "Compress proxied responses; Filestash serves its own files.",
+      "settings": ["USE_GZIP", "GZIP_PROXIED"]
     },
     {
-      "title": "Other settings",
-      "subtitle": "Additional settings for this service.",
-      "settings": [
-        "INTERCEPTED_ERROR_CODES",
-        "ALLOWED_METHODS"
-      ]
+      "title": "Security - WAF tuning",
+      "subtitle": "Allow the editor save and the uploads that the CRS content type check rejects, one request at a time.",
+      "settings": [],
+      "configs": ["modsec-crs/filestash_false_positives.conf"]
     }
   ]
 }
