@@ -1,62 +1,57 @@
 {
   "id": "docuseal",
-  "name": "Open source DocuSign alternative. Create, fill, and sign digital documents ✍️",
+  "name": "DocuSeal secure template with API-aware defaults",
   "settings": {
     "SERVER_NAME": "docuseal.example.com",
-    "USE_ANTIBOT": "javascript",
-    "ANTIBOT_IGNORE_URI": "^/api/",
-    "CLIENT_CACHE_CONTROL": "public, max-age=604800",
-    "BLACKLIST_COUNTRY": "CF CN IN RU ZA",
-    "CROWDSEC_API": "http://127.0.0.1:8080",
-    "CROWDSEC_API_KEY": "replace-with-your-crowdsec-api-key",
-    "CROWDSEC_APPSEC_URL": "http://127.0.0.1:7422",
-    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
-    "GZIP_PROXIED": "expired no-cache no-store private auth",
-    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy",
     "AUTO_LETS_ENCRYPT": "yes",
     "EMAIL_LETS_ENCRYPT": "admin@example.com",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_HOST": "http://docuseal:3000",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "ALLOWED_METHODS": "GET|PUT|POST|HEAD|DELETE|PATCH|OPTIONS",
+    "MAX_CLIENT_SIZE": "50m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "10485760",
+    "SERVE_FILES": "no",
     "LIMIT_CONN_MAX_HTTP1": "25",
     "LIMIT_CONN_MAX_HTTP2": "200",
     "LIMIT_CONN_MAX_HTTP3": "200",
     "LIMIT_REQ_RATE": "60r/s",
-    "ALLOWED_METHODS": "GET|PUT|POST|HEAD|QUERY|DELETE|PATCH",
-    "MAX_CLIENT_SIZE": "50m",
-    "SERVE_FILES": "no",
-    "USE_REVERSE_PROXY": "yes",
-    "REVERSE_PROXY_HOST": "http://docuseal",
-    "REVERSE_PROXY_BUFFERING": "no",
-    "WHITELIST_IP": "",
-    "WHITELIST_URI": "acme-v01.api.letsencrypt.org acme-staging.api.letsencrypt.org acme-v02.api.letsencrypt.org acme-staging-v02.api.letsencrypt.org"
+    "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy",
+    "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
+    "USE_GZIP": "yes",
+    "GZIP_PROXIED": "expired no-cache no-store private auth"
   },
   "configs": [],
   "steps": [
     {
-      "title": "Web service - Front door",
-      "subtitle": "Configure server / core settings.",
-      "settings": [
-        "SERVER_NAME"
-      ]
+      "title": "Web service - Front service",
+      "subtitle": "Point the template at your DocuSeal hostname.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {
-      "title": "SSL / Let's Encrypt",
-      "subtitle": "Configure ssl / let's encrypt settings.",
-      "settings": [
-        "AUTO_LETS_ENCRYPT",
-        "EMAIL_LETS_ENCRYPT"
-      ]
-    },
-    {
-      "title": "Reverse Proxy",
-      "subtitle": "Configure reverse proxy settings.",
+      "title": "Web service - Upstream server",
+      "subtitle": "Send traffic to the DocuSeal container on port 3000 and let its JSON API errors reach clients unchanged.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_HOST",
-        "REVERSE_PROXY_BUFFERING"
+        "REVERSE_PROXY_BUFFERING",
+        "REVERSE_PROXY_INTERCEPT_ERRORS"
       ]
     },
     {
-      "title": "Rate Limiting",
-      "subtitle": "Configure rate limiting settings.",
+      "title": "HTTP - API and upload constraints",
+      "subtitle": "Allow the REST verbs DocuSeal uses and keep both body limits above your largest payload. MAX_CLIENT_SIZE also drives ModSecurity's SecRequestBodyLimit.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "Security - Rate and connection limits",
+      "subtitle": "Limits per client IP, sized for the signing and admin pages.",
       "settings": [
         "LIMIT_CONN_MAX_HTTP1",
         "LIMIT_CONN_MAX_HTTP2",
@@ -65,49 +60,14 @@
       ]
     },
     {
-      "title": "Security",
-      "subtitle": "Configure security settings.",
-      "settings": [
-        "USE_ANTIBOT",
-        "CROWDSEC_API",
-        "CROWDSEC_API_KEY",
-        "CROWDSEC_APPSEC_URL"
-      ]
+      "title": "Security - Headers and error pages",
+      "subtitle": "DocuSeal sends its own nonce-based Content-Security-Policy, so BunkerWeb keeps it instead of replacing it.",
+      "settings": ["KEEP_UPSTREAM_HEADERS", "INTERCEPTED_ERROR_CODES"]
     },
     {
-      "title": "Performance",
-      "subtitle": "Configure performance settings.",
-      "settings": [
-        "GZIP_PROXIED",
-        "MAX_CLIENT_SIZE",
-        "SERVE_FILES"
-      ]
-    },
-    {
-      "title": "Whitelist / Allowlist",
-      "subtitle": "Configure whitelist / allowlist settings.",
-      "settings": [
-        "WHITELIST_IP"
-      ]
-    },
-    {
-      "title": "Other",
-      "subtitle": "Configure other settings.",
-      "settings": [
-        "KEEP_UPSTREAM_HEADERS"
-      ]
-    },
-    {
-      "title": "Other settings",
-      "subtitle": "Additional settings for this service.",
-      "settings": [
-        "ANTIBOT_IGNORE_URI",
-        "CLIENT_CACHE_CONTROL",
-        "BLACKLIST_COUNTRY",
-        "INTERCEPTED_ERROR_CODES",
-        "ALLOWED_METHODS",
-        "WHITELIST_URI"
-      ]
+      "title": "Performance - Client optimisation",
+      "subtitle": "Compress proxied responses; static files are served by DocuSeal, not BunkerWeb.",
+      "settings": ["USE_GZIP", "GZIP_PROXIED"]
     }
   ]
 }
