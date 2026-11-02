@@ -26,7 +26,6 @@
     "BAD_BEHAVIOR_THRESHOLD": "20",
     "COOKIE_FLAGS_2": "projectsend_xsrf SameSite=Lax",
     "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy",
-    "CONTENT_SECURITY_POLICY_REPORT_ONLY": "yes",
     "USE_GZIP": "yes",
     "GZIP_PROXIED": "expired no-cache no-store private auth",
     "SERVE_FILES": "no",
@@ -84,8 +83,7 @@
         "ANTIBOT_IGNORE_URI",
         "BAD_BEHAVIOR_THRESHOLD",
         "COOKIE_FLAGS_2",
-        "KEEP_UPSTREAM_HEADERS",
-        "CONTENT_SECURITY_POLICY_REPORT_ONLY"
+        "KEEP_UPSTREAM_HEADERS"
       ]
     },
     {

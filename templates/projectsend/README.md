@@ -34,8 +34,9 @@ The values below are examples. Replace them with your own before using the templ
 - `admin@example.com` is your own email address.
 - `http://projectsend:80` is the name of the ProjectSend container on the shared Docker network
   and its port, or an IP address and port, for example `http://10.0.0.5:80`.
-- `change-me-database` and `change-me-root` (Compose example) are secrets you generate, for
-  example with `openssl rand -hex 24`.
+- `DB_PASSWORD` and `DB_ROOT_PASSWORD` (Compose example, read from `.env`) are secrets you
+  generate, for example with `openssl rand -hex 24`.
+- `10.20.31.0/24` (Compose example) is the subnet of your `bw-services` network.
 
 ## Notes
 
@@ -62,6 +63,10 @@ The values below are examples. Replace them with your own before using the templ
   only by the application and the other security features.
 - **CrowdSec:** not part of this template. Add `USE_CROWDSEC=yes` with a reachable CrowdSec API
   and your own API key on the service if you run CrowdSec.
+- **Headers:** `KEEP_UPSTREAM_HEADERS` lets ProjectSend's own headers through, such as the
+  `Content-Security-Policy: sandbox; default-src 'none'` it sets on `/protected-files/`.
+  Everywhere else BunkerWeb's default `Content-Security-Policy` is enforced; ProjectSend needs
+  no cross-origin frame or form post.
 - **Cookies:** `COOKIE_FLAGS_2` sets `SameSite=Lax` on `projectsend_xsrf`, the CSRF cookie the web
   app reads.
 
@@ -144,7 +149,6 @@ Challenge bots, ban bad behavior and harden cookies and headers.
 | `BAD_BEHAVIOR_THRESHOLD`              | `20`                                                                                                       | Number of bad responses before the client IP is banned.                        |
 | `COOKIE_FLAGS_2`                      | `projectsend_xsrf SameSite=Lax`                                                                            | Flags (HttpOnly, Secure, SameSite...) added to cookies.                        |
 | `KEEP_UPSTREAM_HEADERS`               | `Content-Security-Policy Strict-Transport-Security X-Frame-Options X-Content-Type-Options Referrer-Policy` | Upstream headers that BunkerWeb passes through instead of overwriting.         |
-| `CONTENT_SECURITY_POLICY_REPORT_ONLY` | `yes`                                                                                                      | Report Content-Security-Policy violations instead of blocking them.            |
 
 ### Performance
 
@@ -183,11 +187,11 @@ config type.
 ## Docker Compose example
 
 Based on the official `docker/production/compose.example.yaml` of ProjectSend. The application
-publishes no port: BunkerWeb reaches it over the `bw-services` network, so `TRUSTED_PROXIES: "*"`
-is only safe while that network contains containers you trust. If it does not, set
-`TRUSTED_PROXIES` to the IP address or subnet of BunkerWeb instead. The queue worker and the
-scheduler run inside the app container. Passwords below are placeholders, replace them with your
-own values before deploying.
+publishes no port: BunkerWeb reaches it over the `bw-services` network. Unlike upstream's
+`TRUSTED_PROXIES: "*"` (safe there because the port is bound to loopback), this example trusts only
+the `bw-services` subnet, since the application also sits on the project's default network. The
+queue worker and the scheduler run inside the app container. Passwords come from a `.env` file, see
+below.
 
 ```yaml
 name: projectsend
@@ -202,10 +206,10 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
 
-      # Trust X-Forwarded-For from whoever connects. Safe here because the port is not published
-      # and only containers on bw-services can reach it. Narrow it to BunkerWeb's IP or subnet
-      # if other containers share that network.
-      TRUSTED_PROXIES: "*"
+      # Trust X-Forwarded-For only from BunkerWeb. "*" is unsafe here: the app is reachable from
+      # bw-services (which can hold other services) and from this project's default network.
+      # Use the subnet of bw-services, or BunkerWeb's own IP if other containers share it.
+      TRUSTED_PROXIES: "10.20.31.0/24"
 
       DB_CONNECTION: mysql
       DB_HOST: db
@@ -262,11 +266,25 @@ networks:
     external: true
 ```
 
-Set the required environment variables before starting the stack:
+Put the subnet of the existing `bw-services` network in `TRUSTED_PROXIES`. Read it with:
 
 ```bash
-export DB_PASSWORD="$(openssl rand -hex 24)"
-export DB_ROOT_PASSWORD="$(openssl rand -hex 24)"
+docker network inspect bw-services --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+```
+
+If you do not have `bw-services` yet, create it first and attach BunkerWeb to it. Pick a subnet
+that does not overlap `10.20.30.0/24`, which the BunkerWeb documentation uses for `bw-universe`:
+
+```bash
+docker network create --subnet 10.20.31.0/24 bw-services
+```
+
+Generate the database passwords once, next to `docker-compose.yml`. Compose reads them from
+`.env`. Keep this file: MySQL stores the first credentials in the `db-data` volume and rejects
+new ones.
+
+```bash
+[ -f .env ] || printf 'DB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\n' "$(openssl rand -hex 24)" "$(openssl rand -hex 24)" > .env
 docker compose config
 docker compose up -d
 ```
