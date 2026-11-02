@@ -7,20 +7,26 @@ proxying, API-friendly error handling and a 50m request size limit.
 
 No ModSecurity CRS exclusions ship with this template yet. The DocuSeal API was not observed behind
 ModSecurity, so if you use it, test your calls and check the ModSecurity logs for false positives
-before relying on the defaults. One known case on BunkerWeb 1.6.17: a JSON field that carries a
-`data:` URI (for example `data:image/png;base64,...`) is blocked by CRS rules 934170, 941130, 941170,
-932235 and 932260, while plain base64 passes. Send plain base64, or add a scoped exclusion for that
-field.
+before relying on the defaults. One known case on BunkerWeb 1.6.17: an API call whose image or
+signature value is a `data:` URI (for example `data:image/png;base64,...`, tested on
+`POST /api/submissions`) is blocked by CRS rules 934170, 941130, 941170, 932235 and 932260. DocuSeal
+also accepts plain base64 or a URL on those fields, and plain base64 passes, so send that instead.
+The signing UI is not affected: it uploads signatures, initials and files as multipart.
 
 ## Prerequisites
 
-- A running DocuSeal server that BunkerWeb can reach.
+- A running DocuSeal server that BunkerWeb can reach. The routes and the port (3000) come from the
+  upstream `docusealco/docuseal` source, read at commit `13a1835` on 2026-10-30. The template
+  itself was tested on BunkerWeb 1.6.17 with an echo backend, not against a running DocuSeal
+  instance.
 - A public hostname pointing to BunkerWeb.
 - Access to the BunkerWeb web UI or service environment variables.
 
 ## Setup
 
-1. Import `template.json` (Templates → **Create new template** → **Raw**, then upload or paste it).
+1. Import `template.json` as described in the repository's
+   [installation guide](../../README.md#installing-templates), or in the web UI with Templates →
+   **Create new template** → **Raw**, then upload or paste it.
 2. Assign `USE_TEMPLATE=docuseal` to the service, or select **DocuSeal** in the web UI.
 3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT` and `REVERSE_PROXY_HOST` with values for your
    deployment.
@@ -111,7 +117,11 @@ Allow the REST verbs DocuSeal uses and keep both body limits above your largest 
 
 ### Security - Rate and connection limits
 
-Limits per client IP, sized for the signing and admin pages.
+Limits per client IP, sized for the signing and admin pages. A page load fetches the HTML plus its
+scripts, styles and images in parallel, and the signing view loads a page image per document page,
+so a low rate answers 429 to a normal visitor, and repeated 429 responses feed bad behavior. The
+default `60r/s` leaves room for that burst; lower it for a public signing page that sees only
+occasional visitors.
 
 | Setting                | Value   | Description                                                    |
 | ---------------------- | ------- | -------------------------------------------------------------- |
@@ -143,7 +153,8 @@ Compress proxied responses; static files are served by DocuSeal, not BunkerWeb.
 
 The layout follows DocuSeal's official `docker-compose.yml`, without the Caddy service and without
 publishing the app port: BunkerWeb reaches DocuSeal over the `bw-services` network. Usernames and
-passwords below are placeholders. Replace them with your own values before deploying.
+passwords below are placeholders. Replace them with your own values before deploying. Save the
+block as `docker-compose.yml`.
 
 ```yaml
 services:
@@ -186,7 +197,9 @@ networks:
 `FORCE_SSL` makes DocuSeal treat requests as HTTPS and redirect plain HTTP, which is what it needs
 behind a TLS-terminating proxy. Any value other than empty or `false` turns it on, and DocuSeal's
 own Compose file passes the public hostname. Compose reads `HOST` and `POSTGRES_PASSWORD` from a
-`.env` file next to `docker-compose.yml`. Create it before starting the stack:
+`.env` file next to `docker-compose.yml`. `POSTGRES_PASSWORD` is also written into `DATABASE_URL`,
+so use only URL-safe characters (letters, digits, `-`, `_`, `.`, `~`) or percent-encode it there;
+`openssl rand -hex 24` produces a safe value. Create the file before starting the stack:
 
 ```bash
 cat > .env <<EOF
@@ -199,14 +212,15 @@ docker compose up -d
 
 ## Validation
 
-Before importing the template:
+Run these from the repository root before importing the template:
 
 ```bash
-jq . template.json
-jq -e --arg expected "$(basename "$PWD")" '.id == $expected' template.json
-jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' template.json
-for f in $(jq -r '.configs[]' template.json); do
-  test -f "configs/$f" || { echo "missing: $f"; exit 1; }
+t=templates/docuseal
+jq . "$t/template.json"
+jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
+jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
+for f in $(jq -r '.configs[]' "$t/template.json"); do
+  test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
 done
 ```
 
