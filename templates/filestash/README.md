@@ -4,7 +4,7 @@
 
 Provision a BunkerWeb configuration for [Filestash](https://www.filestash.app/), the web file
 manager that connects to S3, SFTP, WebDAV and other storage backends. The template proxies
-Filestash with automatic Let's Encrypt certificates, WebSocket support, a 2g request size limit,
+Filestash with automatic Let's Encrypt certificates, WebSocket support, a 100m request size limit,
 the WebDAV verbs and a ModSecurity exclusion file for the web editor and for uploads.
 
 Editing Office documents inside Filestash needs a Collabora (WOPI) server on its own hostname. The
@@ -13,7 +13,10 @@ Compose example, shown further down on this page.
 
 ## Prerequisites
 
-- A running Filestash server that BunkerWeb can reach.
+- A running Filestash server that BunkerWeb can reach. The request shapes behind the ModSecurity
+  exclusions (method, path, `Content-Type`) come from the `mickael-kerjean/filestash` source on
+  `master`, commit `76238d7`, read on 2026-10-30. The template itself was tested on BunkerWeb 1.6.17
+  with an echo backend, not with a live Filestash server.
 - A public hostname pointing to BunkerWeb.
 - Access to the BunkerWeb web UI or service environment variables.
 
@@ -49,9 +52,21 @@ The values below are examples. Replace them with your own before using the templ
   otherwise replace it with the IP address and port of the service, for example
   `http://10.0.0.5:8334`.
 - **WebSockets:** enabled on the proxied route.
-- **Uploads:** `MAX_CLIENT_SIZE=2g` limits each request, not the total size of a file. Filestash
-  sends large files in several chunk requests. Raise the limit only if clients need larger single
-  requests.
+- **Uploads:** `MAX_CLIENT_SIZE=100m` caps one request body at 100 MB. BunkerWeb's ModSecurity
+  holds the request body in memory: on BunkerWeb 1.6.17, a 300 MB raw upload raised the memory use
+  of the BunkerWeb container by about 1.7 GiB (peak 1.8 GiB), and a 90 MB upload peaked at about
+  1 GiB. By default (`upload_chunk_size` of `0`, in `server/pkg/config/config.go`) Filestash sends
+  each file in a single `POST /api/files/save` (`public/assets/pages/filespage/ctrl_upload.js`,
+  `chunkSize === 0`), so without a change a file over 100 MB is answered with a BunkerWeb
+  `413 Request Entity Too Large`. To upload larger files, open the Filestash admin console, go to
+  the general settings and set `upload_chunk_size` (in MB) to a value below 100, for example `50`.
+  Filestash then sends files larger than one chunk as `PATCH /api/files/save` requests of that size
+  (tus), and each request stays under the limit. Raising `MAX_CLIENT_SIZE` instead is your call:
+  each concurrent upload then costs roughly 5 to 7 times its size in BunkerWeb memory. Filestash
+  also uploads up to `upload_pool_size` files in parallel (default `15`, in
+  `server/pkg/config/config.go`) and each one costs its own BunkerWeb memory, so size the
+  BunkerWeb container for that or lower `upload_pool_size`. Source lines read at Filestash commit
+  `76238d7`.
 - **WebDAV:** WebDAV verbs (for example `PROPFIND`, `MKCOL`) are allowed. The application must have
   WebDAV enabled as well; test with a WebDAV client.
 - **Bad behavior:** responses with status 400, 401, 403, 405 and 444 count toward a temporary IP
@@ -108,7 +123,7 @@ Allow the WebDAV verbs and large uploads, and let Filestash serve its own files.
 | Setting           | Value                                                                       | Description                                              |
 | ----------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- |
 | `ALLOWED_METHODS` | `GET\|POST\|HEAD\|PUT\|DELETE\|PATCH\|OPTIONS\|PROPFIND\|MKCOL\|COPY\|MOVE\|LOCK\|UNLOCK` | HTTP methods that are accepted; all others are rejected. |
-| `MAX_CLIENT_SIZE` | `2g`                                                                        | Maximum size of a single request body.                   |
+| `MAX_CLIENT_SIZE` | `100m`                                                                      | Maximum size of a single request body.                   |
 | `SERVE_FILES`     | `no`                                                                        | Whether BunkerWeb serves static files itself (off when proxying an app). |
 
 ### Security - Rate and connection limits
@@ -142,7 +157,7 @@ Keep the security headers Filestash sets itself on served files and pages.
 | Setting                   | Value                                   | Description                                                            |
 | ------------------------- | --------------------------------------- | ---------------------------------------------------------------------- |
 | `KEEP_UPSTREAM_HEADERS`   | `Content-Security-Policy X-Frame-Options` | Upstream headers that BunkerWeb passes through instead of overwriting. |
-| `INTERCEPTED_ERROR_CODES` | `404 405 413 429 500 501 502 503 504`   | Upstream status codes replaced by BunkerWeb error pages.               |
+| `INTERCEPTED_ERROR_CODES` | `404 405 413 429 500 501 502 503 504`   | Status codes answered with BunkerWeb error pages when BunkerWeb itself generates them (for example 405 from `ALLOWED_METHODS`, 413, 429). Upstream errors pass through unchanged because `REVERSE_PROXY_INTERCEPT_ERRORS` is `no`. |
 | `USE_ROBOTSTXT`           | `yes`                                   | Whether BunkerWeb serves a generated robots.txt file.                  |
 
 ### Performance - Client optimization
@@ -252,21 +267,45 @@ networks:
 
 ## Validation
 
-Before importing the template:
+### Checks to run
+
+Run these from the repository root before importing the template:
 
 ```bash
-jq . template.json
-jq -e --arg expected "$(basename "$PWD")" '.id == $expected' template.json
-jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' template.json
-for f in $(jq -r '.configs[]' template.json); do
-  test -f "configs/$f" || { echo "missing: $f"; exit 1; }
+t=templates/filestash
+jq . "$t/template.json"
+jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
+jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
+for f in $(jq -r '.configs[]' "$t/template.json"); do
+  test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
 done
 ```
 
-After applying it:
+After applying the template:
 
 - Confirm the BunkerWeb scheduler reload completes without a template or unknown-setting error.
 - Sign in, save a file in the web editor, then upload a small file and a file larger than a few
   megabytes, and download them again.
 - Check BunkerWeb logs for rate-limit, bad behavior, and ModSecurity events before changing
   security controls.
+
+### Checks run for this template
+
+- The four `jq` commands above: JSON syntax, `id` equal to the directory name, every setting listed
+  in a step, every config file present.
+- `pre-commit run --files` on the template files (Prettier, Codespell, Gitleaks and the whitespace
+  hooks).
+- A live request matrix on `bunkerity/bunkerweb-all-in-one:1.6.17` with an echo backend in place of
+  Filestash: the three excluded requests (`POST /api/files/cat`, `POST /api/files/save` with and
+  without a `Content-Type`, `PATCH /api/files/save`) reach the backend, and the same payloads on
+  another path, another method or another parameter, or with an attack in the query string, are
+  still answered 403.
+- A memory measurement on the same image with the template at `MAX_CLIENT_SIZE=2g`: a 300 MB raw
+  `POST /api/files/save` and a 300 MB `PATCH /api/files/save` both returned 200, with the BunkerWeb
+  container peaking at about 1.8 GiB (idle: about 0.2 GiB).
+- The same setup at `MAX_CLIENT_SIZE=100m`: a 150 MB `POST /api/files/save` returned 413 from
+  BunkerWeb, a 90 MB `POST /api/files/save` returned 200 (container peak about 1 GiB, idle about
+  0.35 GiB), and a 50 MB `PATCH /api/files/save` with `Content-Type: application/offset+octet-stream`
+  returned 200 (peak about 0.7 GiB).
+
+Not tested: a live Filestash server, a real browser upload, the Collabora editor, WebDAV clients.

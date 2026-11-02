@@ -15,7 +15,8 @@ limit. It allows only `GET`, `POST`, `HEAD` and `OPTIONS`.
 
 - A running Collabora server (`collabora/code`) and a Filestash server that BunkerWeb can reach. The
   [Compose example](../filestash/README.md#docker-compose-example) in the filestash README starts
-  both.
+  both and pins the Collabora image `collabora/code:24.04.10.2.1`. Only the proxy side was tested:
+  BunkerWeb 1.6.17 with an echo backend on port 9980, not a live Collabora server.
 - A public hostname for Collabora pointing to BunkerWeb, separate from the Filestash hostname.
 - Access to the BunkerWeb web UI or service environment variables.
 
@@ -133,7 +134,7 @@ Keep the frame headers Collabora sets so Filestash can embed the editor.
 | Setting                   | Value                                     | Description                                                            |
 | ------------------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
 | `KEEP_UPSTREAM_HEADERS`   | `Content-Security-Policy X-Frame-Options` | Upstream headers that BunkerWeb passes through instead of overwriting. |
-| `INTERCEPTED_ERROR_CODES` | `404 405 413 429 500 501 502 503 504`     | Upstream status codes replaced by BunkerWeb error pages.               |
+| `INTERCEPTED_ERROR_CODES` | `404 405 413 429 500 501 502 503 504`     | Status codes answered with BunkerWeb error pages when BunkerWeb itself generates them (for example 405 from `ALLOWED_METHODS`, 413, 429). Upstream errors pass through unchanged because `REVERSE_PROXY_INTERCEPT_ERRORS` is `no`. |
 | `USE_ROBOTSTXT`           | `yes`                                     | Whether BunkerWeb serves a generated robots.txt file.                  |
 
 ### Performance - Client optimization
@@ -158,14 +159,15 @@ It starts Filestash and Collabora together, publishes no port, joins both to the
 
 ## Validation
 
-Before importing the template:
+Run these from the repository root before importing the template:
 
 ```bash
-jq . template.json
-jq -e --arg expected "$(basename "$PWD")" '.id == $expected' template.json
-jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' template.json
-for f in $(jq -r '.configs[]' template.json); do
-  test -f "configs/$f" || { echo "missing: $f"; exit 1; }
+t=templates/filestash-office
+jq . "$t/template.json"
+jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
+jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
+for f in $(jq -r '.configs[]' "$t/template.json"); do
+  test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
 done
 ```
 
