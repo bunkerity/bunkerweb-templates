@@ -1,0 +1,23 @@
+templates/projectsend/template.json
+  s_33793c60aaf30b::t_d315284a079ce2 86
+templates/projectsend/README.md
+  s_33793c60aaf30b::t_d1d5c408b22ff7 66-69,190-194,209-211,280-287
+  s_33793c60aaf30b::t_462721379fffc5 37-38
+  s_33793c60aaf30b::t_ad5765421f28d0 39,212,269,272-279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "12f5064c1d0fd92065760caa26f46ba409b2a550",
+  "prompts": {},
+  "sessions": {
+    "s_33793c60aaf30b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a4914886-4e81-4016-880c-a136788824cc",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
