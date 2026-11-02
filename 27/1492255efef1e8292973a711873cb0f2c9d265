@@ -1,0 +1,40 @@
+templates/filestash/README.md
+  s_fa0d7660296d0b::t_cc33975ea41491 7,55-64,66,300-306
+  s_fa0d7660296d0b::t_33d5e64484a3ab 65
+  s_fa0d7660296d0b::t_199e3ce3823867 270-272,275-280,284,291-299,308
+  s_fa0d7660296d0b::t_8846fb4ec5a00e 16-19
+  s_fa0d7660296d0b::t_698cc65d3df4ec 307
+  s_33793c60aaf30b::t_1a62fcdb25fd74 67-69,126,160,309-311
+templates/filestash/configs/modsec-crs/filestash_false_positives.conf
+  s_fa0d7660296d0b::t_56f824cfbe66c9 1-4
+templates/filestash/template.json
+  s_fa0d7660296d0b::t_1b379c3f398598 20
+templates/filestash-office/README.md
+  s_fa0d7660296d0b::t_223c3042723654 137
+  s_fa0d7660296d0b::t_d8e40330869b72 162,165-170
+  s_fa0d7660296d0b::t_c42748429f8b00 18-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "271492255efef1e8292973a711873cb0f2c9d265",
+  "prompts": {},
+  "sessions": {
+    "s_33793c60aaf30b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a4914886-4e81-4016-880c-a136788824cc",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_fa0d7660296d0b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "71ad0e25-d37a-4ded-bffc-c11339d999ab",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
