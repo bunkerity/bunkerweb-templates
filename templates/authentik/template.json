@@ -1,0 +1,59 @@
+{
+  "id": "authentik",
+  "name": "authentik",
+  "settings": {
+    "SERVER_NAME": "authentik.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://authentik:9000",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_URL_1": "/ws/",
+    "REVERSE_PROXY_HOST_1": "http://authentik:9000",
+    "REVERSE_PROXY_WS_1": "yes",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE",
+    "MAX_CLIENT_SIZE": "64m",
+    "LIMIT_REQ_RATE": "50r/s",
+    "SERVE_FILES": "no",
+    "COOKIE_FLAGS": "* SameSite=Lax",
+    "CONTENT_SECURITY_POLICY": ""
+  },
+  "configs": ["modsec/authentik_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Domains and TLS",
+      "subtitle": "Set your public authentik hostname and certificate source.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream and WebSockets",
+      "subtitle": "Update both upstream hosts together; only /ws/ enables WebSockets.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_URL_1",
+        "REVERSE_PROXY_HOST_1",
+        "REVERSE_PROXY_WS_1",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "HTTP - API, uploads and browser compatibility",
+      "subtitle": "Review API methods, upload size, request rate, cookies and CSP.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "MAX_CLIENT_SIZE",
+        "LIMIT_REQ_RATE",
+        "COOKIE_FLAGS",
+        "CONTENT_SECURITY_POLICY"
+      ]
+    },
+    {
+      "title": "Security - Review CRS exclusions",
+      "subtitle": "Allow Python, CSS and HTML only in the documented admin fields.",
+      "configs": ["modsec/authentik_false_positives.conf"]
+    }
+  ]
+}

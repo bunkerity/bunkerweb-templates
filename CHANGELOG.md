@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add an authentik template with WebSocket support, application-owned cookie/CSP behavior and CRS target exclusions for policy expressions, branding CSS and prompt HTML.
 - [@TheophileDiot] Add an Uptime Kuma template with Socket.IO polling and WebSockets, preserved API errors and a CRS content-type exception limited to text/plain POST requests on /socket.io/.
 
 ## Templates release v0.8 - 2026-11-03

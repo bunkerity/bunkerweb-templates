@@ -130,6 +130,7 @@ plugins/
 
 | Template                                        | Summary                                                          | Directory                     |
 | ----------------------------------------------- | ---------------------------------------------------------------- | ----------------------------- |
+| [authentik](templates/authentik/)               | Identity provider template with flow and cookie-aware WAF tuning | `templates/authentik/`        |
 | [Directus](templates/directus/)                 | Headless CMS template with REST and GraphQL API defaults         | `templates/directus/`         |
 | [DocuSeal](templates/docuseal/)                 | Document signing template with API-aware defaults                | `templates/docuseal/`         |
 | [Drupal](templates/drupal/)                     | Secure template with CMS-aware defaults                          | `templates/drupal/`           |
