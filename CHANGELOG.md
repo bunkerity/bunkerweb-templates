@@ -5,6 +5,8 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add an Uptime Kuma template with Socket.IO polling and WebSockets, preserved API errors and a CRS content-type exception limited to text/plain POST requests on /socket.io/.
+
 ## Templates release v0.8 - 2026-11-03
 
 - [@TheophileDiot] Fix the Seafile template README: validate the Compose file with `docker compose config --quiet`, so the check no longer prints `MYSQL_ROOT_PASSWORD` and `SEAFILE_ADMIN_PASSWORD` to the terminal.

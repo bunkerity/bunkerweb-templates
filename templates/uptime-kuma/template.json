@@ -1,0 +1,47 @@
+{
+  "id": "uptime-kuma",
+  "name": "Uptime Kuma monitoring template with Socket.IO polling and WebSockets",
+  "settings": {
+    "SERVER_NAME": "uptime-kuma.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://uptime-kuma:3001",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_URL_1": "/socket.io/",
+    "REVERSE_PROXY_HOST_1": "http://uptime-kuma:3001",
+    "REVERSE_PROXY_WS_1": "yes",
+    "USE_LIMIT_REQ": "yes",
+    "LIMIT_REQ_URL": "/",
+    "LIMIT_REQ_RATE": "50r/s",
+    "SERVE_FILES": "no"
+  },
+  "configs": ["modsec-crs/uptime-kuma_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Front service",
+      "subtitle": "Set a dedicated hostname and configure automatic HTTPS.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream and Socket.IO",
+      "subtitle": "Point both upstream entries at the same Uptime Kuma instance on port 3001.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_URL_1",
+        "REVERSE_PROXY_HOST_1",
+        "REVERSE_PROXY_WS_1",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "Security - Polling and request limits",
+      "subtitle": "Allow Socket.IO polling bursts and review the narrowly scoped content-type exception.",
+      "settings": ["USE_LIMIT_REQ", "LIMIT_REQ_URL", "LIMIT_REQ_RATE"],
+      "configs": ["modsec-crs/uptime-kuma_false_positives.conf"]
+    }
+  ]
+}
