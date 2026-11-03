@@ -1,0 +1,38 @@
+templates/authentik/README.md
+  s_b0b0d8eaa8e66e::t_4050c59db00b01 1-43,46-48,52-53,60-106
+  s_2790a6e2e4d895::t_68015067667fa0 44-45,49-51,54-59
+CHANGELOG.md
+  s_2790a6e2e4d895::t_5b0a8947a0026d 8
+README.md
+  s_2790a6e2e4d895::t_a3d7ab05f43415 133
+templates/authentik/template.json
+  s_b0b0d8eaa8e66e::t_9ec66b9ddbe331 1-17,20-59
+  s_2790a6e2e4d895::t_68015067667fa0 18-19
+templates/authentik/configs/modsec/authentik_false_positives.conf
+  s_b0b0d8eaa8e66e::t_9ec66b9ddbe331 2-30
+  s_2790a6e2e4d895::t_b4ba96ac0bca16 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "845b64ac8ffa8940786ce6e90e2012876dce987a",
+  "prompts": {},
+  "sessions": {
+    "s_2790a6e2e4d895": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0b7-1c13-78f0-aba2-262bdc87cfe6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_b0b0d8eaa8e66e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0be-d7b4-76a2-a88f-a837a466cb64",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
