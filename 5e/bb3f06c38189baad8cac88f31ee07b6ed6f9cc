@@ -1,0 +1,19 @@
+templates/docuseal/README.md
+  s_f3f9544da11e67::t_26826871c5ce4c 159-162,213,222-231
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5ebb3f06c38189baad8cac88f31ee07b6ed6f9cc",
+  "prompts": {},
+  "sessions": {
+    "s_f3f9544da11e67": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1795a2ae-6a0d-4695-8d5d-957e348c22b8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
