@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add a Vaultwarden template with WebSocket support, encrypted-field CRS tuning on vault write routes, a targeted attachment exception and documented validation limits.
 - [@TheophileDiot] Add a Grafana template with Live WebSockets, bounded raw SQL field exclusions, dashboard-save CRS tuning and explicit security tradeoffs.
 - [@TheophileDiot] Add a Forgejo template with Git-over-HTTPS, LFS and package API support, scoped protocol and source-content CRS exclusions, and guided import steps.
 - [@TheophileDiot] Add an authentik template with WebSocket support, application-owned cookie/CSP behavior and CRS target exclusions for policy expressions, branding CSS and prompt HTML.

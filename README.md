@@ -149,6 +149,7 @@ plugins/
 | [Tomcat](templates/tomcat/)                     | Reverse proxy template with servlet-friendly defaults            | `templates/tomcat/`           |
 | [Tuwunel](templates/tuwunel/)                   | Matrix homeserver reverse proxy with WebSocket and delegation    | `templates/tuwunel/`          |
 | [Uptime Kuma](templates/uptime-kuma/)             | Monitoring template with Socket.IO polling and WebSockets        | `templates/uptime-kuma/`      |
+| [Vaultwarden](templates/vaultwarden/)           | Password vault template with encrypted-field WAF tuning          | `templates/vaultwarden/`      |
 | [Xen Orchestra](templates/xen-orchestra/)       | Reverse proxy template with WebSocket and rate limiting defaults | `templates/xen-orchestra/`    |
 | [WordPress](templates/wordpress/)               | Secure template with essential hardening defaults                | `templates/wordpress/`        |
 

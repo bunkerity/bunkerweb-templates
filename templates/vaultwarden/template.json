@@ -1,0 +1,51 @@
+{
+  "id": "vaultwarden",
+  "name": "Vaultwarden",
+  "settings": {
+    "SERVER_NAME": "vaultwarden.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://vaultwarden:80",
+    "REVERSE_PROXY_WS": "yes",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|DELETE",
+    "MAX_CLIENT_SIZE": "100m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "5m",
+    "LIMIT_REQ_RATE": "20r/s",
+    "SERVE_FILES": "no"
+  },
+  "configs": ["modsec/vaultwarden_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Domains and TLS",
+      "subtitle": "Match your public hostname to Vaultwarden's DOMAIN setting.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream and WebSockets",
+      "subtitle": "The notification hub uses the same upstream port as the web vault.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_WS",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "HTTP - Vault API, attachments and imports",
+      "subtitle": "Review method access, body limits and bulk-write request rate.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT",
+        "LIMIT_REQ_RATE"
+      ]
+    },
+    {
+      "title": "Security - Review encrypted-field CRS exclusions",
+      "subtitle": "Five rules skip all arguments on the listed POST and PUT paths.",
+      "configs": ["modsec/vaultwarden_false_positives.conf"]
+    }
+  ]
+}
