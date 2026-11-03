@@ -1,0 +1,37 @@
+templates/grafana/template.json
+  s_52ba3d18d45293::t_1bd3a5348b754f 1-23,25-28,30-73,75-77
+  s_52ba3d18d45293::t_a731a75da1708e 24,29,74
+templates/grafana/configs/modsec/grafana_false_positives.conf
+  s_52ba3d18d45293::t_1bd3a5348b754f 2-94
+  s_2790a6e2e4d895::t_d79054c2372d1c 1
+README.md
+  s_2790a6e2e4d895::t_a3d7ab05f43415 140
+templates/grafana/README.md
+  s_52ba3d18d45293::t_af17a9de2be4a0 1-84
+CHANGELOG.md
+  s_2790a6e2e4d895::t_5b0a8947a0026d 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f9e675f711a0b14b5bf5b026d19dd2aef76a788f",
+  "prompts": {},
+  "sessions": {
+    "s_2790a6e2e4d895": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0b7-1c13-78f0-aba2-262bdc87cfe6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_52ba3d18d45293": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0bf-0354-78b3-a107-0f3e01a67ddf",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
