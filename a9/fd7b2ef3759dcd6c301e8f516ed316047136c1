@@ -1,0 +1,30 @@
+README.md
+  s_556025461f804f::t_936743283e1c59 131-149
+CHANGELOG.md
+  s_556025461f804f::t_5da4a8d22288e9 8-10
+  s_fa0d7660296d0b::t_a7082b38863d61 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a9fd7b2ef3759dcd6c301e8f516ed316047136c1",
+  "prompts": {},
+  "sessions": {
+    "s_556025461f804f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "18334478-1497-4b27-9f6a-2baea90e2f82",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_fa0d7660296d0b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "71ad0e25-d37a-4ded-bffc-c11339d999ab",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
