@@ -285,7 +285,7 @@ new ones.
 
 ```bash
 [ -f .env ] || printf 'DB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\n' "$(openssl rand -hex 24)" "$(openssl rand -hex 24)" > .env
-docker compose config
+docker compose config --quiet
 docker compose up -d
 ```
 
@@ -294,12 +294,15 @@ docker compose up -d
 Before importing the template:
 
 ```bash
-jq . template.json
-jq -e --arg expected "$(basename "$PWD")" '.id == $expected' template.json
-jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' template.json
-for f in $(jq -r '.configs[]' template.json); do
-  test -f "configs/$f" || { echo "missing: $f"; exit 1; }
-done
+(
+  set -eu
+  jq . template.json
+  jq -e --arg expected "$(basename "$PWD")" '.id == $expected' template.json
+  jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' template.json
+  for f in $(jq -r '.configs[]' template.json); do
+    test -f "configs/$f" || { echo "missing: $f"; exit 1; }
+  done
+)
 ```
 
 After applying it:
