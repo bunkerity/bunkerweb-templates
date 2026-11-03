@@ -128,21 +128,25 @@ plugins/
 
 ## Available Templates
 
-| Template                                  | Summary                                                          | Directory                  |
-| ----------------------------------------- | ---------------------------------------------------------------- | -------------------------- |
-| [Directus](templates/directus/)           | Headless CMS template with REST and GraphQL API defaults         | `templates/directus/`      |
-| [Drupal](templates/drupal/)               | Secure template with CMS-aware defaults                          | `templates/drupal/`        |
-| [Jellyfin](templates/jellyfin/)           | Media streaming template with reverse proxy tuning               | `templates/jellyfin/`      |
-| [Nextcloud](templates/nextcloud/)         | Secure template with WebDAV-aware defaults                       | `templates/nextcloud/`     |
-| [NetBird](templates/netbird/)             | Self-hosted template with gRPC and websocket routing             | `templates/netbird/`       |
-| [openGym](templates/opengym/)             | Passkey PWA template with JSON sync and WebAuthn tuning          | `templates/opengym/`       |
-| [Pi-hole](templates/pi-hole/)             | Reverse proxy template with admin UI and API tuning              | `templates/pi-hole/`       |
-| [Seafile](templates/seafile/)             | File sharing template with WebDAV-aware proxy defaults           | `templates/seafile/`       |
-| [Synapse](templates/synapse/)             | Matrix homeserver template with well-known delegation           | `templates/synapse/`       |
-| [Tomcat](templates/tomcat/)               | Reverse proxy template with servlet-friendly defaults            | `templates/tomcat/`        |
-| [Tuwunel](templates/tuwunel/)             | Matrix homeserver reverse proxy with WebSocket and delegation    | `templates/tuwunel/`       |
-| [Xen Orchestra](templates/xen-orchestra/) | Reverse proxy template with WebSocket and rate limiting defaults | `templates/xen-orchestra/` |
-| [WordPress](templates/wordpress/)         | Secure template with essential hardening defaults                | `templates/wordpress/`     |
+| Template                                        | Summary                                                          | Directory                     |
+| ----------------------------------------------- | ---------------------------------------------------------------- | ----------------------------- |
+| [Directus](templates/directus/)                 | Headless CMS template with REST and GraphQL API defaults         | `templates/directus/`         |
+| [DocuSeal](templates/docuseal/)                 | Document signing template with API-aware defaults                | `templates/docuseal/`         |
+| [Drupal](templates/drupal/)                     | Secure template with CMS-aware defaults                          | `templates/drupal/`           |
+| [Filestash](templates/filestash/)               | File manager template with WebDAV-aware proxy defaults           | `templates/filestash/`        |
+| [Filestash Office](templates/filestash-office/) | Collabora (WOPI) host template with WebSocket proxy defaults     | `templates/filestash-office/` |
+| [Jellyfin](templates/jellyfin/)                 | Media streaming template with reverse proxy tuning               | `templates/jellyfin/`         |
+| [Nextcloud](templates/nextcloud/)               | Secure template with WebDAV-aware defaults                       | `templates/nextcloud/`        |
+| [NetBird](templates/netbird/)                   | Self-hosted template with gRPC and websocket routing             | `templates/netbird/`          |
+| [openGym](templates/opengym/)                   | Passkey PWA template with JSON sync and WebAuthn tuning          | `templates/opengym/`          |
+| [Pi-hole](templates/pi-hole/)                   | Reverse proxy template with admin UI and API tuning              | `templates/pi-hole/`          |
+| [ProjectSend](templates/projectsend/)           | File sharing template with chunked-upload-aware defaults         | `templates/projectsend/`      |
+| [Seafile](templates/seafile/)                   | File sharing template with WebDAV-aware proxy defaults           | `templates/seafile/`          |
+| [Synapse](templates/synapse/)                   | Matrix homeserver template with well-known delegation            | `templates/synapse/`          |
+| [Tomcat](templates/tomcat/)                     | Reverse proxy template with servlet-friendly defaults            | `templates/tomcat/`           |
+| [Tuwunel](templates/tuwunel/)                   | Matrix homeserver reverse proxy with WebSocket and delegation    | `templates/tuwunel/`          |
+| [Xen Orchestra](templates/xen-orchestra/)       | Reverse proxy template with WebSocket and rate limiting defaults | `templates/xen-orchestra/`    |
+| [WordPress](templates/wordpress/)               | Secure template with essential hardening defaults                | `templates/wordpress/`        |
 
 ```text
 templates/
