@@ -1,0 +1,19 @@
+templates/projectsend/README.md
+  s_f3f9544da11e67::t_322e38ea299fa7 288,297-305
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e14a3b6fbb2393831f9ec5293afd97f0f6fded8a",
+  "prompts": {},
+  "sessions": {
+    "s_f3f9544da11e67": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1795a2ae-6a0d-4695-8d5d-957e348c22b8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
