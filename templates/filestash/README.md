@@ -210,6 +210,10 @@ TLS, the WAF and the rate limits. Replace `filestash.example.com` and
 `SERVER_NAME` of the matching BunkerWeb service. Skip the `wopi_server` service if you do not edit
 Office documents.
 
+`bw-services` is an external network. If your BunkerWeb stack does not define it yet, create
+it with `docker network create bw-services` and attach BunkerWeb to it before running
+`docker compose up -d`.
+
 ```yaml
 services:
   app:
@@ -272,13 +276,16 @@ networks:
 Run these from the repository root before importing the template:
 
 ```bash
-t=templates/filestash
-jq . "$t/template.json"
-jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
-jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
-for f in $(jq -r '.configs[]' "$t/template.json"); do
-  test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
-done
+(
+  set -eu
+  t=templates/filestash
+  jq . "$t/template.json"
+  jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
+  jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
+  for f in $(jq -r '.configs[]' "$t/template.json"); do
+    test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
+  done
+)
 ```
 
 After applying the template:

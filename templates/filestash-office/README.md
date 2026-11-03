@@ -162,13 +162,16 @@ It starts Filestash and Collabora together, publishes no port, joins both to the
 Run these from the repository root before importing the template:
 
 ```bash
-t=templates/filestash-office
-jq . "$t/template.json"
-jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
-jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
-for f in $(jq -r '.configs[]' "$t/template.json"); do
-  test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
-done
+(
+  set -eu
+  t=templates/filestash-office
+  jq . "$t/template.json"
+  jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
+  jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
+  for f in $(jq -r '.configs[]' "$t/template.json"); do
+    test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
+  done
+)
 ```
 
 After applying it:
