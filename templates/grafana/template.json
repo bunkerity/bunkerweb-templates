@@ -1,0 +1,77 @@
+{
+  "id": "grafana",
+  "name": "Grafana",
+  "settings": {
+    "SERVER_NAME": "grafana.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://grafana:3000",
+    "SERVE_FILES": "no",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE",
+    "USE_LIMIT_REQ": "yes",
+    "LIMIT_REQ_URL": "/",
+    "LIMIT_REQ_RATE": "100r/s",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "32m",
+    "REVERSE_PROXY_URL_1": "/api/live/",
+    "REVERSE_PROXY_HOST_1": "http://grafana:3000",
+    "REVERSE_PROXY_WS_1": "yes",
+    "REVERSE_PROXY_URL_2": "/api/dashboards/",
+    "REVERSE_PROXY_HOST_2": "http://grafana:3000",
+    "REVERSE_PROXY_MAX_CLIENT_SIZE_2": "64m"
+  },
+  "configs": ["modsec/grafana_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Set your public hostname and certificate settings.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Set the reachable upstream, preserving its explicit port.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "API and dashboard limits",
+      "subtitle": "Preserve JSON errors and allow dashboard saves and query bursts.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "USE_LIMIT_REQ",
+        "LIMIT_REQ_URL",
+        "LIMIT_REQ_RATE",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT"
+      ]
+    },
+    {
+      "title": "Grafana Live",
+      "subtitle": "Keep this upstream synchronized with the main reverse proxy host.",
+      "settings": [
+        "REVERSE_PROXY_URL_1",
+        "REVERSE_PROXY_HOST_1",
+        "REVERSE_PROXY_WS_1"
+      ]
+    },
+    {
+      "title": "Dashboard uploads",
+      "subtitle": "Keep this upstream synchronized and review the dashboard body limit.",
+      "settings": [
+        "REVERSE_PROXY_URL_2",
+        "REVERSE_PROXY_HOST_2",
+        "REVERSE_PROXY_MAX_CLIENT_SIZE_2"
+      ]
+    },
+    {
+      "title": "CRS exclusions",
+      "subtitle": "Review the documented exception scopes before enabling the service.",
+      "configs": ["modsec/grafana_false_positives.conf"]
+    }
+  ]
+}
