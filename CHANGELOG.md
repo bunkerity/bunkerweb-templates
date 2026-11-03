@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Fix the Seafile template README: validate the Compose file with `docker compose config --quiet`, so the check no longer prints `MYSQL_ROOT_PASSWORD` and `SEAFILE_ADMIN_PASSWORD` to the terminal.
 - [@alfi4000] Add a ProjectSend template: reverse proxy to port 80 with buffering disabled, `MAX_CLIENT_SIZE=100m` for the 20 MiB chunked-upload parts, a JavaScript antibot that skips the share, upload, zip-download and API routes, and a `modsec-crs` rule that removes `920340`, `920640` and `920420` for `PUT /uploads/{session}/parts/{part}` (and the `/api/v1` twin) only.
 - [@alfi4000] Add a DocuSeal template: reverse proxy to port 3000, `PUT`, `PATCH`, `DELETE` and `OPTIONS` in `ALLOWED_METHODS` for the API, `REVERSE_PROXY_INTERCEPT_ERRORS=no` so API clients get DocuSeal's JSON errors, `MODSECURITY_REQ_BODY_NO_FILES_LIMIT` raised to 10 MB for large JSON bodies, and DocuSeal's own `Content-Security-Policy` kept. No antibot, so external signers reach the `/s/` and `/p/` links.
 - [@alfi4000] Add a Filestash Office template for the Collabora (WOPI) host: reverse proxy to port 9980 with WebSocket support and buffering disabled, `GET|POST|HEAD|OPTIONS` only, a 50 MB body limit, and Collabora's own `Content-Security-Policy` and `X-Frame-Options` kept so the editor frame renders inside Filestash.

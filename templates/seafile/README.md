@@ -122,7 +122,7 @@ Set the required environment variables before starting the stack:
 ```bash
 export MYSQL_ROOT_PASSWORD='replace-with-a-long-random-value'
 export SEAFILE_ADMIN_PASSWORD='replace-with-a-different-long-random-value'
-docker compose config
+docker compose config --quiet
 docker compose up -d
 ```
 
