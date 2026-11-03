@@ -136,6 +136,7 @@ plugins/
 | [Drupal](templates/drupal/)                     | Secure template with CMS-aware defaults                          | `templates/drupal/`           |
 | [Filestash](templates/filestash/)               | File manager template with WebDAV-aware proxy defaults           | `templates/filestash/`        |
 | [Filestash Office](templates/filestash-office/) | Collabora (WOPI) host template with WebSocket proxy defaults     | `templates/filestash-office/` |
+| [Forgejo](templates/forgejo/)                   | Git forge template with HTTPS, LFS and package API tuning        | `templates/forgejo/`          |
 | [Jellyfin](templates/jellyfin/)                 | Media streaming template with reverse proxy tuning               | `templates/jellyfin/`         |
 | [Nextcloud](templates/nextcloud/)               | Secure template with WebDAV-aware defaults                       | `templates/nextcloud/`        |
 | [NetBird](templates/netbird/)                   | Self-hosted template with gRPC and websocket routing             | `templates/netbird/`          |

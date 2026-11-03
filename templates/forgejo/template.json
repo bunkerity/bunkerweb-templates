@@ -1,0 +1,57 @@
+{
+  "id": "forgejo",
+  "name": "Forgejo",
+  "settings": {
+    "SERVER_NAME": "forgejo.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://forgejo:3000",
+    "SERVE_FILES": "no",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE",
+    "MAX_CLIENT_SIZE": "100m",
+    "USE_LIMIT_REQ": "yes",
+    "LIMIT_REQ_URL": "/",
+    "LIMIT_REQ_RATE": "20r/s"
+  },
+  "configs": [
+    "modsec-crs/forgejo_protocol.conf",
+    "modsec/forgejo_false_positives.conf"
+  ],
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Set your public hostname and certificate settings.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Set the reachable upstream, preserving its explicit port.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "Git, API and uploads",
+      "subtitle": "Review methods, upload size and the service-wide request rate.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "MAX_CLIENT_SIZE",
+        "USE_LIMIT_REQ",
+        "LIMIT_REQ_URL",
+        "LIMIT_REQ_RATE"
+      ]
+    },
+    {
+      "title": "CRS exclusions",
+      "subtitle": "Review the documented exception scopes before enabling the service.",
+      "configs": [
+        "modsec-crs/forgejo_protocol.conf",
+        "modsec/forgejo_false_positives.conf"
+      ]
+    }
+  ]
+}
