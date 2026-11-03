@@ -1,0 +1,30 @@
+templates/uptime-kuma/README.md
+  s_2790a6e2e4d895::t_9dcea94ffd29ab 1-69,77-93
+  s_2790a6e2e4d895::t_a3d7ab05f43415 70-76
+templates/uptime-kuma/template.json
+  s_2790a6e2e4d895::t_9dcea94ffd29ab 1-47
+templates/uptime-kuma/configs/modsec-crs/uptime-kuma_false_positives.conf
+  s_2790a6e2e4d895::t_9dcea94ffd29ab 2-10
+  s_2790a6e2e4d895::t_c33fad4279ee40 1
+README.md
+  s_2790a6e2e4d895::t_a3d7ab05f43415 148
+CHANGELOG.md
+  s_2790a6e2e4d895::t_5b0a8947a0026d 8
+  s_2790a6e2e4d895::t_a3d7ab05f43415 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f46b7189e230b9465003267a9a5a1ca8b68011aa",
+  "prompts": {},
+  "sessions": {
+    "s_2790a6e2e4d895": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0b7-1c13-78f0-aba2-262bdc87cfe6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
