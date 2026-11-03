@@ -156,6 +156,10 @@ publishing the app port: BunkerWeb reaches DocuSeal over the `bw-services` netwo
 passwords below are placeholders. Replace them with your own values before deploying. Save the
 block as `docker-compose.yml`.
 
+`bw-services` is an external network. If your BunkerWeb stack does not define it yet, create
+it with `docker network create bw-services` and attach BunkerWeb to it before running
+`docker compose up -d`.
+
 ```yaml
 services:
   app:
@@ -206,7 +210,7 @@ cat > .env <<EOF
 HOST=docuseal.example.com
 POSTGRES_PASSWORD=$(openssl rand -hex 24)
 EOF
-docker compose config
+docker compose config --quiet
 docker compose up -d
 ```
 
@@ -215,13 +219,16 @@ docker compose up -d
 Run these from the repository root before importing the template:
 
 ```bash
-t=templates/docuseal
-jq . "$t/template.json"
-jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
-jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
-for f in $(jq -r '.configs[]' "$t/template.json"); do
-  test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
-done
+(
+  set -eu
+  t=templates/docuseal
+  jq . "$t/template.json"
+  jq -e --arg expected "$(basename "$t")" '.id == $expected' "$t/template.json"
+  jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' "$t/template.json"
+  for f in $(jq -r '.configs[]' "$t/template.json"); do
+    test -f "$t/configs/$f" || { echo "missing: $f"; exit 1; }
+  done
+)
 ```
 
 After applying it:
