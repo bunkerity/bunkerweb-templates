@@ -5,6 +5,13 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+## Templates release v0.8 - 2026-11-03
+
+- [@TheophileDiot] Fix the Seafile template README: validate the Compose file with `docker compose config --quiet`, so the check no longer prints `MYSQL_ROOT_PASSWORD` and `SEAFILE_ADMIN_PASSWORD` to the terminal.
+- [@alfi4000] Add a ProjectSend template: reverse proxy to port 80 with buffering disabled, `MAX_CLIENT_SIZE=100m` for the 20 MiB chunked-upload parts, a JavaScript antibot that skips the share, upload, zip-download and API routes, and a `modsec-crs` rule that removes `920340`, `920640` and `920420` for `PUT /uploads/{session}/parts/{part}` (and the `/api/v1` twin) only.
+- [@alfi4000] Add a DocuSeal template: reverse proxy to port 3000, `PUT`, `PATCH`, `DELETE` and `OPTIONS` in `ALLOWED_METHODS` for the API, `REVERSE_PROXY_INTERCEPT_ERRORS=no` so API clients get DocuSeal's JSON errors, `MODSECURITY_REQ_BODY_NO_FILES_LIMIT` raised to 10 MB for large JSON bodies, and DocuSeal's own `Content-Security-Policy` kept. No antibot, so external signers reach the `/s/` and `/p/` links.
+- [@alfi4000] Add a Filestash Office template for the Collabora (WOPI) host: reverse proxy to port 9980 with WebSocket support and buffering disabled, `GET|POST|HEAD|OPTIONS` only, a 50 MB body limit, and Collabora's own `Content-Security-Policy` and `X-Frame-Options` kept so the editor frame renders inside Filestash.
+- [@alfi4000] Add a Filestash template: reverse proxy to port 8334 with WebSocket support and buffering disabled, WebDAV verbs in `ALLOWED_METHODS`, `MAX_CLIENT_SIZE=100m` (larger files upload in chunks once Filestash's `upload_chunk_size` is set), a JavaScript antibot that skips `/api/`, and a `modsec-crs` config that removes `920420` for the editor save (`POST /api/files/cat`), the upload (`POST /api/files/save`) and the chunked upload (`PATCH /api/files/save`), plus `920340` and `920640` for the upload only.
 - [@TheophileDiot] Fix the openGym template: user-authored workout notes blocked every `PUT /api/data` sync and fed device bans. Exclude SQLi/RCE rule families only on that path and method, retaining XSS and other CRS checks; validate on BunkerWeb 1.6.17 and openGym v1.4.1. Allow official mobile app CORS preflights and account DELETE routes.
 - [@TheophileDiot] Fix the Seafile template: add `REVERSE_PROXY_HEADERS` with `X-Forwarded-Protocol ""` and expose it in the guided step. BunkerWeb sends both `X-Forwarded-Proto` and `X-Forwarded-Protocol`, and Seafile's gunicorn answered `400` to every request that carried the pair.
 - [@TheophileDiot] Fix the Tuwunel template: set `REVERSE_PROXY_INTERCEPT_ERRORS` to `no` so Matrix clients receive Tuwunel's JSON errors (`M_FORBIDDEN`, `M_NOT_FOUND`) instead of BunkerWeb's HTML error page, as the Synapse template already does. Document that Tuwunel's `max_request_size` defaults below `MAX_CLIENT_SIZE`.
@@ -15,6 +22,15 @@ manual releases can pull details straight from this file.
 - [@TheophileDiot] Fix the Pi-hole template: add `ALLOWED_METHODS` with `PUT`, `PATCH`, and `DELETE` (answered `405`) and `MAX_CLIENT_SIZE=100m` (a 22 MB Teleporter import answered `413`), and set `REVERSE_PROXY_CUSTOM_HOST=pi.hole` for the `/` path that Pi-hole answers with `403`.
 - [@TheophileDiot] Fix the WordPress template: allow `PUT` and `DELETE` in `ALLOWED_METHODS`, raise `LIMIT_REQ_RATE` from `5r/s` to `50r/s` (a normal page load answered `429` and fed a 24 hour bad-behavior ban) and add a `2r/s` limit on `/wp-login.php`. Add `modsec-crs` rules for `932180` (file names containing `class` on `POST /wp-admin/async-upload.php`, field `async-upload` only) and `920420` (raw `image/*` uploads to `POST /wp-json/wp/v2/media`).
 - [@TheophileDiot] Fix the Synapse and Tuwunel templates: add a `modsec-crs` config with three method- and path-scoped exclusions, `920440` for user ids and aliases ending in `.com` on the profile, typing, and directory routes, `920420` for `POST`/`PUT /_matrix/media/{r0,v3}/upload`, and `942100` on the `body` and `formatted_body` fields of `PUT .../rooms/<room>/send/...`.
+
+### Contributions
+
+- [CONTRIBUTION] Thank you @alfi4000 for the Filestash and Filestash Office templates. (#50)
+- [CONTRIBUTION] Thank you @alfi4000 for the DocuSeal template. (#51)
+- [CONTRIBUTION] Thank you @alfi4000 for the ProjectSend template. (#52)
+
+## Templates release v0.7 - 2026-09-19
+
 - [@alfi4000] Add a Seafile template with upload, WebDAV, rate-limit, and reverse-proxy defaults.
 - [@TheophileDiot] Fix the NetBird template: add `REVERSE_PROXY_HEADERS` with `X-Real-Port $remote_port` so the relay receives the client's original port, expose it in the guided step, and document the header in the README.
 - [@TheophileDiot] Fix the openGym template: the bad-behavior code list was named `BAD_BEHAVIOR_STATUS_CODE`, which is not a BunkerWeb setting and was silently ignored, so the default list applied and `401` still counted toward the ban threshold — the opposite of what the template intended. Renamed to `BAD_BEHAVIOR_STATUS_CODES` in the settings, the guided step and the README.
