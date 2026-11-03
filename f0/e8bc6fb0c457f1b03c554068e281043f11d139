@@ -1,0 +1,21 @@
+CHANGELOG.md
+  s_f3f9544da11e67::t_7056156aeb46fb 8
+templates/seafile/README.md
+  s_f3f9544da11e67::t_c42e724cbdbf70 125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f0e8bc6fb0c457f1b03c554068e281043f11d139",
+  "prompts": {},
+  "sessions": {
+    "s_f3f9544da11e67": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1795a2ae-6a0d-4695-8d5d-957e348c22b8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
