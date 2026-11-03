@@ -1,0 +1,42 @@
+README.md
+  s_2790a6e2e4d895::t_a3d7ab05f43415 139
+templates/forgejo/configs/modsec-crs/forgejo_protocol.conf
+  s_52ba3d18d45293::t_1bd3a5348b754f 2-16
+  s_2790a6e2e4d895::t_a8a4d1bbac2ad0 1
+templates/forgejo/README.md
+  s_52ba3d18d45293::t_af17a9de2be4a0 1-59,61-87
+  s_52ba3d18d45293::t_c402d4116ba0f9 60
+CHANGELOG.md
+  s_2790a6e2e4d895::t_5b0a8947a0026d 8
+templates/forgejo/configs/modsec/forgejo_false_positives.conf
+  s_52ba3d18d45293::t_c402d4116ba0f9 42
+  s_52ba3d18d45293::t_1bd3a5348b754f 2-41
+  s_2790a6e2e4d895::t_302846fd608fac 1
+templates/forgejo/template.json
+  s_52ba3d18d45293::t_a731a75da1708e 25
+  s_52ba3d18d45293::t_1bd3a5348b754f 1-24,26-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed746e34803e2d72e71e4d294e620c662970654b",
+  "prompts": {},
+  "sessions": {
+    "s_2790a6e2e4d895": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0b7-1c13-78f0-aba2-262bdc87cfe6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_52ba3d18d45293": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0bf-0354-78b3-a107-0f3e01a67ddf",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
