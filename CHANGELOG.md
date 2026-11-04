@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Redesign the README: a quick start and one alphabetical template table up front, the install procedures and reference sections folded into collapsible blocks, and the stray template tree, duplicated plugin layout and self-listing table of contents removed.
 - [@TheophileDiot] Add a Vaultwarden template with WebSocket support, encrypted-field CRS tuning on vault write routes, a targeted attachment exception and documented validation limits.
 - [@TheophileDiot] Add a Grafana template with Live WebSockets, bounded raw SQL field exclusions, dashboard-save CRS tuning and explicit security tradeoffs.
 - [@TheophileDiot] Add a Forgejo template with Git-over-HTTPS, LFS and package API support, scoped protocol and source-content CRS exclusions, and guided import steps.
