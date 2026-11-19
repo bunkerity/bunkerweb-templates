@@ -50,6 +50,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | [ntfy](templates/ntfy/)                         | Push notification template with publish and subscribe tuning     |
 | [Open WebUI](templates/open-webui/)             | AI chat template with WebSocket and prompt-aware WAF tuning      |
 | [openGym](templates/opengym/)                   | Passkey PWA template with JSON sync and WebAuthn tuning          |
+| [Outline](templates/outline/)                   | Wiki template with realtime collaboration and MCP support        |
 | [Pi-hole](templates/pi-hole/)                   | Reverse proxy template with admin UI and API tuning              |
 | [ProjectSend](templates/projectsend/)           | File sharing template with chunked-upload-aware defaults         |
 | [Seafile](templates/seafile/)                   | File sharing template with WebDAV-aware proxy defaults           |
