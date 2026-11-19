@@ -1,0 +1,71 @@
+templates/pi-hole/configs/modsec-crs/pihole_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 19-25,30-36,40-46,50-56,61-67
+templates/wordpress/configs/modsec-crs/wordpress_crs_tuning.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 15-20,24-30,37,41,52,56
+templates/tomcat/configs/modsec-crs/tomcat_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 10,14
+templates/drupal/configs/modsec-crs/drupal_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 11,15,22,26,34,38
+templates/directus/README.md
+  s_f5874be913f3e6::t_fce60cb18adeee 128,131-138,140-144
+templates/directus/configs/modsec-crs/directus_crs_tuning.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 21,25
+templates/projectsend/configs/modsec-crs/projectsend_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 12-17,20-21,23-24
+templates/nextcloud/configs/modsec-crs/nextcloud_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 9-14,30,34
+templates/filestash/README.md
+  s_d9d66348b783ff::t_f9e8fa94a082cb 85-87
+  s_d9d66348b783ff::t_c8384a88e3946c 190,196-198
+templates/forgejo/configs/modsec-crs/forgejo_protocol.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 4-14,19-29,33-43
+templates/jellyfin/configs/modsec-crs/jellyfin_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 4-10
+  s_d9d66348b783ff::t_b3d6baa86589aa 1-3
+templates/filestash/configs/modsec-crs/filestash_false_positives.conf
+  s_d9d66348b783ff::t_c8384a88e3946c 12
+  s_d9d66348b783ff::t_f21ab6e565d616 19,24,35-36,41,51-52,57
+  s_6bc7766d0bd7ac::t_442abbb60ca12c 18
+templates/tuwunel/configs/modsec-crs/tuwunel_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 10,14,23,27,37,41
+templates/synapse/configs/modsec-crs/synapse_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 10,14,23,27,37,41
+templates/projectsend/README.md
+  s_d9d66348b783ff::t_db4ead3fb622d7 81
+templates/uptime-kuma/configs/modsec-crs/uptime-kuma_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 6-11,13-14,16-17
+templates/xen-orchestra/configs/modsec-crs/xen-orchestra_false_positives.conf
+  s_d9d66348b783ff::t_f21ab6e565d616 10,14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c4e72cb16189f232046fe3626b00f3f1a2ac5acc",
+  "prompts": {},
+  "sessions": {
+    "s_6bc7766d0bd7ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "75a9166d-d89b-458e-a098-1ab0f6182667",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d9d66348b783ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e481db8e-48cb-4e65-a245-ef378487be45",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f5874be913f3e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c562a35c-a0a6-49ff-b2e8-32287edb02f9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
