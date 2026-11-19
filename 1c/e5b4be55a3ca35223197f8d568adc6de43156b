@@ -1,0 +1,140 @@
+CHANGELOG.md
+  s_82a8b95f6feac8::t_06df0155ad46ce 8
+templates/n8n/configs/modsec-crs/n8n_editor_false_positives.conf
+  s_a71d08a0136c9e::t_f9a7181a2bdd6a 2-31,39-43,46-47,49,52-55,60,65,68,73-74,80-83,86,88,105,107,112,117,121,131-132,141-145,148-149,151,154-157,162,167,170,175-176,182-185,188,190,207,209,214,219,223,233-234,243-247,250-251,253,256-259,264,269,272,277-278,284-287,290,292,309,311,316,321,325,335-337,414
+  s_1dce183af1d33c::t_2941eed354cf01 438-443
+  s_2eeb8b1e647140::t_b2e842bbb687e5 133,235,338
+  s_a71d08a0136c9e::t_b107036c3835c5 38,44-45,48,50-51,56-59,61-64,66-67,69-72,75-79,84-85,87,89-104,106,108-111,113-116,118-120,122-125,140,146-147,150,152-153,158-161,163-166,168-169,171-174,177-181,186-187,189,191-206,208,210-213,215-218,220-222,224-227,242,248-249,252,254-255,260-263,265-268,270-271,273-276,279-283,288-289,291,293-308,310,312-315,317-320,322-324,326-329,345-413,415-432
+  s_d9d66348b783ff::t_f21ab6e565d616 32-37,126-130,134-139,228-232,236-241,330-334,339-344,433-437,444-454
+  s_d9d66348b783ff::t_942f6c171285b1 1
+templates/n8n/README.md
+  s_f7b473af85fae6::t_25dd0d89fa9a53 45,122-124,235-238,240-254,277,279
+  s_d9d66348b783ff::t_f9e8fa94a082cb 190
+  s_ec17c808773069::t_a2f08ac71d3372 169
+  s_a71d08a0136c9e::t_73c2af262dfd23 1-2,7-14,41-43,46-57,59-61,71-73,76-79,91-94,96-97,187-189,191-195,201-204,208-209,215,219,223-224,228-234,259-265,281-282,287
+  s_d9d66348b783ff::t_c8384a88e3946c 114,121,128,133-134,140,196-200,213,217-218,225-227,239,256,278
+  s_ec17c808773069::t_6ca14789af3670 98
+  s_ec17c808773069::t_b4d7433d762700 170-171,270-272,288-290
+  s_ec17c808773069::t_0ba941de46bcfa 3-6,15-40,44,58,62-70,74-75,80-86,88-90,95,100-113,115-120,125-127,129-132,135-139,141-168,172-186,205-207,210-212,214,216,220-222,255,257-258,266-269,273-276,280,283-286,291-298
+  s_ec17c808773069::t_3687559a312a36 99
+  s_ec17c808773069::t_2b1772dd0289f1 87
+README.md
+  s_82a8b95f6feac8::t_06a3c977fa694e 47
+templates/n8n/configs/modsec-crs/n8n_clients_false_positives.conf
+  s_2eeb8b1e647140::t_b2e842bbb687e5 14,29
+  s_5a685640adf33a::t_5c9dffec5f8e39 2,13,21,27-28
+  s_ec17c808773069::t_8059e4e73c5fa3 3-11
+  s_d9d66348b783ff::t_f21ab6e565d616 15-20,22-26,30-40
+  s_5a685640adf33a::t_0e7db896ea33e4 1
+  s_d9d66348b783ff::t_4fcdc1d8094e10 12
+templates/n8n/configs/modsec-crs/n8n_webhook_false_positives.conf
+  s_2eeb8b1e647140::t_b2e842bbb687e5 15,35,59
+  s_1dce183af1d33c::t_8bfd7999e92f97 52
+  s_d9d66348b783ff::t_f21ab6e565d616 16-30,36-51,60-65,67-76
+  s_f7b473af85fae6::t_f330c0837cf7ff 53-58,66
+  s_5a685640adf33a::t_0e7db896ea33e4 3-4
+  s_a71d08a0136c9e::t_f9a7181a2bdd6a 1-2,5-14
+  s_d9d66348b783ff::t_da6323302753b0 31-34
+templates/n8n/configs/modsec-crs/n8n_forms_false_positives.conf
+  s_ec17c808773069::t_78c4809e505093 3-9,30-31,39
+  s_2eeb8b1e647140::t_b2e842bbb687e5 32
+  s_d9d66348b783ff::t_f21ab6e565d616 33-38,40-49
+  s_f7b473af85fae6::t_05d5541695edc7 1-2,10-29
+templates/n8n/template.json
+  s_f7b473af85fae6::t_f330c0837cf7ff 32,39,54,69,74,88,93,98,103,108-113,118,123
+  s_d8a5c51a4907a5::t_cc98ff531d3afb 17,19,25-26,83-87
+  s_a71d08a0136c9e::t_46b1c3924bea65 1-7,27,35-38,40-42,44-47,49,55-56
+  s_ec17c808773069::t_e1515ae65b4d22 53
+  s_a71d08a0136c9e::t_f9a7181a2bdd6a 59,99-101,104-106
+  s_a71d08a0136c9e::t_0479ecd342345d 8,48,58
+  s_ec17c808773069::t_b3343484fabc2a 43
+  s_a71d08a0136c9e::t_d62ff7706bd2e1 50-52,57,60-63
+  s_a71d08a0136c9e::t_a20414a51d2ac6 124-126
+  s_ec17c808773069::t_73db2ae8274a26 114-117,119-122
+  s_5a685640adf33a::t_2d0934db015411 11-16,18,20-24,64-68,70-73,75-82,89-92,94-97
+  s_f7b473af85fae6::t_6e83b11799b106 9-10,28-31,33-34,102,107
+templates/n8n/configs/modsec-crs/n8n_api_false_positives.conf
+  s_5a685640adf33a::t_5c9dffec5f8e39 1-21,28-115,121-122,130-217,223-225,232-319
+  s_2eeb8b1e647140::t_b2e842bbb687e5 123
+  s_d9d66348b783ff::t_f21ab6e565d616 22-27,116-120,124-129,218-222,226-231,320-324
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1ce5b4be55a3ca35223197f8d568adc6de43156b",
+  "prompts": {},
+  "sessions": {
+    "s_1dce183af1d33c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b3d7dfc4-801b-4185-b088-b93c17be9edf",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_2eeb8b1e647140": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f096-ffc7-7192-ba4f-0fa33bc36ffb",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_5a685640adf33a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "68d2127e-39a5-4508-b4ec-80e97a2d7fed",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_82a8b95f6feac8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7405745d-4a38-41c6-878c-a8e0b0cf8d25",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_a71d08a0136c9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7e5f9f28-ad8f-4849-9467-e6038cf399ee",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d8a5c51a4907a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e10dddf-9c04-4304-9e29-494d24f65dab",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d9d66348b783ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e481db8e-48cb-4e65-a245-ef378487be45",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_ec17c808773069": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a134d4a-2a12-47cc-9701-215272c6332f",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f7b473af85fae6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb376ac8-eef6-45e1-98a7-432efe787b9a",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
