@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add a SearXNG template with CRS exclusions for the search query on `/search` and the autocompleter, a single forwarded client address for SearXNG's limiter, larger proxy buffers for the cookies a preferences save sets, and a content security policy that lets external bangs work.
 - [@TheophileDiot] Add a Pocket ID template for passkey sign-in, the admin interface and OIDC clients behind a relying party such as oauth2-proxy, with the app's own JSON errors kept and scoped CRS exclusions for LAN, loopback and IPv6 callback URLs.
 - [@TheophileDiot] Add an Outline template with WebSocket support for realtime collaboration, cookie flags that keep only the CSRF and sign-in hint cookies readable by the editor, a relaxed Permissions-Policy for passkeys and embeds, a user-agent allowance for ChatGPT's MCP connector, and CRS exclusions for document editing, search and the Slack command.
 - [@TheophileDiot] Add an Open WebUI template with WebSocket support for the Socket.IO connection and voice calls, long streamed replies, larger buffers for the OAuth token cookies, a raised body limit for chat history and uploads, and path-scoped CRS exclusions for the code, SQL and markup people paste into chats.
