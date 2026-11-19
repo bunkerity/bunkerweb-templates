@@ -1,0 +1,63 @@
+{
+  "id": "searxng",
+  "name": "SearXNG",
+  "settings": {
+    "SERVER_NAME": "searxng.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://searxng:8080",
+    "REVERSE_PROXY_HEADERS": "X-Forwarded-For $remote_addr",
+    "PROXY_BUFFER_SIZE": "16k",
+    "PROXY_BUFFERS": "8 16k",
+    "PROXY_BUSY_BUFFERS_SIZE": "32k",
+    "LIMIT_REQ_RATE": "100r/s",
+    "CONTENT_SECURITY_POLICY": "object-src 'none'; frame-ancestors 'self';"
+  },
+  "configs": ["modsec-crs/searxng_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Use the hostname you set as SearXNG's base_url; a mismatch breaks the redirect after saving preferences.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Point BunkerWeb at SearXNG.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST"
+      ]
+    },
+    {
+      "title": "Security - Client address",
+      "subtitle": "Send SearXNG only the real client address in X-Forwarded-For so its limiter cannot be dodged with a forged one.",
+      "settings": ["REVERSE_PROXY_HEADERS"]
+    },
+    {
+      "title": "HTTP - Preferences",
+      "subtitle": "A preferences save sets 22 cookies in one response; larger buffers keep a save with many engines toggled from ending in a 502.",
+      "settings": [
+        "PROXY_BUFFER_SIZE",
+        "PROXY_BUFFERS",
+        "PROXY_BUSY_BUFFERS_SIZE"
+      ]
+    },
+    {
+      "title": "Request rate",
+      "subtitle": "An image results page sends 37 requests in its first second; raise this when many people share one address.",
+      "settings": ["LIMIT_REQ_RATE"]
+    },
+    {
+      "title": "Security - External bangs",
+      "subtitle": "Drops form-action 'self' so a !!g style bang can redirect to another site; keep the default CSP if you disable external bangs.",
+      "settings": ["CONTENT_SECURITY_POLICY"]
+    },
+    {
+      "title": "Security - Review search text CRS exclusions",
+      "subtitle": "Let searches for SQL, shell, markup and path strings through the search and autocomplete query; the same text anywhere else stays blocked.",
+      "configs": ["modsec-crs/searxng_false_positives.conf"]
+    }
+  ]
+}

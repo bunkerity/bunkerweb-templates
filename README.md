@@ -1,6 +1,8 @@
 <p align="center">
-	<img alt="BunkerWeb Templates logo" src="./assets/logo.png" width=350 />
+  <img alt="BunkerWeb Templates logo" src="./assets/logo.png" width="240" />
 </p>
+
+<h3 align="center">Ready-to-run BunkerWeb configurations for popular services,<br />fully editable to fit your stack.</h3>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3" /></a>
@@ -13,161 +15,303 @@
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome" /></a>
 </p>
 
-> Ready-to-run BunkerWeb configurations for popular services, fully editable to fit your stack.
+Community-maintained templates for [BunkerWeb](https://www.bunkerweb.io). Each one gives a
+well-known service, such as WordPress, Nextcloud or a Matrix homeserver, a working configuration
+that you can extend for your environment.
 
-The **bunkerweb-templates** repository collects community-maintained templates that deliver a working [BunkerWeb](https://www.bunkerweb.io) configuration for well-known services such as WordPress, Nextcloud, and Matrix homeservers. Each template mirrors BunkerWeb’s template specification, giving you a safe baseline that you can extend or reshape for your environment.
+## Quick start
 
-All templates and documentation in this repository are released under the [GNU General Public License v3.0](LICENSE), in line with the main BunkerWeb project.
+1. Pick a template below and read its README for prerequisites.
+2. In the BunkerWeb web UI, open **Templates**, select **Create new template**, switch to **Raw**
+   mode and select **Upload template JSON**.
+3. Select **Save**, then choose the template in **Easy** mode when you edit a service.
 
-## Highlights
-- **Service-first library:** Templates target specific apps (e.g. WordPress and Nextcloud) so you can jump straight to a functional setup.
-- **Self-contained assets:** Every entry under `templates/<name>/` bundles the JSON definition and referenced configs.
-- **Editable by design:** Settings, configs, and steps follow BunkerWeb’s template spec, making tweaks straightforward.
-- **Built for iteration:** Contributor workflows, style guides, and review checklists keep the hub growing sustainably.
-- **Open collaboration:** Discuss ideas, report issues, and ship updates alongside the BunkerWeb community.
+Every step, the upload dialog and the plugin method are in [Install](#install).
 
-## How Templates Work
+## Templates
 
-BunkerWeb includes three predefined templates (`low`, `medium`, `high`) that bundle common security settings. The easy-mode UI and the `USE_TEMPLATE` setting can also consume **custom templates** defined as JSON. A custom template can declare:
+| Template                                        | Summary                                                          |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| [Atuin sync server](templates/atuin/)           | Shell history sync server template with API client tuning        |
+| [authentik](templates/authentik/)               | Identity provider template with flow and cookie-aware WAF tuning |
+| [Beszel](templates/beszel/)                     | Monitoring hub template with WebSocket agent connections         |
+| [Directus](templates/directus/)                 | Headless CMS template with REST and GraphQL API defaults         |
+| [DocuSeal](templates/docuseal/)                 | Document signing template with API-aware defaults                |
+| [Drupal](templates/drupal/)                     | Secure template with CMS-aware defaults                          |
+| [Filestash](templates/filestash/)               | File manager template with WebDAV-aware proxy defaults           |
+| [Filestash Office](templates/filestash-office/) | Collabora (WOPI) host template with WebSocket proxy defaults     |
+| [Forgejo](templates/forgejo/)                   | Git forge template with HTTPS, LFS and package API tuning        |
+| [Garage](templates/garage/)                     | S3 object storage template with signed-request WAF tuning        |
+| [Grafana](templates/grafana/)                   | Dashboard template with query and HTML-response WAF tuning       |
+| [Jellyfin](templates/jellyfin/)                 | Media streaming template with reverse proxy tuning               |
+| [Kaneo](templates/kaneo/)                       | Task board template with WebSocket and task-text WAF tuning      |
+| [n8n](templates/n8n/)                           | Workflow automation template with editor and webhook tuning      |
+| [NetBird](templates/netbird/)                   | Self-hosted template with gRPC and websocket routing             |
+| [Nextcloud](templates/nextcloud/)               | Secure template with WebDAV-aware defaults                       |
+| [ntfy](templates/ntfy/)                         | Push notification template with publish and subscribe tuning     |
+| [Open WebUI](templates/open-webui/)             | AI chat template with WebSocket and prompt-aware WAF tuning      |
+| [openGym](templates/opengym/)                   | Passkey PWA template with JSON sync and WebAuthn tuning          |
+| [Outline](templates/outline/)                   | Wiki template with realtime collaboration and MCP support        |
+| [Pi-hole](templates/pi-hole/)                   | Reverse proxy template with admin UI and API tuning              |
+| [Pocket ID](templates/pocket-id/)               | OIDC provider template with passkey and callback WAF tuning      |
+| [ProjectSend](templates/projectsend/)           | File sharing template with chunked-upload-aware defaults         |
+| [Seafile](templates/seafile/)                   | File sharing template with WebDAV-aware proxy defaults           |
+| [SearXNG](templates/searxng/)                   | Metasearch template with query-aware WAF tuning                  |
+| [Synapse](templates/synapse/)                   | Matrix homeserver template with well-known delegation            |
+| [Tomcat](templates/tomcat/)                     | Reverse proxy template with servlet-friendly defaults            |
+| [Tuwunel](templates/tuwunel/)                   | Matrix homeserver reverse proxy with WebSocket and delegation    |
+| [Umami](templates/umami/)                       | Web analytics template with tracker and dashboard tuning         |
+| [Uptime Kuma](templates/uptime-kuma/)           | Monitoring template with Socket.IO polling and WebSockets        |
+| [Vaultwarden](templates/vaultwarden/)           | Password vault template with encrypted-field WAF tuning          |
+| [WordPress](templates/wordpress/)               | Secure template with essential hardening defaults                |
+| [Xen Orchestra](templates/xen-orchestra/)       | Reverse proxy template with WebSocket and rate limiting defaults |
 
-- **Settings** – Multisite settings whose values should override defaults.
-- **Configs** – Paths to reusable NGINX configuration snippets that will be merged into your service.
-- **Steps** – Optional guided steps combining settings and configs so users can adjust the template interactively in the UI.
+## Install
 
-This repository packages those JSON definitions alongside their configuration snippets, giving you a safe baseline that you can drop into BunkerWeb and adapt to any deployment method.
-
-## Table of Contents
-- [Highlights](#highlights)
-- [How Templates Work](#how-templates-work)
-- [Table of Contents](#table-of-contents)
-- [Installing Templates](#installing-templates)
-- [Available Templates](#available-templates)
-- [Template Anatomy](#template-anatomy)
-- [Repository Layout](#repository-layout)
-- [Contributing](#contributing)
-- [Community](#community)
-- [Maintainers](#maintainers)
-- [License](#license)
-
-## Installing Templates
-
-The **web UI is recommended** for most users. Use the plugin method when you
-already manage BunkerWeb plugins as files or need repeatable, automated
-deployments.
+The **web UI is recommended** for most users. Use the plugin method when you already manage
+BunkerWeb plugins as files or need repeatable, automated deployments.
 
 First, download and extract the
-[latest release archive](https://github.com/bunkerity/bunkerweb-templates/releases/latest),
-or clone this repository. Choose the service directory you want to install and
-read its README for prerequisites and service-specific settings. Below,
-`<template-directory>` means that extracted service directory, such as
-`wordpress/` in the release archive or `templates/wordpress/` in a repository
-clone.
+[latest release archive](https://github.com/bunkerity/bunkerweb-templates/releases/latest), or
+clone this repository. Choose the service directory you want to install and read its README for
+prerequisites and service-specific settings. Below, `<template-directory>` means that extracted
+service directory, such as `wordpress/` in the release archive or `templates/wordpress/` in a
+repository clone.
 
-### Web UI (Recommended)
+> [!NOTE]
+> The templates are written and tested on OWASP CRS 4, the default of BunkerWeb 1.6.17. Their
+> ModSecurity exclusions only take effect with `USE_MODSECURITY_GLOBAL_CRS=no`, which is the
+> default: with `yes`, BunkerWeb 1.6.17 skips the per-service `modsec-crs` configs.
 
-1. Sign in to the BunkerWeb web UI with an account that can edit the
-   configuration.
-2. Open **Templates**, select **Create new template**, and switch to **Raw**
-   mode.
-3. Select **Upload template JSON** and choose
-   `<template-directory>/template.json`. You can instead paste the file's
-   contents into the JSON editor. Confirm **Replace template** if prompted.
-4. If the **Missing Custom Configs** dialog appears, the template needs its
-   accompanying NGINX configuration files:
+<details open>
+<summary><strong>Web UI (recommended)</strong></summary>
+
+<br />
+
+1. Sign in to the BunkerWeb web UI with an account that can edit the configuration.
+2. Open **Templates**, select **Create new template**, and switch to **Raw** mode.
+3. Select **Upload template JSON** and choose `<template-directory>/template.json`. You can instead
+   paste the file's contents into the JSON editor. Confirm **Replace template** if prompted.
+4. If the **Missing Custom Configs** dialog appears, the template needs its accompanying NGINX
+   configuration files:
    - Select **Browse Files**, or drag files into the upload area.
-   - Upload every listed file from `<template-directory>/configs/` and its
-     subdirectories. Filenames must match the list; selecting the directories
-     themselves is not required.
+   - Upload every listed file from `<template-directory>/configs/` and its subdirectories.
+     Filenames must match the list; selecting the directories themselves is not required.
    - Wait until every item is marked **Uploaded**, then select **Done**.
-5. Review the imported JSON and configs, then select **Save**. Templates without
-   custom configs skip the previous dialog.
-6. Add or edit a service in **Easy** mode, choose the new template, and review
-   each guided step. Replace example domains, upstream URLs, and other defaults
-   with values for your deployment before saving the service.
+5. Review the imported JSON and configs, then select **Save**. Templates without custom configs
+   skip the previous dialog.
+6. Add or edit a service in **Easy** mode, choose the new template, and review each guided step.
+   Replace example domains, upstream URLs, and other defaults with values for your deployment
+   before saving the service.
 
-The web UI stores the imported template and config contents in BunkerWeb's
-database. The local files are no longer needed after a successful import. For
-non-UI configuration, apply the same template with `USE_TEMPLATE=<name>`, where
-`<name>` is the template ID shown in the UI.
+The web UI stores the imported template and config contents in BunkerWeb's database. The local
+files are no longer needed after a successful import. For non-UI configuration, apply the same
+template with `USE_TEMPLATE=<name>`, where `<name>` is the template ID shown in the UI.
 
-### Plugin (Managed Deployments)
+</details>
 
-Template directories from this repository are **not standalone plugins**. Add
-the selected template to an existing external plugin, or create a plugin with a
-`plugin.json` file by following the
-[BunkerWeb plugin documentation](https://docs.bunkerweb.io/latest/plugins/#how-to-use-a-plugin).
+<details>
+<summary><strong>Plugin (managed deployments)</strong></summary>
 
-BunkerWeb uses the JSON filename as the template ID, so the repository layout
-must be rearranged inside the plugin:
+<br />
 
-1. Copy `<template-directory>/template.json` to
-   `<plugin>/templates/<name>.json`.
+> [!WARNING]
+> Template directories from this repository are **not standalone plugins**. Add the selected
+> template to an existing external plugin, or create a plugin with a `plugin.json` file by
+> following the [BunkerWeb plugin documentation](https://docs.bunkerweb.io/latest/plugins/#how-to-use-a-plugin).
+
+BunkerWeb uses the JSON filename as the template ID, so the repository layout must be rearranged
+inside the plugin:
+
+1. Copy `<template-directory>/template.json` to `<plugin>/templates/<name>.json`.
 2. If the template contains a `configs/` directory, copy it to
-   `<plugin>/templates/<name>/configs/`. Preserve every config-type
-   subdirectory, such as `modsec/` or `server-http/`.
-3. Confirm the resulting plugin layout. WordPress, for example, must look like
-   this:
+   `<plugin>/templates/<name>/configs/`. Preserve every config-type subdirectory, such as
+   `modsec-crs/` or `server-http/`.
+3. Confirm the resulting plugin layout. WordPress, for example, must look like this:
 
-```text
-plugins/
-└── example-plugin/
-    ├── plugin.json
-    └── templates/
-        ├── wordpress.json
-        └── wordpress/
-            └── configs/
-                └── modsec/
-                    └── wordpress_false_positives.conf
+   ```text
+   plugins/
+   └── example-plugin/
+       ├── plugin.json
+       └── templates/
+           ├── wordpress.json
+           └── wordpress/
+               └── configs/
+                   └── modsec-crs/
+                       ├── wordpress_crs_tuning.conf
+                       └── wordpress_false_positives.conf
+   ```
+
+4. Install or reload the plugin using the procedure for your BunkerWeb integration. The scheduler
+   loads the template from the plugin.
+5. Select the template when adding or editing a service in easy mode, or set `USE_TEMPLATE=<name>`.
+   For the example above, use `USE_TEMPLATE=wordpress` because the file is named `wordpress.json`.
+
+</details>
+
+<details>
+<summary><strong>Updating authentik, forgejo, grafana, netbird, opengym, vaultwarden or WordPress</strong></summary>
+
+<br />
+
+These seven templates moved their exclusion file from `configs/modsec/` to `configs/modsec-crs/`
+and gave its rules new ids. Update them so that only the new file stays active; an old file can
+be wider than the new one (the old WordPress rule matched every path that starts with
+`/wp-admin/admin-ajax.php`, the new one matches that path only). Tested with WordPress on
+`bunkerity/bunkerweb-all-in-one:1.6.17`, in a browser for the web UI; the other six templates make
+the same change. Other integrations were not tested.
+
+- **Web UI:** uploading the new files over the installed template is not enough. The editor keeps
+  the old `modsec` config next to the new ones, and **Done** and **Save** both stop with
+  `Configs ... are not assigned to any step`. Remove the old config first:
+  1. Open the installed template under **Templates**. Do not create it again, BunkerWeb answers
+     that the template already exists. In **Easy** mode, find the old config under
+     **Custom configs**: type `MODSEC`, name `<template>_false_positives` (for example
+     `wordpress_false_positives`). Select its red trash button (**Remove**).
+  2. Switch to **Raw**, select **Upload template JSON**, choose the new `template.json` and
+     confirm **Replace template**.
+  3. In the **Missing Custom Configs** dialog, upload every listed file from the new
+     `configs/modsec-crs/` directory, then select **Done**. The editor reports
+     `All missing configs have been uploaded!`.
+  4. Select **Save**. The old file is gone after the next reload (about 5 seconds, no restart).
+     Do not try to delete it on the **Configs** page: BunkerWeb refuses to delete template configs
+     there.
+- **Plugin:** replace the plugin directory with the new files and restart the BunkerWeb container.
+  Do not remove the plugin first: BunkerWeb then keeps the rendered files as custom configs of
+  the service, which stay active and replace the same-named file of the new template, and the
+  service loses the template settings until the plugin is back.
+
+**Check the result (web UI and plugin).** Replace `<container>` with the BunkerWeb container,
+`<service>` with the service's server name, and `<name>` and `<id>` with a row of the table below.
+Right before you select **Save** or restart the container, note the time (UTC, with the `Z`; GNU
+`date` on Linux):
+
+```sh
+S=$(date -u +%Y-%m-%dT%H:%M:%S.%NZ)
 ```
 
-4. Install or reload the plugin using the procedure for your BunkerWeb
-   integration. The scheduler loads the template from the plugin.
-5. Select the template when adding or editing a service in easy mode, or set
-   `USE_TEMPLATE=<name>`. For the example above, use
-   `USE_TEMPLATE=wordpress` because the file is named `wordpress.json`.
+Then run this. It looks every 2 seconds, for up to 60 seconds. After the last
+`Generating new custom configs` line since `S`, it waits for the push of `/etc/nginx` and then
+`reload successful`, and only then reads the rendered file. It prints `new rules loaded` if the file
+holds the new rules. It stops with `apply failed` if `failing over` or `was not applied` follows
+that line:
 
-## Available Templates
-
-| Template                                        | Summary                                                          | Directory                     |
-| ----------------------------------------------- | ---------------------------------------------------------------- | ----------------------------- |
-| [Directus](templates/directus/)                 | Headless CMS template with REST and GraphQL API defaults         | `templates/directus/`         |
-| [DocuSeal](templates/docuseal/)                 | Document signing template with API-aware defaults                | `templates/docuseal/`         |
-| [Drupal](templates/drupal/)                     | Secure template with CMS-aware defaults                          | `templates/drupal/`           |
-| [Filestash](templates/filestash/)               | File manager template with WebDAV-aware proxy defaults           | `templates/filestash/`        |
-| [Filestash Office](templates/filestash-office/) | Collabora (WOPI) host template with WebSocket proxy defaults     | `templates/filestash-office/` |
-| [Jellyfin](templates/jellyfin/)                 | Media streaming template with reverse proxy tuning               | `templates/jellyfin/`         |
-| [Nextcloud](templates/nextcloud/)               | Secure template with WebDAV-aware defaults                       | `templates/nextcloud/`        |
-| [NetBird](templates/netbird/)                   | Self-hosted template with gRPC and websocket routing             | `templates/netbird/`          |
-| [openGym](templates/opengym/)                   | Passkey PWA template with JSON sync and WebAuthn tuning          | `templates/opengym/`          |
-| [Pi-hole](templates/pi-hole/)                   | Reverse proxy template with admin UI and API tuning              | `templates/pi-hole/`          |
-| [ProjectSend](templates/projectsend/)           | File sharing template with chunked-upload-aware defaults         | `templates/projectsend/`      |
-| [Seafile](templates/seafile/)                   | File sharing template with WebDAV-aware proxy defaults           | `templates/seafile/`          |
-| [Synapse](templates/synapse/)                   | Matrix homeserver template with well-known delegation            | `templates/synapse/`          |
-| [Tomcat](templates/tomcat/)                     | Reverse proxy template with servlet-friendly defaults            | `templates/tomcat/`           |
-| [Tuwunel](templates/tuwunel/)                   | Matrix homeserver reverse proxy with WebSocket and delegation    | `templates/tuwunel/`          |
-| [Xen Orchestra](templates/xen-orchestra/)       | Reverse proxy template with WebSocket and rate limiting defaults | `templates/xen-orchestra/`    |
-| [WordPress](templates/wordpress/)               | Secure template with essential hardening defaults                | `templates/wordpress/`        |
-
-```text
-templates/
-├── netbird/
-│   ├── template.json
-│   └── configs/
-│       └── modsec/
-│           └── netbird_false_positives.conf
-└── wordpress/
-    └── template.json
+```sh
+for i in $(seq 30); do
+  r=$(docker logs --since "$S" <container> 2>&1 \
+    | grep -E 'Generating new custom configs|Sending /etc/nginx|reload successful|failing over|was not applied' \
+    | awk '/Generating/{s=1;f=0} /failing over|was not applied/{f=1} /Sending/&&s==1{s=2} /reload successful/&&s==2{s=3} END{if(f)print "failed";else if(s==3)print "ok"}')
+  [ "$r" = failed ] && { echo "apply failed, see docker logs <container>"; break; }
+  [ "$r" = ok ] && docker exec <container> grep -q 'id:<id>' /data/configs/modsec-crs/<service>/<name>.conf 2>/dev/null \
+    && { echo "new rules loaded"; break; }
+  sleep 2
+done
 ```
 
-## Template Anatomy
+In testing the check ended 6 to 9 seconds after `docker restart` and about 5 seconds after
+**Save**, and the first request after it was served normally. For the seven
+`<template>_false_positives` rows, also run this once. It prints a line when the old file is gone:
 
-Every repository template keeps its definition and supporting assets together:
+```sh
+docker exec <container> sh -c \
+  'test ! -e /data/configs/modsec/<service>/<name>.conf && echo "old file gone"'
+```
 
-- `template.json` describes the template `id`, user-facing `name`, and optional `settings`, `configs`, and `steps`.
+| Template                 | `<name>`                      | `<id>`    |
+| ------------------------ | ----------------------------- | --------- |
+| authentik                | `authentik_false_positives`   | `9851100` |
+| forgejo                  | `forgejo_false_positives`     | `9856103` |
+| forgejo (second file)    | `forgejo_protocol`            | `9856100` |
+| grafana                  | `grafana_false_positives`     | `9858100` |
+| netbird                  | `netbird_false_positives`     | `9862100` |
+| opengym                  | `opengym_false_positives`     | `9866100` |
+| vaultwarden              | `vaultwarden_false_positives` | `9877100` |
+| WordPress                | `wordpress_false_positives`   | `9878101` |
+| WordPress (second file)  | `wordpress_crs_tuning`        | `9878010` |
+
+The two second-file rows are files that kept their name and got new ids; they have no old file in
+`modsec/`, so skip the second command for them.
+
+If the first command prints `apply failed`, BunkerWeb did not apply the new configuration.
+Depending on where it failed, it keeps the previous one and retries, or tries to go back to its
+last working configuration. What happened and why are in `docker logs <container>` (for an nginx
+error, an `[emerg]` line names the file). Fix the cause, then select **Save** or restart again.
+
+If the first command prints nothing after 60 seconds:
+
+- with the plugin, look at the plugin directory. Only if it holds the old files again (the old
+  plugin copy came back over the new one in 5 of 8 test restarts made right after a first start),
+  put the new files back and restart. If it already holds the new files, do not restart again;
+- otherwise the file may be stuck as a stored custom config. This happens after the plugin was
+  removed once: BunkerWeb 1.6.17 then keeps the rendered files as custom configs with method
+  `manual`. They replace the same-named file of the new template, so the old, wider exclusion stays
+  active and the new file is not loaded. The **Configs** page cannot remove them: it answers
+  `Custom config <service>/modsec_crs/<name> is not a UI/API custom config and will not be
+  deleted.` BunkerWeb 1.6.17 has no safe supported way to remove them, so this README gives no
+  manual steps: removing them by hand can delete other custom configs. A timeout can also mean a
+  missing file or a failed `docker exec`. This read-only command prints the stored row, if there
+  is one (all-in-one image, SQLite; other integrations were not tested):
+
+  ```sh
+  docker exec <container> sqlite3 -readonly /var/lib/bunkerweb/db.sqlite3 \
+    "select service_id,type,name,method from bw_custom_configs where service_id='<service>' and type='modsec_crs' and name='<name>' and method='manual'"
+  ```
+
+  A line `<service>|modsec_crs|<name>|manual` means a stored `manual` config replaces the
+  template's file. It is stale if its file does not hold the new rules; this prints `0` then:
+
+  ```sh
+  docker exec <container> grep -c 'id:<id>' /data/configs/modsec-crs/<service>/<name>.conf
+  ```
+
+</details>
+
+## More
+
+<details>
+<summary><strong>How templates work</strong></summary>
+
+<br />
+
+BunkerWeb includes three predefined templates (`low`, `medium`, `high`) that bundle common
+security settings. The easy-mode UI and the `USE_TEMPLATE` setting can also consume **custom
+templates** defined as JSON. A custom template can declare:
+
+- **Settings**: multisite settings whose values override defaults.
+- **Configs**: paths to reusable NGINX configuration snippets that get merged into your service.
+- **Steps**: optional guided steps that combine settings and configs, so users can adjust the
+  template interactively in the UI.
+
+This repository packages those JSON definitions alongside their configuration snippets, so you
+can drop them into BunkerWeb for any deployment method. The
+[BunkerWeb documentation](https://docs.bunkerweb.io/latest/concepts/#templates) covers the concept.
+
+</details>
+
+<details>
+<summary><strong>Template anatomy</strong></summary>
+
+<br />
+
+Every template keeps its definition and supporting assets together:
+
+```text
+templates/<service-name>/
+├── template.json      # required: id, name, settings, configs, steps
+├── README.md          # prerequisites and service-specific notes
+└── configs/           # optional NGINX and ModSecurity snippets
+    ├── modsec-crs/    # rules loaded before the CRS (most exclusions)
+    ├── modsec/        # rules loaded after the CRS
+    └── server-http/   # directives for the service's server block
+```
+
+- `template.json` describes the template `id`, user-facing `name`, and optional `settings`,
+  `configs`, and `steps`.
 - `configs/` contains any NGINX fragments referenced in the JSON file.
-- Additional assets (e.g. helper scripts, documentation) can live beside these defaults if they assist users.
+- Additional assets, such as helper scripts or documentation, can live beside these defaults if they
+  help users.
 
-A minimal `template.json` might look like:
+A minimal `template.json`:
 
 ```json
 {
@@ -179,16 +323,12 @@ A minimal `template.json` might look like:
     "MAX_CLIENT_SIZE": "50m",
     "MODSECURITY_CRS_PLUGINS": "wordpress-rule-exclusions"
   },
-  "configs": [
-    "modsec/wordpress_false_positives.conf"
-  ],
+  "configs": ["modsec-crs/wordpress_false_positives.conf"],
   "steps": [
     {
       "title": "Domains and TLS",
       "subtitle": "Point the template at your WordPress hostname(s).",
-      "settings": [
-        "SERVER_NAME"
-      ]
+      "settings": ["SERVER_NAME"]
     },
     {
       "title": "Reverse proxy",
@@ -198,62 +338,53 @@ A minimal `template.json` might look like:
         "MAX_CLIENT_SIZE",
         "MODSECURITY_CRS_PLUGINS"
       ],
-      "configs": [
-        "modsec/wordpress_false_positives.conf"
-      ]
+      "configs": ["modsec-crs/wordpress_false_positives.conf"]
     }
   ]
 }
 ```
 
-When installed in a plugin, its files use this layout:
+[`TEMPLATE_GUIDE.md`](TEMPLATE_GUIDE.md) holds the full authoring rules.
 
-```text
-plugins/
-└── example-plugin/
-    ├── plugin.json
-    └── templates/
-        ├── wordpress.json
-        └── wordpress/
-            └── configs/
-                └── modsec/
-                    └── wordpress_false_positives.conf
-```
+</details>
 
-## Repository Layout
+<details>
+<summary><strong>Contributing</strong></summary>
 
-- `templates/` – Community-curated templates, one directory per service with its `template.json` and related configs.
-- `TEMPLATE_GUIDE.md` – Canonical instructions for authors creating or updating a template.
-- `CONTRIBUTING.md` – Contribution workflow, review expectations, and the submission checklist.
+<br />
 
-## Contributing
-
-We welcome community contributions! Review the [CONTRIBUTING.md](CONTRIBUTING.md) guide for the full workflow. In short:
+Review [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow. In short:
 
 1. Fork the repository and create a feature branch.
 2. Add or update your template following the guidelines.
 3. Submit a pull request describing your changes and any testing performed.
 
-Maintainers and community members will review submissions collaboratively to ensure templates stay reliable and helpful.
+Before you push, install the repository's pre-commit hooks with `pre-commit install` and run
+`pre-commit run --all-files`, so formatting, spell-check, and secret scans pass locally.
 
-Before you push, install the repository’s `pre-commit` hooks (`pre-commit install`) and run `pre-commit run --all-files` so formatting, spell-check, and secret scans pass locally.
+</details>
 
-## Community
+<details>
+<summary><strong>Community and maintainers</strong></summary>
 
-Questions or ideas? Join the conversation with fellow BunkerWeb maintainers and users:
+<br />
 
 - Discord: [discord.gg/YEdMKqztMZ](https://discord.gg/YEdMKqztMZ)
-- GitHub Issues: Use the issue tracker to report bugs or request new templates.
-- Wiki: Browse the [project wiki](https://github.com/bunkerity/bunkerweb-templates/wiki) for concise navigation and troubleshooting.
-- Code of Conduct: Review our [community guidelines](CODE_OF_CONDUCT.md) before engaging.
-
-## Maintainers
+- GitHub Issues: report bugs or request new templates in the
+  [issue tracker](https://github.com/bunkerity/bunkerweb-templates/issues).
+- Wiki: browse the [project wiki](https://github.com/bunkerity/bunkerweb-templates/wiki) for
+  navigation and troubleshooting.
+- Code of Conduct: read the [community guidelines](CODE_OF_CONDUCT.md) before engaging.
 
 | Name           | GitHub                                             |
 | -------------- | -------------------------------------------------- |
 | Théophile Diot | [@TheophileDiot](https://github.com/TheophileDiot) |
 | Alexandre      | [@YouKyi](https://github.com/YouKyi)               |
 
+</details>
+
 ## License
 
-This repository, including all templates and documentation, is licensed under the [GNU General Public License v3.0](LICENSE). By contributing, you agree that your contributions will be released under the same license.
+[GNU General Public License v3.0](LICENSE), in line with the main BunkerWeb project. The license
+covers this repository, including all templates and documentation. By contributing, you agree that
+your contributions will be released under the same license.

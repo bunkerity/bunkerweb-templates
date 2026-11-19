@@ -1,0 +1,81 @@
+{
+  "id": "atuin",
+  "name": "Atuin sync server",
+  "settings": {
+    "SERVER_NAME": "atuin.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://atuin:8888",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "ALLOWED_METHODS": "GET|POST|HEAD|DELETE|PATCH",
+    "MAX_CLIENT_SIZE": "2m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "2m",
+    "LIMIT_REQ_URL_1": "^/api/v0/record/next$",
+    "LIMIT_REQ_RATE_1": "600r/s",
+    "LIMIT_REQ_URL_2": "^/api/v0/record$",
+    "LIMIT_REQ_RATE_2": "20r/s",
+    "LIMIT_REQ_URL_3": "^/api/v0/(?:capabilities|me|store)$",
+    "LIMIT_REQ_RATE_3": "20r/s",
+    "LIMIT_CONN_MAX_HTTP1": "40",
+    "USE_GREYLIST": "no"
+  },
+  "configs": ["modsec-crs/atuin_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Domains and TLS",
+      "subtitle": "Passwords travel in sign-in requests: give the client an https:// sync_address.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream",
+      "subtitle": "Atuin's sync server listens on port 8888; keep that port off the public network.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST"
+      ]
+    },
+    {
+      "title": "Web service - Error messages",
+      "subtitle": "Pass Atuin's own JSON errors through so the client can print them.",
+      "settings": ["REVERSE_PROXY_INTERCEPT_ERRORS"]
+    },
+    {
+      "title": "HTTP - Sync requests",
+      "subtitle": "Atuin refuses bodies above 2 MiB itself; the 100-record upload pages reach 160 KB.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT"
+      ]
+    },
+    {
+      "title": "HTTP - Sync request rate",
+      "subtitle": "Per-path limits sized to the client's upload and parallel download pages.",
+      "settings": [
+        "LIMIT_REQ_URL_1",
+        "LIMIT_REQ_RATE_1",
+        "LIMIT_REQ_URL_2",
+        "LIMIT_REQ_RATE_2",
+        "LIMIT_REQ_URL_3",
+        "LIMIT_REQ_RATE_3"
+      ]
+    },
+    {
+      "title": "HTTP - Parallel downloads",
+      "subtitle": "One client downloads over 8 connections; the default of 10 per address allows one.",
+      "settings": ["LIMIT_CONN_MAX_HTTP1"]
+    },
+    {
+      "title": "Security - Only Atuin clients (optional)",
+      "subtitle": "Set yes and GREYLIST_USER_AGENT=^atuin/ to refuse other user agents (spoofable).",
+      "settings": ["USE_GREYLIST"]
+    },
+    {
+      "title": "Security - Review CRS exclusions",
+      "subtitle": "Ciphertext and password fields on five exact routes skip the injection rules.",
+      "configs": ["modsec-crs/atuin_false_positives.conf"]
+    }
+  ]
+}

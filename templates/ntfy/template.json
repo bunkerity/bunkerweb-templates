@@ -1,0 +1,62 @@
+{
+  "id": "ntfy",
+  "name": "ntfy",
+  "settings": {
+    "SERVER_NAME": "ntfy.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://ntfy:80",
+    "REVERSE_PROXY_WS": "yes",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|DELETE|PATCH",
+    "MAX_CLIENT_SIZE": "15m",
+    "LIMIT_REQ_URL": "/",
+    "LIMIT_REQ_RATE": "100r/s",
+    "LIMIT_CONN_MAX_HTTP1": "40",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "BLACKLIST_URI": "^/metrics$"
+  },
+  "configs": ["modsec-crs/ntfy_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Domains and TLS",
+      "subtitle": "Match your public hostname to ntfy's base-url.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream and WebSockets",
+      "subtitle": "Subscriptions use the same upstream port, including the WebSocket.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_WS"
+      ]
+    },
+    {
+      "title": "HTTP - Publishing and attachments",
+      "subtitle": "Allow the methods ntfy clients use and match the attachment size limit.",
+      "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE"]
+    },
+    {
+      "title": "HTTP - Request limits",
+      "subtitle": "Let bursts to one topic reach ntfy's own limit of 60, and let each open topic hold a connection.",
+      "settings": ["LIMIT_REQ_URL", "LIMIT_REQ_RATE", "LIMIT_CONN_MAX_HTTP1"]
+    },
+    {
+      "title": "HTTP - Error responses",
+      "subtitle": "Pass ntfy's own JSON errors to its apps and CLI instead of BunkerWeb's error page.",
+      "settings": ["REVERSE_PROXY_INTERCEPT_ERRORS"]
+    },
+    {
+      "title": "Security - Metrics endpoint",
+      "subtitle": "Keep Prometheus /metrics private; drop this if you scrape it through BunkerWeb.",
+      "settings": ["BLACKLIST_URI"]
+    },
+    {
+      "title": "Security - Review CRS exclusions",
+      "subtitle": "Narrow exclusions for raw bodies, message text, passwords and webhook JSON.",
+      "configs": ["modsec-crs/ntfy_false_positives.conf"]
+    }
+  ]
+}

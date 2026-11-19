@@ -5,6 +5,30 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+## Templates release v0.9 - 2026-11-19
+
+- [@TheophileDiot] Document the ModSecurity rule id blocks and the CRS rule form in the template guide.
+- [@TheophileDiot] Load the exclusions of authentik, Forgejo, Grafana, NetBird, openGym, Vaultwarden and WordPress from `modsec-crs`, before the CRS, and scope the WordPress admin-ajax exclusion to its exact path and the NetBird OAuth2 exclusions to their endpoints and methods. To update an installed copy, remove the old `modsec` config of the template in the web UI editor before uploading the new files, or replace the plugin directory and restart BunkerWeb; never remove the plugin first, and check the result as the "Updating" section of the README shows.
+- [@TheophileDiot] Renumber the ModSecurity rule ids of the existing templates into per-template blocks (9850000-9899999), write the exclusions in CRS form, match the Jellyfin exclusion on its exact path only and drop a second Jellyfin exclusion that had no effect.
+- [@TheophileDiot] Add a Kaneo template for the task board, its live-update WebSockets, MCP clients and the CLI device login, with raised request and connection limits for many people behind one address, a single forwarded client address, room for large single sign-on cookies, the ChatGPT MCP connector let through the user-agent blacklist, and scoped CRS exclusions for the text people write in tasks and comments.
+- [@TheophileDiot] Add an Umami template that serves the dashboard and the visitor tracker (`/script.js` and `POST /api/send`) from one service, with a login rate limit, a bad-behavior list that ignores the `400` answers of stale tracker snippets, CRS exclusions for tracker payloads, dashboard filters and passwords, and an example config to add by hand for renamed tracker paths.
+- [@TheophileDiot] Add a SearXNG template with CRS exclusions for the search query on `/search` and the autocompleter, a single forwarded client address for SearXNG's limiter, larger proxy buffers for the cookies a preferences save sets, and a content security policy that lets external bangs work.
+- [@TheophileDiot] Add a Pocket ID template for passkey sign-in, the admin interface and OIDC clients behind a relying party such as oauth2-proxy, with the app's own JSON errors kept and scoped CRS exclusions for LAN, loopback and IPv6 callback URLs.
+- [@TheophileDiot] Add an Outline template with WebSocket support for realtime collaboration, cookie flags that keep only the CSRF and sign-in hint cookies readable by the editor, a relaxed Permissions-Policy for passkeys and embeds, a user-agent allowance for ChatGPT's MCP connector, and CRS exclusions for document editing, search and the Slack command.
+- [@TheophileDiot] Add an Open WebUI template with WebSocket support for the Socket.IO connection and voice calls, long streamed replies, larger buffers for the OAuth token cookies, a raised body limit for chat history and uploads, and path-scoped CRS exclusions for the code, SQL and markup people paste into chats.
+- [@TheophileDiot] Add an ntfy template for the web app, publishing, webhooks and subscriptions over SSE, WebSocket and long poll, with raised rate and connection limits, ntfy's own JSON errors kept, and scoped CRS exclusions.
+- [@TheophileDiot] Add an n8n template for the editor and its push channel, production, test and waiting webhooks, forms, the Chat Trigger, MCP and the public API, with scoped CRS exclusions and an optional webhook-only mode.
+- [@TheophileDiot] Add a Garage template for the S3 API with path-style and virtual-host-style addressing, large and multipart uploads, presigned requests, a token-free `/health` route, and CRS exclusions limited to signed requests.
+- [@TheophileDiot] Add a Beszel template for the hub dashboard, the PocketBase API and WebSocket agent connections, with proxy and client-address handling and scoped CRS exclusions.
+- [@TheophileDiot] Add an Atuin sync server template for end-to-end encrypted history sync across several machines, with API-client-aware proxy and rate-limit defaults, scoped CRS exclusions and an optional restriction to Atuin clients.
+- [@TheophileDiot] Anchor the path, method and content-type checks of the CRS exclusions in the authentik, Drupal, Filestash, Forgejo, openGym, ProjectSend, Synapse, Tuwunel, Uptime Kuma, Vaultwarden and Xen Orchestra templates with `\A` and `\z`: ModSecurity on BunkerWeb 1.6.17 reads `^` and `$` at every line break, so a path with a line feed before the excluded path no longer reaches an exclusion.
+- [@TheophileDiot] Redesign the README: a quick start and one alphabetical template table up front, the install procedures and reference sections folded into collapsible blocks, and the stray template tree, duplicated plugin layout and self-listing table of contents removed.
+- [@TheophileDiot] Add a Vaultwarden template with WebSocket support, encrypted-field CRS tuning on vault write routes, a targeted attachment exception and documented validation limits.
+- [@TheophileDiot] Add a Grafana template with Live WebSockets, bounded raw SQL field exclusions, dashboard-save CRS tuning and explicit security tradeoffs.
+- [@TheophileDiot] Add a Forgejo template with Git-over-HTTPS, LFS and package API support, scoped protocol and source-content CRS exclusions, and guided import steps.
+- [@TheophileDiot] Add an authentik template with WebSocket support, application-owned cookie/CSP behavior and CRS target exclusions for policy expressions, branding CSS and prompt HTML.
+- [@TheophileDiot] Add an Uptime Kuma template with Socket.IO polling and WebSockets, preserved API errors and a CRS content-type exception limited to text/plain POST requests on /socket.io/.
+
 ## Templates release v0.8 - 2026-11-03
 
 - [@TheophileDiot] Fix the Seafile template README: validate the Compose file with `docker compose config --quiet`, so the check no longer prints `MYSQL_ROOT_PASSWORD` and `SEAFILE_ADMIN_PASSWORD` to the terminal.

@@ -25,7 +25,7 @@ allow lists tuned for typical Java web applications.
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates)
+   - Follow the repository's [installation guide](../../README.md#install)
      for the web UI or plugin bundle method.
 2. **Assign the template** to the service that fronts Tomcat (`USE_TEMPLATE=tomcat`
    or pick it from the UI list).

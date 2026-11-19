@@ -69,7 +69,7 @@ rules; the template does not exclude them because that would need an exclusion o
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates)
+   - Follow the repository's [installation guide](../../README.md#install)
      for the web UI or plugin bundle method.
 2. **Assign the template** to the site serving Synapse
    (`USE_TEMPLATE=synapse` or choose it in the UI).

@@ -28,7 +28,7 @@ caused by XO's frequent API polling.
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates)
+   - Follow the repository's [installation guide](../../README.md#install)
      for the web UI or plugin bundle method.
 2. **Assign the template** to the site serving Xen Orchestra
    (`USE_TEMPLATE=xen-orchestra` or choose it in the UI).

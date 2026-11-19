@@ -25,7 +25,7 @@ instance stays reachable and protected.
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates) for the web UI or
+   - Follow the repository's [installation guide](../../README.md#install) for the web UI or
      plugin bundle method.
 2. **Assign the template** to the service that fronts Nextcloud (set `USE_TEMPLATE=nextcloud` or pick it
    from the easy-mode UI).

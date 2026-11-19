@@ -82,9 +82,9 @@ The values below are examples. Replace them with your own before using the templ
 - **Compression:** `USE_GZIP` is on so that `GZIP_PROXIED` takes effect.
 - **Allowlist:** `WHITELIST_IP` is not set by the template. Set it on the service only for the IP
   addresses or ranges that may bypass the security checks, and review the list regularly.
-- **ModSecurity rule IDs:** rules written for these configs use IDs from the local-use range
-  (1 to 99999), never the ranges reserved for the OWASP Core Rule Set. This template uses 75001 to
-  75003. Keep each template inside its own small block of IDs so templates do not collide.
+- **ModSecurity rule IDs:** the template's rules use IDs 9855101 to 9855103, inside its block
+  9855000 to 9855999 of the range BunkerWeb reserves for community templates (see "Rule IDs" in
+  [`TEMPLATE_GUIDE.md`](../../TEMPLATE_GUIDE.md)). Rules you add yourself belong in 1 to 99999.
 
 ## Settings
 
@@ -187,15 +187,15 @@ type.
 
 CRS rule 920420 rejects a request whose `Content-Type` is not in the CRS allowed list. Filestash
 sends three requests that hit it. Each rule matches one method and one anchored path, so the rest
-of the API keeps the full CRS. Rule `75002` also removes 920340 and 920640 (`Content-Type` header
+of the API keeps the full CRS. Rule `9855102` also removes 920340 and 920640 (`Content-Type` header
 missing from a request with a body), because the browser sends a file with an unknown MIME type, for
 example a small `.bin`, with no `Content-Type` at all:
 
 | Rule ID | Request                    | `Content-Type` sent by the browser                         |
 | ------- | -------------------------- | ---------------------------------------------------------- |
-| `75001` | `POST /api/files/cat`      | `text/plain;charset=UTF-8` (web editor save)               |
-| `75002` | `POST /api/files/save`     | the file's own type, for example `application/pdf`, or no header |
-| `75003` | `PATCH /api/files/save`    | `application/offset+octet-stream` (chunked upload)         |
+| `9855101` | `POST /api/files/cat`      | `text/plain;charset=UTF-8` (web editor save)               |
+| `9855102` | `POST /api/files/save`     | the file's own type, for example `application/pdf`, or no header |
+| `9855103` | `PATCH /api/files/save`    | `application/offset+octet-stream` (chunked upload)         |
 
 The CRS does not inspect these bodies either way, because no body processor is armed for their
 types. The global allowed content type list is not changed.

@@ -56,6 +56,7 @@ Use `templates/wordpress/` as the reference template for structure, tone, and st
 - Commits: imperative mood ("Add Jellyfin template"), single concern per commit
 - Changelog: all changes go under `## Unreleased` in `CHANGELOG.md` as `- [@github-handle] Summary`; releases track template updates from that list, so keep entries current
 - Config file naming: `<service>_false_positives.conf` for ModSecurity exclusion rules
+- ModSecurity rule ids: every rule uses an id from the template's own block of 1,000 in 9,850,000 to 9,899,999; a new template takes the next free block from 9,880,000. Layout, block table and rule form in `TEMPLATE_GUIDE.md` (Rule IDs)
 - All config paths in `template.json` are relative to the template's `configs/` directory; referenced files must exist in-repo
 - NGINX snippets should include comments when relaxing security defaults
 
@@ -63,7 +64,7 @@ Markdown content should wrap commands in backticks and keep lines under roughly 
 
 ## Testing Guidelines
 
-For new templates, provide the commands you used to test imports or reverse proxies. Log output or screenshots can be attached in PR discussions when behavior is complex. Name config snippets to reflect their intent (e.g., `modsec/wordpress_false_positives.conf`) so reviewers understand coverage at a glance.
+For new templates, provide the commands you used to test imports or reverse proxies. Log output or screenshots can be attached in PR discussions when behavior is complex. Name config snippets to reflect their intent (e.g., `modsec-crs/wordpress_false_positives.conf`) so reviewers understand coverage at a glance.
 
 ## Git Workflow
 

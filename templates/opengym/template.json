@@ -43,7 +43,7 @@
     "BAD_BEHAVIOR_STATUS_CODES": "400 403 404 405 429 444",
     "BLACKLIST_URI": "^/api/health$"
   },
-  "configs": ["modsec/opengym_false_positives.conf"],
+  "configs": ["modsec-crs/opengym_false_positives.conf"],
   "steps": [
     {
       "title": "Web service - Front service",
@@ -118,7 +118,7 @@
     {
       "title": "Security - Review WAF tuning and exposure",
       "subtitle": "Review the WebAuthn, push and sync CRS exclusions, and decide whether to expose the health endpoint.",
-      "configs": ["modsec/opengym_false_positives.conf"],
+      "configs": ["modsec-crs/opengym_false_positives.conf"],
       "settings": [
         "USE_BAD_BEHAVIOR",
         "BAD_BEHAVIOR_STATUS_CODES",

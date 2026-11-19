@@ -15,7 +15,7 @@ Seafile's version-specific Compose file when deploying another release.
 ## Setup
 
 1. Import `template.json` by following the repository's
-   [installation guide](../../README.md#installing-templates).
+   [installation guide](../../README.md#install).
 2. Assign `USE_TEMPLATE=seafile` to the service, or select **Seafile** in the web UI.
 3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT`, and `REVERSE_PROXY_HOST` with values for your
    deployment. The default upstream, `http://seafile`, assumes both containers share a Docker network.

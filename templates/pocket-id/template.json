@@ -1,0 +1,70 @@
+{
+  "id": "pocket-id",
+  "name": "Pocket ID",
+  "settings": {
+    "SERVER_NAME": "id.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://pocket-id:1411",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "BAD_BEHAVIOR_STATUS_CODES": "403 405 429 444",
+    "PERMISSIONS_POLICY": "accelerometer=(), ambient-light-sensor=(), aria-notify=(), attribution-reporting=(), autoplay=(), bluetooth=(), browsing-topics=(), camera=(), captured-surface-control=(), ch-device-memory=(), ch-downlink=(), ch-dpr=(), ch-ect=(), ch-prefers-color-scheme=(), ch-prefers-reduced-motion=(), ch-prefers-reduced-transparency=(), ch-rtt=(), ch-save-data=(), ch-ua-arch=(), ch-ua-bitness=(), ch-ua-form-factors=(), ch-ua-full-version-list=(), ch-ua-full-version=(), ch-ua-high-entropy-values=(), ch-ua-mobile=(), ch-ua-model=(), ch-ua-platform-version=(), ch-ua-platform=(), ch-ua-wow64=(), ch-ua=(), ch-viewport-height=(), ch-viewport-width=(), ch-width=(), compute-pressure=(), cross-origin-isolated=(), deferred-fetch-minimal=(), deferred-fetch=(), device-attributes=(), digital-credentials-create=(), digital-credentials-get=(), display-capture=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), focus-without-user-activation=(), fullscreen=(), gamepad=(), geolocation=(), gyroscope=(), haptics=(), hid=(), identity-credentials-get=(), idle-detection=(), interest-cohort=(), keyboard-map=(), language-detector=(), language-model=(), local-fonts=(), local-network-access=(), local-network=(), loopback-network=(), magnetometer=(), manual-text=(), media-playback-while-not-visible=(), microphone=(), midi=(), on-device-speech-recognition=(), otp-credentials=(), payment=(), picture-in-picture=(), private-state-token-issuance=(), private-state-token-redemption=(), proofreader=(), publickey-credentials-create=(self), publickey-credentials-get=(self), publickey-credentials-remote-client-data-json=(), rewriter=(), screen-wake-lock=(), serial=(), speaker-selection=(), storage-access=(), summarizer=(), tools=(), translator=(), unbounded-element=(), unload=(), usb=(), vertical-scroll=(), web-app-installation=(), web-share=(), webnn=(), window-management=(), writer=(), xr-spatial-tracking=()",
+    "LIMIT_REQ_RATE": "20r/s",
+    "REVERSE_PROXY_HEADERS": "X-Forwarded-For $remote_addr",
+    "MAX_CLIENT_SIZE": "11m"
+  },
+  "configs": ["modsec-crs/pocket-id_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Web service - Domains and TLS",
+      "subtitle": "Passkeys bind to this exact host name: set the final one before anyone registers.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Web service - Upstream",
+      "subtitle": "Point REVERSE_PROXY_HOST at Pocket ID's port 1411.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST"
+      ]
+    },
+    {
+      "title": "HTTP - Client address for Pocket ID",
+      "subtitle": "Send BunkerWeb's view of the client, so a forged X-Forwarded-For never reaches the audit log or the app's limits.",
+      "settings": ["REVERSE_PROXY_HEADERS"]
+    },
+    {
+      "title": "HTTP - API methods and upload size",
+      "subtitle": "Pocket ID uses PUT, PATCH, DELETE and OPTIONS; uploads stop at 10 MiB, so 11m lets its own error through.",
+      "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE"]
+    },
+    {
+      "title": "HTTP - Request rate",
+      "subtitle": "The web app asks for the same URL up to 7 times in one second: 20r/s keeps it working and still caps floods.",
+      "settings": ["LIMIT_REQ_RATE"]
+    },
+    {
+      "title": "HTTP - Upstream error bodies",
+      "subtitle": "Pass Pocket ID's own JSON errors through: OIDC clients and the web app read them.",
+      "settings": ["REVERSE_PROXY_INTERCEPT_ERRORS"]
+    },
+    {
+      "title": "Security - Bad behavior status codes",
+      "subtitle": "Pocket ID answers 401, 404 and 400 as part of normal use: keep them out of the ban counter.",
+      "settings": ["BAD_BEHAVIOR_STATUS_CODES"]
+    },
+    {
+      "title": "Security - Permissions-Policy for passkeys",
+      "subtitle": "BunkerWeb's default turns passkeys off; this copy allows publickey-credentials-create and -get for the site itself.",
+      "settings": ["PERMISSIONS_POLICY"]
+    },
+    {
+      "title": "Security - CRS exclusions for callback URLs and admin secrets",
+      "subtitle": "Path-scoped: LAN, loopback and IPv6 callback URLs, the SCIM endpoint, SMTP and LDAP bind passwords.",
+      "configs": ["modsec-crs/pocket-id_false_positives.conf"]
+    }
+  ]
+}

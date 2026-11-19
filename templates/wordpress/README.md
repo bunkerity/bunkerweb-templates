@@ -23,13 +23,13 @@ mobile apps, block-editor plugins). If your site does not need them, narrow the 
 ## Files
 
 - `template.json` – BunkerWeb template definition containing default settings, configs, and guided steps.
-- `configs/modsec/wordpress_false_positives.conf` – ModSecurity CRS tuning for WordPress admin, cron, and XML-RPC traffic.
+- `configs/modsec-crs/wordpress_false_positives.conf` – ModSecurity CRS tuning for WordPress admin, cron, and XML-RPC traffic.
 - `configs/modsec-crs/wordpress_crs_tuning.conf` – CRS settings that must load before the CRS, plus the exclusions for the classic uploader and raw REST media uploads.
 
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates) for the web UI or
+   - Follow the repository's [installation guide](../../README.md#install) for the web UI or
      plugin bundle method.
 2. **Assign the template** to your WordPress service via the easy-mode UI or by setting `USE_TEMPLATE=wordpress`.
 3. **Customize the settings** highlighted in the template steps (domains, upstream host, TLS options).
@@ -43,7 +43,7 @@ mobile apps, block-editor plugins). If your site does not need them, narrow the 
 - The classic media uploader (`/wp-admin/async-upload.php`) is blocked by CRS rule `932180` for any file whose name contains `class`. The template removes that rule for the `async-upload` field of that one `POST` path. The same field then also skips the restricted-name check for names such as `.htaccess`, so keep WordPress's own upload type filter (and `uploads/` execution rules) in place.
 - Apps that upload raw images (`Content-Type: image/png` or `image/jpeg`) to `POST /wp-json/wp/v2/media` are blocked by CRS rule `920420`. The template removes that rule for that method and path only.
 - Add or prune domains in `WHITELIST_RDNS` if you want to control which crawlers bypass security checks.
-- Review and narrow the `admin-ajax` exclusions in `configs/modsec/wordpress_false_positives.conf` for your installation.
+- Review and narrow the `admin-ajax` exclusions in `configs/modsec-crs/wordpress_false_positives.conf` for your installation.
 
 ## Validation
 

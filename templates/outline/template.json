@@ -1,0 +1,75 @@
+{
+  "id": "outline",
+  "name": "Outline",
+  "settings": {
+    "SERVER_NAME": "outline.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://outline:3000",
+    "REVERSE_PROXY_WS": "yes",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "SERVE_FILES": "no",
+    "COOKIE_FLAGS_1": "csrfToken SameSite=Lax",
+    "COOKIE_FLAGS_2": "__Host-csrfToken SameSite=Lax",
+    "COOKIE_FLAGS_3": "lastSignedIn SameSite=Strict",
+    "LIMIT_REQ_RATE": "100r/s",
+    "MAX_CLIENT_SIZE": "26m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "5m",
+    "LIMIT_CONN_MAX_HTTP1": "100",
+    "PERMISSIONS_POLICY": "accelerometer=(), ambient-light-sensor=(), aria-notify=(), attribution-reporting=(), autoplay=(), bluetooth=(), browsing-topics=(), camera=(), captured-surface-control=(), ch-device-memory=(), ch-downlink=(), ch-dpr=(), ch-ect=(), ch-prefers-color-scheme=(), ch-prefers-reduced-motion=(), ch-prefers-reduced-transparency=(), ch-rtt=(), ch-save-data=(), ch-ua-arch=(), ch-ua-bitness=(), ch-ua-form-factors=(), ch-ua-full-version-list=(), ch-ua-full-version=(), ch-ua-high-entropy-values=(), ch-ua-mobile=(), ch-ua-model=(), ch-ua-platform-version=(), ch-ua-platform=(), ch-ua-wow64=(), ch-ua=(), ch-viewport-height=(), ch-viewport-width=(), ch-width=(), compute-pressure=(), cross-origin-isolated=(), deferred-fetch-minimal=(), deferred-fetch=(), device-attributes=(), digital-credentials-create=(), digital-credentials-get=(), display-capture=(), encrypted-media=*, execution-while-not-rendered=(), execution-while-out-of-viewport=(), focus-without-user-activation=(), fullscreen=*, gamepad=(), geolocation=(), gyroscope=(), haptics=(), hid=(), identity-credentials-get=(), idle-detection=(), interest-cohort=(), keyboard-map=(), language-detector=(), language-model=(), local-fonts=(), local-network-access=(), local-network=(), loopback-network=(), magnetometer=(), manual-text=(), media-playback-while-not-visible=(), microphone=(), midi=(), on-device-speech-recognition=(), otp-credentials=(), payment=(), picture-in-picture=*, private-state-token-issuance=(), private-state-token-redemption=(), proofreader=(), publickey-credentials-create=(self), publickey-credentials-get=(self), publickey-credentials-remote-client-data-json=(), rewriter=(), screen-wake-lock=(), serial=(), speaker-selection=(), storage-access=(), summarizer=(), tools=(), translator=(), unbounded-element=(), unload=(), usb=(), vertical-scroll=(), web-app-installation=(), web-share=(), webnn=(), window-management=(), writer=(), xr-spatial-tracking=()",
+    "BLACKLIST_IGNORE_USER_AGENT": "^openai-mcp/ ^openai-connectors-oauth/"
+  },
+  "configs": ["modsec-crs/outline_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Match your public hostname to Outline's URL setting.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Point BunkerWeb at Outline and upgrade its realtime sockets; set PROXY_IP_HEADER=X-Real-IP in Outline.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_WS",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "Cookies, request rate and body sizes",
+      "subtitle": "Let the editor read its CSRF cookie (every other cookie keeps HttpOnly), load without throttling and save large documents.",
+      "settings": [
+        "COOKIE_FLAGS_1",
+        "COOKIE_FLAGS_2",
+        "COOKIE_FLAGS_3",
+        "LIMIT_REQ_RATE",
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT"
+      ]
+    },
+    {
+      "title": "HTTP - Live editing connections",
+      "subtitle": "Allow two sockets per open document for every user behind one address.",
+      "settings": ["LIMIT_CONN_MAX_HTTP1"]
+    },
+    {
+      "title": "Security - Browser features",
+      "subtitle": "Allow presentation mode, embed fullscreen and passkey sign-in that BunkerWeb's default policy blocks.",
+      "settings": ["PERMISSIONS_POLICY"]
+    },
+    {
+      "title": "Security - ChatGPT MCP connector",
+      "subtitle": "Let ChatGPT's connector past the user-agent blacklist; drop it if you do not use ChatGPT.",
+      "settings": ["BLACKLIST_IGNORE_USER_AGENT"]
+    },
+    {
+      "title": "Security - Review wiki text CRS exclusions",
+      "subtitle": "Skip injection rules for document text, titles, search, comments, Slack search, MCP and OAuth redirect URIs.",
+      "configs": ["modsec-crs/outline_false_positives.conf"]
+    }
+  ]
+}

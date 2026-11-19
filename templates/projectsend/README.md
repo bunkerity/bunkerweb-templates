@@ -78,7 +78,7 @@ the signed URL carries no header either. CRS 4 therefore scores rules `920340` a
 the part trigger `920420` (Content-Type not allowed by policy) instead.
 
 `configs/modsec-crs/projectsend_false_positives.conf` removes these three rules only when the
-method is `PUT` and the path matches `^/(?:api/v1/)?uploads/[^/]+/parts/[0-9]+$`, after
+method is `PUT` and the path matches `\A/(?:api/v1/)?uploads/[^/]+/parts/[0-9]+\z`, after
 `t:normalizePath`. Every other request, including `GET .../parts/{part}/sign`, keeps the full rule
 set.
 
