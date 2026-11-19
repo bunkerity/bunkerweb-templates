@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add an Umami template that serves the dashboard and the visitor tracker (`/script.js` and `POST /api/send`) from one service, with a login rate limit, a bad-behavior list that ignores the `400` answers of stale tracker snippets, CRS exclusions for tracker payloads, dashboard filters and passwords, and an example config to add by hand for renamed tracker paths.
 - [@TheophileDiot] Add a SearXNG template with CRS exclusions for the search query on `/search` and the autocompleter, a single forwarded client address for SearXNG's limiter, larger proxy buffers for the cookies a preferences save sets, and a content security policy that lets external bangs work.
 - [@TheophileDiot] Add a Pocket ID template for passkey sign-in, the admin interface and OIDC clients behind a relying party such as oauth2-proxy, with the app's own JSON errors kept and scoped CRS exclusions for LAN, loopback and IPv6 callback URLs.
 - [@TheophileDiot] Add an Outline template with WebSocket support for realtime collaboration, cookie flags that keep only the CSRF and sign-in hint cookies readable by the editor, a relaxed Permissions-Policy for passkeys and embeds, a user-agent allowance for ChatGPT's MCP connector, and CRS exclusions for document editing, search and the Slack command.

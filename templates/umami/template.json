@@ -1,0 +1,55 @@
+{
+  "id": "umami",
+  "name": "Umami",
+  "settings": {
+    "SERVER_NAME": "umami.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://umami:3000",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|DELETE",
+    "LIMIT_REQ_RATE": "100r/s",
+    "LIMIT_REQ_URL_1": "/api/auth/login",
+    "LIMIT_REQ_RATE_1": "5r/m",
+    "BAD_BEHAVIOR_STATUS_CODES": "401 403 404 405 429 444"
+  },
+  "configs": ["modsec-crs/umami_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Use the public hostname that sites embed the tracker from.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Point BunkerWeb at Umami's container; in Umami set CLIENT_IP_HEADER=X-Real-IP and SKIP_LOCATION_HEADERS=1.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_INTERCEPT_ERRORS"
+      ]
+    },
+    {
+      "title": "Methods and request rate",
+      "subtitle": "Allow the cross-origin preflight and dashboard deletes; let the dashboard load without throttling.",
+      "settings": ["ALLOWED_METHODS", "LIMIT_REQ_RATE"]
+    },
+    {
+      "title": "Security - Login attempts",
+      "subtitle": "Five login tries per minute per IP; drop both settings if many admins share one IP.",
+      "settings": ["LIMIT_REQ_URL_1", "LIMIT_REQ_RATE_1"]
+    },
+    {
+      "title": "Security - Ban counting",
+      "subtitle": "Keep 400 out of the ban count so a stale tracker id bans nobody; whitelist any IP in Umami's IGNORE_IP.",
+      "settings": ["BAD_BEHAVIOR_STATUS_CODES"]
+    },
+    {
+      "title": "Security - Review tracker, dashboard and password CRS exclusions",
+      "subtitle": "Skip injection rules for what visitors' pages send, what the dashboard filters by and passwords.",
+      "configs": ["modsec-crs/umami_false_positives.conf"]
+    }
+  ]
+}

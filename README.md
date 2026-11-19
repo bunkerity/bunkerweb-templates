@@ -59,6 +59,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | [Synapse](templates/synapse/)                   | Matrix homeserver template with well-known delegation            |
 | [Tomcat](templates/tomcat/)                     | Reverse proxy template with servlet-friendly defaults            |
 | [Tuwunel](templates/tuwunel/)                   | Matrix homeserver reverse proxy with WebSocket and delegation    |
+| [Umami](templates/umami/)                       | Web analytics template with tracker and dashboard tuning         |
 | [Uptime Kuma](templates/uptime-kuma/)           | Monitoring template with Socket.IO polling and WebSockets        |
 | [Vaultwarden](templates/vaultwarden/)           | Password vault template with encrypted-field WAF tuning          |
 | [WordPress](templates/wordpress/)               | Secure template with essential hardening defaults                |
