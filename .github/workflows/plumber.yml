@@ -28,4 +28,17 @@ jobs:
           soft-fail: false
           upload-sarif: true
           score-push: true
-          upload-artifacts: true
+          # The action uploads with a fixed 30-day retention, above this repository's 15-day limit
+          upload-artifacts: false
+      - name: Upload Plumber report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: plumber-report
+          path: |
+            plumber-report.json
+            plumber-pbom.json
+            plumber-cyclonedx-sbom.json
+            plumber.sarif
+          if-no-files-found: ignore
+          retention-days: 15
