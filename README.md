@@ -78,6 +78,11 @@ prerequisites and service-specific settings. Below, `<template-directory>` means
 service directory, such as `wordpress/` in the release archive or `templates/wordpress/` in a
 repository clone.
 
+> [!NOTE]
+> The templates are written and tested on OWASP CRS 4, the default of BunkerWeb 1.6.17. Their
+> ModSecurity exclusions only take effect with `USE_MODSECURITY_GLOBAL_CRS=no`, which is the
+> default: with `yes`, BunkerWeb 1.6.17 skips the per-service `modsec-crs` configs.
+
 <details open>
 <summary><strong>Web UI (recommended)</strong></summary>
 
@@ -121,7 +126,7 @@ inside the plugin:
 1. Copy `<template-directory>/template.json` to `<plugin>/templates/<name>.json`.
 2. If the template contains a `configs/` directory, copy it to
    `<plugin>/templates/<name>/configs/`. Preserve every config-type subdirectory, such as
-   `modsec/` or `server-http/`.
+   `modsec-crs/` or `server-http/`.
 3. Confirm the resulting plugin layout. WordPress, for example, must look like this:
 
    ```text
@@ -132,7 +137,8 @@ inside the plugin:
            ├── wordpress.json
            └── wordpress/
                └── configs/
-                   └── modsec/
+                   └── modsec-crs/
+                       ├── wordpress_crs_tuning.conf
                        └── wordpress_false_positives.conf
    ```
 
@@ -140,6 +146,123 @@ inside the plugin:
    loads the template from the plugin.
 5. Select the template when adding or editing a service in easy mode, or set `USE_TEMPLATE=<name>`.
    For the example above, use `USE_TEMPLATE=wordpress` because the file is named `wordpress.json`.
+
+</details>
+
+<details>
+<summary><strong>Updating authentik, forgejo, grafana, netbird, opengym, vaultwarden or WordPress</strong></summary>
+
+<br />
+
+These seven templates moved their exclusion file from `configs/modsec/` to `configs/modsec-crs/`
+and gave its rules new ids. Update them so that only the new file stays active; an old file can
+be wider than the new one (the old WordPress rule matched every path that starts with
+`/wp-admin/admin-ajax.php`, the new one matches that path only). Tested with WordPress on
+`bunkerity/bunkerweb-all-in-one:1.6.17`, in a browser for the web UI; the other six templates make
+the same change. Other integrations were not tested.
+
+- **Web UI:** uploading the new files over the installed template is not enough. The editor keeps
+  the old `modsec` config next to the new ones, and **Done** and **Save** both stop with
+  `Configs ... are not assigned to any step`. Remove the old config first:
+  1. Open the installed template under **Templates**. Do not create it again, BunkerWeb answers
+     that the template already exists. In **Easy** mode, find the old config under
+     **Custom configs**: type `MODSEC`, name `<template>_false_positives` (for example
+     `wordpress_false_positives`). Select its red trash button (**Remove**).
+  2. Switch to **Raw**, select **Upload template JSON**, choose the new `template.json` and
+     confirm **Replace template**.
+  3. In the **Missing Custom Configs** dialog, upload every listed file from the new
+     `configs/modsec-crs/` directory, then select **Done**. The editor reports
+     `All missing configs have been uploaded!`.
+  4. Select **Save**. The old file is gone after the next reload (about 5 seconds, no restart).
+     Do not try to delete it on the **Configs** page: BunkerWeb refuses to delete template configs
+     there.
+- **Plugin:** replace the plugin directory with the new files and restart the BunkerWeb container.
+  Do not remove the plugin first: BunkerWeb then keeps the rendered files as custom configs of
+  the service, which stay active and replace the same-named file of the new template, and the
+  service loses the template settings until the plugin is back.
+
+**Check the result (web UI and plugin).** Replace `<container>` with the BunkerWeb container,
+`<service>` with the service's server name, and `<name>` and `<id>` with a row of the table below.
+Right before you select **Save** or restart the container, note the time (UTC, with the `Z`; GNU
+`date` on Linux):
+
+```sh
+S=$(date -u +%Y-%m-%dT%H:%M:%S.%NZ)
+```
+
+Then run this. It looks every 2 seconds, for up to 60 seconds. After the last
+`Generating new custom configs` line since `S`, it waits for the push of `/etc/nginx` and then
+`reload successful`, and only then reads the rendered file. It prints `new rules loaded` if the file
+holds the new rules. It stops with `apply failed` if `failing over` or `was not applied` follows
+that line:
+
+```sh
+for i in $(seq 30); do
+  r=$(docker logs --since "$S" <container> 2>&1 \
+    | grep -E 'Generating new custom configs|Sending /etc/nginx|reload successful|failing over|was not applied' \
+    | awk '/Generating/{s=1;f=0} /failing over|was not applied/{f=1} /Sending/&&s==1{s=2} /reload successful/&&s==2{s=3} END{if(f)print "failed";else if(s==3)print "ok"}')
+  [ "$r" = failed ] && { echo "apply failed, see docker logs <container>"; break; }
+  [ "$r" = ok ] && docker exec <container> grep -q 'id:<id>' /data/configs/modsec-crs/<service>/<name>.conf 2>/dev/null \
+    && { echo "new rules loaded"; break; }
+  sleep 2
+done
+```
+
+In testing the check ended 6 to 9 seconds after `docker restart` and about 5 seconds after
+**Save**, and the first request after it was served normally. For the seven
+`<template>_false_positives` rows, also run this once. It prints a line when the old file is gone:
+
+```sh
+docker exec <container> sh -c \
+  'test ! -e /data/configs/modsec/<service>/<name>.conf && echo "old file gone"'
+```
+
+| Template                 | `<name>`                      | `<id>`    |
+| ------------------------ | ----------------------------- | --------- |
+| authentik                | `authentik_false_positives`   | `9851100` |
+| forgejo                  | `forgejo_false_positives`     | `9856103` |
+| forgejo (second file)    | `forgejo_protocol`            | `9856100` |
+| grafana                  | `grafana_false_positives`     | `9858100` |
+| netbird                  | `netbird_false_positives`     | `9862100` |
+| opengym                  | `opengym_false_positives`     | `9866100` |
+| vaultwarden              | `vaultwarden_false_positives` | `9877100` |
+| WordPress                | `wordpress_false_positives`   | `9878101` |
+| WordPress (second file)  | `wordpress_crs_tuning`        | `9878010` |
+
+The two second-file rows are files that kept their name and got new ids; they have no old file in
+`modsec/`, so skip the second command for them.
+
+If the first command prints `apply failed`, BunkerWeb did not apply the new configuration.
+Depending on where it failed, it keeps the previous one and retries, or tries to go back to its
+last working configuration. What happened and why are in `docker logs <container>` (for an nginx
+error, an `[emerg]` line names the file). Fix the cause, then select **Save** or restart again.
+
+If the first command prints nothing after 60 seconds:
+
+- with the plugin, look at the plugin directory. Only if it holds the old files again (the old
+  plugin copy came back over the new one in 5 of 8 test restarts made right after a first start),
+  put the new files back and restart. If it already holds the new files, do not restart again;
+- otherwise the file may be stuck as a stored custom config. This happens after the plugin was
+  removed once: BunkerWeb 1.6.17 then keeps the rendered files as custom configs with method
+  `manual`. They replace the same-named file of the new template, so the old, wider exclusion stays
+  active and the new file is not loaded. The **Configs** page cannot remove them: it answers
+  `Custom config <service>/modsec_crs/<name> is not a UI/API custom config and will not be
+  deleted.` BunkerWeb 1.6.17 has no safe supported way to remove them, so this README gives no
+  manual steps: removing them by hand can delete other custom configs. A timeout can also mean a
+  missing file or a failed `docker exec`. This read-only command prints the stored row, if there
+  is one (all-in-one image, SQLite; other integrations were not tested):
+
+  ```sh
+  docker exec <container> sqlite3 -readonly /var/lib/bunkerweb/db.sqlite3 \
+    "select service_id,type,name,method from bw_custom_configs where service_id='<service>' and type='modsec_crs' and name='<name>' and method='manual'"
+  ```
+
+  A line `<service>|modsec_crs|<name>|manual` means a stored `manual` config replaces the
+  template's file. It is stale if its file does not hold the new rules; this prints `0` then:
+
+  ```sh
+  docker exec <container> grep -c 'id:<id>' /data/configs/modsec-crs/<service>/<name>.conf
+  ```
 
 </details>
 
