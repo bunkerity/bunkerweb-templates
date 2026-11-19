@@ -1,0 +1,121 @@
+TEMPLATE_GUIDE.md
+  s_908f4d54889f62::t_a3b1dbf77be85d 183-188
+  s_d9d66348b783ff::t_db4ead3fb622d7 42,61,81-82,113-181
+  s_908f4d54889f62::t_346d479d096221 189
+AGENTS.md
+  s_d9d66348b783ff::t_db4ead3fb622d7 59
+  s_f5874be913f3e6::t_be37f244f14074 67
+README.md
+  s_687d1bea64a78f::t_4e38ab3de1daa6 167-170
+  s_908f4d54889f62::t_90b3e93a8d9bbd 158-159
+  s_687d1bea64a78f::t_b564995e79ffb8 216-217
+  s_ed1458b44c458d::t_f1288aff330049 260-265
+  s_687d1bea64a78f::t_74d323c26751e9 129
+  s_10a1d5def6cfe5::t_e52f4831692815 242-244
+  s_687d1bea64a78f::t_583ee98344c246 140-141
+  s_687d1bea64a78f::t_13e970e9242e45 160-162
+  s_ed1458b44c458d::t_fc21d4ad159c74 235-238
+  s_dfa387ea66b156::t_f45243ac3d8826 193-197,201-203,205
+  s_10a1d5def6cfe5::t_b3a7f56e57083e 211
+  s_e21efb0b451824::t_993c5e4771ee95 186-187,190-192,198-199,206
+  s_dfa387ea66b156::t_27ab64bb487f46 245-252,254-259
+  s_dfa387ea66b156::t_bc594eee8e0e48 253
+  s_908f4d54889f62::t_597a432594b5d3 152-157,163,179
+  s_687d1bea64a78f::t_d7a942057c33d6 164-166,171-178,180-183,188-189,218-219
+  s_ed1458b44c458d::t_6e3577d38c0659 204
+  s_908f4d54889f62::t_f9fab5453b0231 81-85
+  s_e21efb0b451824::t_927f29e00eb6c3 212-213
+  s_dcc453bbd1a489::t_b025ea674c3595 184-185,200,207-210,214-215,220-234,240-241
+  s_dfa387ea66b156::t_cb39c8f7fd9be7 239
+  s_5353158895a56b::t_12e3e26f401cbc 266-268
+CHANGELOG.md
+  s_5353158895a56b::t_770e57fff2dbd6 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "662f756e65bf6230cdb1bc2da3905ada9dd56cb2",
+  "prompts": {},
+  "sessions": {
+    "s_10a1d5def6cfe5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6d586196-a427-43f2-a9d1-cd4ffeb58c5e",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_5353158895a56b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "21e4df30-d61d-43bf-a16d-1372342d966e",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_687d1bea64a78f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0bdc29db-0901-45ce-908e-df2d4a8badb7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_908f4d54889f62": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2746b97e-a81c-4466-8ad6-06c7cffc01d7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d9d66348b783ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e481db8e-48cb-4e65-a245-ef378487be45",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_dcc453bbd1a489": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bf7b90d-2b41-4c35-857a-5f5a87817236",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_dfa387ea66b156": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "94fac7a7-1543-4d61-9314-1f7dfff509cd",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_e21efb0b451824": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c693c876-5176-42e7-beed-5df10de847a6",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_ed1458b44c458d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eed1c216-b356-4ab3-917e-93a0aa3de60e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f5874be913f3e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c562a35c-a0a6-49ff-b2e8-32287edb02f9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
