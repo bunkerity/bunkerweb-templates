@@ -1,0 +1,62 @@
+{
+  "id": "beszel",
+  "name": "Beszel",
+  "settings": {
+    "SERVER_NAME": "beszel.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://beszel:8090",
+    "REVERSE_PROXY_WS": "yes",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PATCH|DELETE",
+    "LIMIT_REQ_RATE": "50r/s",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_READ_TIMEOUT": "360s",
+    "REVERSE_PROXY_HEADERS": "X-Forwarded-For $remote_addr;CF-Connecting-IP $remote_addr",
+    "MAX_CLIENT_SIZE": "20m"
+  },
+  "configs": ["modsec-crs/beszel_false_positives.conf"],
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Match your public hostname to Beszel's APP_URL.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Point BunkerWeb at the Beszel hub, upgrade the agent WebSocket and keep PocketBase's JSON errors.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_WS",
+        "REVERSE_PROXY_INTERCEPT_ERRORS"
+      ]
+    },
+    {
+      "title": "Methods and request rate",
+      "subtitle": "Allow PATCH and DELETE for the dashboard and load its many small requests without throttling.",
+      "settings": ["ALLOWED_METHODS", "LIMIT_REQ_RATE"]
+    },
+    {
+      "title": "HTTP - Live updates",
+      "subtitle": "Keep the live-update stream open past 60 seconds so a dashboard tab does not reconnect every minute.",
+      "settings": ["REVERSE_PROXY_READ_TIMEOUT"]
+    },
+    {
+      "title": "Security - Real client address",
+      "subtitle": "Replace client-sent forwarding headers so the hub records the real address of a browser or agent.",
+      "settings": ["REVERSE_PROXY_HEADERS"]
+    },
+    {
+      "title": "HTTP - Backup upload",
+      "subtitle": "Accept a PocketBase backup ZIP between 10 and 16 MiB when you restore from the superuser UI; drop it if you never upload a backup.",
+      "settings": ["MAX_CLIENT_SIZE"]
+    },
+    {
+      "title": "Security - Review CRS exclusions",
+      "subtitle": "Skip injection rules for the exact dashboard filter shapes, live subscriptions, logs filter, OAuth collection edit and LAN webhook URLs.",
+      "configs": ["modsec-crs/beszel_false_positives.conf"]
+    }
+  ]
+}
