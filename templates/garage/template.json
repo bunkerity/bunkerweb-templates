@@ -1,0 +1,70 @@
+{
+  "id": "garage",
+  "name": "Garage",
+  "settings": {
+    "SERVER_NAME": "s3.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://garage:3900",
+    "REVERSE_PROXY_HEADERS": "Host $http_host;X-Forwarded-For $remote_addr",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_BUFFERING": "no",
+    "SERVE_FILES": "no",
+    "REVERSE_PROXY_URL_1": "^/health$",
+    "REVERSE_PROXY_HOST_1": "http://garage:3903",
+    "ALLOWED_METHODS": "GET|HEAD|POST|PUT|DELETE|OPTIONS",
+    "MAX_CLIENT_SIZE": "256m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "2m",
+    "LIMIT_REQ_RATE": "1000r/s",
+    "LIMIT_CONN_MAX_HTTP1": "200",
+    "BAD_BEHAVIOR_STATUS_CODES": "400 401 403 405 429 444"
+  },
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Match your public hostname to the S3 endpoint; set Garage's s3_region and root_domain to match your clients and bucket hosts.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Point BunkerWeb at Garage's S3 API port, keep the client's Host and IP, and let S3 clients read Garage's own error replies.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_HEADERS",
+        "REVERSE_PROXY_INTERCEPT_ERRORS",
+        "REVERSE_PROXY_BUFFERING",
+        "SERVE_FILES"
+      ]
+    },
+    {
+      "title": "HTTP - Health check",
+      "subtitle": "Keep for uptime monitors (Garage's admin /health needs no token); clear both settings if nothing monitors it, and keep port 3903 otherwise private.",
+      "settings": ["REVERSE_PROXY_URL_1", "REVERSE_PROXY_HOST_1"]
+    },
+    {
+      "title": "Methods, body sizes and request limits",
+      "subtitle": "Allow the S3 verbs, large uploads and bulk XML requests, and raise the default request and connection limits for batch clients.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT",
+        "LIMIT_REQ_RATE",
+        "LIMIT_CONN_MAX_HTTP1"
+      ]
+    },
+    {
+      "title": "Bad behavior",
+      "subtitle": "Stop counting 404 as abuse: S3 clients probe objects that do not exist yet.",
+      "settings": ["BAD_BEHAVIOR_STATUS_CODES"]
+    },
+    {
+      "title": "Security - Review S3 request CRS exclusions",
+      "subtitle": "Four CRS policy checks are skipped for signed S3 requests only: content type, header names and object-key names.",
+      "configs": ["modsec-crs/garage_false_positives.conf"]
+    }
+  ],
+  "configs": ["modsec-crs/garage_false_positives.conf"]
+}

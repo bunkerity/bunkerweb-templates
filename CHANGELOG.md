@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add a Garage template for the S3 API with path-style and virtual-host-style addressing, large and multipart uploads, presigned requests, a token-free `/health` route, and CRS exclusions limited to signed requests.
 - [@TheophileDiot] Add a Beszel template for the hub dashboard, the PocketBase API and WebSocket agent connections, with proxy and client-address handling and scoped CRS exclusions.
 - [@TheophileDiot] Add an Atuin sync server template for end-to-end encrypted history sync across several machines, with API-client-aware proxy and rate-limit defaults, scoped CRS exclusions and an optional restriction to Atuin clients.
 - [@TheophileDiot] Anchor the path, method and content-type checks of the CRS exclusions in the authentik, Drupal, Filestash, Forgejo, openGym, ProjectSend, Synapse, Tuwunel, Uptime Kuma, Vaultwarden and Xen Orchestra templates with `\A` and `\z`: ModSecurity on BunkerWeb 1.6.17 reads `^` and `$` at every line break, so a path with a line feed before the excluded path no longer reaches an exclusion.

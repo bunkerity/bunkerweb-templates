@@ -41,6 +41,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | [Filestash](templates/filestash/)               | File manager template with WebDAV-aware proxy defaults           |
 | [Filestash Office](templates/filestash-office/) | Collabora (WOPI) host template with WebSocket proxy defaults     |
 | [Forgejo](templates/forgejo/)                   | Git forge template with HTTPS, LFS and package API tuning        |
+| [Garage](templates/garage/)                     | S3 object storage template with signed-request WAF tuning        |
 | [Grafana](templates/grafana/)                   | Dashboard template with query and HTML-response WAF tuning       |
 | [Jellyfin](templates/jellyfin/)                 | Media streaming template with reverse proxy tuning               |
 | [NetBird](templates/netbird/)                   | Self-hosted template with gRPC and websocket routing             |
