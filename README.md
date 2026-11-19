@@ -44,6 +44,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | [Garage](templates/garage/)                     | S3 object storage template with signed-request WAF tuning        |
 | [Grafana](templates/grafana/)                   | Dashboard template with query and HTML-response WAF tuning       |
 | [Jellyfin](templates/jellyfin/)                 | Media streaming template with reverse proxy tuning               |
+| [n8n](templates/n8n/)                           | Workflow automation template with editor and webhook tuning      |
 | [NetBird](templates/netbird/)                   | Self-hosted template with gRPC and websocket routing             |
 | [Nextcloud](templates/nextcloud/)               | Secure template with WebDAV-aware defaults                       |
 | [openGym](templates/opengym/)                   | Passkey PWA template with JSON sync and WebAuthn tuning          |

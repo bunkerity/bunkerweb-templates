@@ -1,0 +1,126 @@
+{
+  "id": "n8n",
+  "name": "n8n",
+  "settings": {
+    "SERVER_NAME": "n8n.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://n8n:5678",
+    "REVERSE_PROXY_WS": "yes",
+    "REVERSE_PROXY_READ_TIMEOUT": "1h",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|DELETE|PATCH",
+    "MAX_CLIENT_SIZE": "200m",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "16m",
+    "LIMIT_REQ_URL_1": "^/(webhook|webhook-test|webhook-waiting|form|form-test|form-waiting)/",
+    "LIMIT_REQ_RATE_1": "100r/s",
+    "LIMIT_REQ_URL_2": "^/(mcp|mcp-server|api/v1)(/|$)",
+    "LIMIT_REQ_RATE_2": "200r/s",
+    "LIMIT_REQ_URL_3": "^/rest/push$",
+    "LIMIT_REQ_RATE_3": "30r/s",
+    "LIMIT_CONN_MAX_HTTP1": "100",
+    "BLACKLIST_URI": "^/metrics$",
+    "X_FRAME_OPTIONS": "SAMEORIGIN",
+    "CONTENT_SECURITY_POLICY": "object-src 'none'; form-action 'self'; frame-ancestors 'self';",
+    "BAD_BEHAVIOR_STATUS_CODES": "400 401 403 405 444"
+  },
+  "configs": [
+    "modsec-crs/n8n_editor_false_positives.conf",
+    "modsec-crs/n8n_webhook_false_positives.conf",
+    "modsec-crs/n8n_api_false_positives.conf",
+    "modsec-crs/n8n_forms_false_positives.conf",
+    "modsec-crs/n8n_clients_false_positives.conf"
+  ],
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Set your public hostname and certificate settings.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Point at n8n's port 5678, keep the push WebSocket open; in n8n set N8N_EDITOR_BASE_URL, N8N_WEBHOOK_URL and N8N_PROXY_HOPS=1.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_WS",
+        "REVERSE_PROXY_INTERCEPT_ERRORS"
+      ]
+    },
+    {
+      "title": "Exposure - full app or webhooks only (optional)",
+      "subtitle": "Keep / for the editor and webhooks, or limit it to the webhook, form and waiting paths (see README).",
+      "settings": ["REVERSE_PROXY_URL"]
+    },
+    {
+      "title": "Methods, bodies and timeouts",
+      "subtitle": "The editor uses PATCH and DELETE; uploads are large and some workflows run long.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT",
+        "REVERSE_PROXY_READ_TIMEOUT"
+      ]
+    },
+    {
+      "title": "HTTP - Webhooks, forms and chat",
+      "subtitle": "Callers and chat widgets burst past the default 2r/s per URL; keep unless callers are slower.",
+      "settings": ["LIMIT_REQ_URL_1", "LIMIT_REQ_RATE_1"]
+    },
+    {
+      "title": "HTTP - Public API and MCP clients",
+      "subtitle": "API loops and MCP client start-up burst past 2r/s per URL; drop if you expose neither.",
+      "settings": ["LIMIT_REQ_URL_2", "LIMIT_REQ_RATE_2"]
+    },
+    {
+      "title": "HTTP - Editor tabs behind one address",
+      "subtitle": "Each editor tab holds a push socket; keep unless one address never has 10 tabs.",
+      "settings": [
+        "LIMIT_REQ_URL_3",
+        "LIMIT_REQ_RATE_3",
+        "LIMIT_CONN_MAX_HTTP1"
+      ]
+    },
+    {
+      "title": "Security - Banned senders",
+      "subtitle": "A sender calling an unpublished webhook gets 404s; counting them would ban that address for a day.",
+      "settings": ["BAD_BEHAVIOR_STATUS_CODES"]
+    },
+    {
+      "title": "Security - Metrics endpoint",
+      "subtitle": "n8n serves /metrics without authentication when enabled; scrape it on the private network.",
+      "settings": ["BLACKLIST_URI"]
+    },
+    {
+      "title": "Security - Embedding forms and chat (optional)",
+      "subtitle": "Keep to block framing; clear X_FRAME_OPTIONS and frame-ancestors only to embed forms or chat.",
+      "settings": ["X_FRAME_OPTIONS", "CONTENT_SECURITY_POLICY"]
+    },
+    {
+      "title": "CRS exclusions - editor save and run",
+      "subtitle": "Five editor requests skip the injection rules that workflow code would trip.",
+      "configs": ["modsec-crs/n8n_editor_false_positives.conf"]
+    },
+    {
+      "title": "CRS exclusions - webhook file bodies",
+      "subtitle": "Production webhooks accept raw file bodies; JSON and XML stay inspected.",
+      "configs": ["modsec-crs/n8n_webhook_false_positives.conf"]
+    },
+    {
+      "title": "CRS exclusions - public API and MCP",
+      "subtitle": "Scripts and AI clients that create workflows from code skip the same injection rules as the editor.",
+      "configs": ["modsec-crs/n8n_api_false_positives.conf"]
+    },
+    {
+      "title": "CRS exclusions - browser forms",
+      "subtitle": "Browser form posts carry empty-name parts, which ModSecurity cannot parse; the form body then goes uninspected.",
+      "configs": ["modsec-crs/n8n_forms_false_positives.conf"]
+    },
+    {
+      "title": "CRS exclusions - chat and MCP clients",
+      "subtitle": "Chat and MCP clients send a sessionId without a Referer; only that argument name skips CRS 943120.",
+      "configs": ["modsec-crs/n8n_clients_false_positives.conf"]
+    }
+  ]
+}
