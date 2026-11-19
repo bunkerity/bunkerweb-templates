@@ -1,0 +1,104 @@
+templates/searxng/configs/modsec-crs/searxng_false_positives.conf
+  s_f121be01e763b0::t_3c8c1cae2381c0 7-11
+  s_d9d66348b783ff::t_f21ab6e565d616 19-25,63-65,85-86,89-95,136-140
+  s_d8a5c51a4907a5::t_485ed0e3464311 14-15,26-56,87-88,96-128
+  s_f121be01e763b0::t_670f77c44d9ee6 16-18,66-84
+  s_127a2361a76dbc::t_d905ce4d3c882f 58-62,130-135
+  s_5a685640adf33a::t_9667bf45da568e 1-6,12-13
+  s_f121be01e763b0::t_d242e4e8622a08 57,129
+CHANGELOG.md
+  s_82a8b95f6feac8::t_06df0155ad46ce 8
+templates/searxng/README.md
+  s_127a2361a76dbc::t_2e24457206536f 163-164
+  s_f121be01e763b0::t_2c968f1acd2413 108
+  s_127a2361a76dbc::t_0e9971f9e75053 71
+  s_f121be01e763b0::t_d53024bd935645 102-103,106-107
+  s_127a2361a76dbc::t_e43ae231f8b536 205-206
+  s_908f4d54889f62::t_333f352e2321b8 109-110,115
+  s_908f4d54889f62::t_dd97a63ffb1330 114
+  s_f121be01e763b0::t_890704fa216beb 101,127-131
+  s_127a2361a76dbc::t_5b4481aadfd340 1-70,72-100,104-105,116-126,132-162,165-178,181-204,207-223
+  s_127a2361a76dbc::t_426bb230d96deb 179-180
+  s_908f4d54889f62::t_9fafee034e0a2d 111-113
+README.md
+  s_82a8b95f6feac8::t_06a3c977fa694e 58
+templates/searxng/template.json
+  s_127a2361a76dbc::t_c3a704195f420f 40
+  s_127a2361a76dbc::t_4cf87434511800 14-15
+  s_127a2361a76dbc::t_4fbe3aaf39d465 34-35,37-38
+  s_127a2361a76dbc::t_98e205670ab693 32-33,53-54,56-57
+  s_d8a5c51a4907a5::t_3cf39a41dc133f 1-8,16,18-20,23-31,61-63
+  s_127a2361a76dbc::t_99386261939a2b 39,41-47
+  s_127a2361a76dbc::t_f7c1bca2170395 21
+  s_127a2361a76dbc::t_2cfff1ca00c4d7 10
+  s_127a2361a76dbc::t_aa880571736604 59
+  s_127a2361a76dbc::t_f8fe4ae17caa22 17,22,36,50,55,60
+  s_d8a5c51a4907a5::t_485ed0e3464311 51-52,58
+  s_127a2361a76dbc::t_c28990c53bf86e 49
+  s_127a2361a76dbc::t_b4d9b7f55a978d 11-13
+  s_127a2361a76dbc::t_03a9dabfc521eb 9,48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "af9cee009f748dcf04e90038fe1aa68853f2f075",
+  "prompts": {},
+  "sessions": {
+    "s_127a2361a76dbc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7b514a15-58ac-4dd5-ade5-d882015694d8",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_5a685640adf33a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "68d2127e-39a5-4508-b4ec-80e97a2d7fed",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_82a8b95f6feac8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7405745d-4a38-41c6-878c-a8e0b0cf8d25",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_908f4d54889f62": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2746b97e-a81c-4466-8ad6-06c7cffc01d7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d8a5c51a4907a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e10dddf-9c04-4304-9e29-494d24f65dab",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d9d66348b783ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e481db8e-48cb-4e65-a245-ef378487be45",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f121be01e763b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bf17bd7a-02c4-4515-81eb-e580b75adb01",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
