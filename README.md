@@ -32,6 +32,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 
 | Template                                        | Summary                                                          |
 | ----------------------------------------------- | ---------------------------------------------------------------- |
+| [Atuin sync server](templates/atuin/)           | Shell history sync server template with API client tuning        |
 | [authentik](templates/authentik/)               | Identity provider template with flow and cookie-aware WAF tuning |
 | [Directus](templates/directus/)                 | Headless CMS template with REST and GraphQL API defaults         |
 | [DocuSeal](templates/docuseal/)                 | Document signing template with API-aware defaults                |
