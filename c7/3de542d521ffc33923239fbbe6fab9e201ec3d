@@ -1,0 +1,103 @@
+CHANGELOG.md
+  s_82a8b95f6feac8::t_06df0155ad46ce 8
+README.md
+  s_82a8b95f6feac8::t_06a3c977fa694e 35
+templates/atuin/configs/modsec-crs/atuin_false_positives.conf
+  s_f121be01e763b0::t_ff5899af696387 234
+  s_2eeb8b1e647140::t_b2e842bbb687e5 237
+  s_d9d66348b783ff::t_f21ab6e565d616 18-23,223-227,238-243,253-257,261-266,286-290,294-299,309-313
+  s_63277f590bac80::t_92174ebab9d7fd 1-4,8-17,24-222,228,258-260,291-293
+  s_63277f590bac80::t_b68f42e87c0b2f 5
+  s_480cf9c6d6d06b::t_3fd927b5722ad2 6-7,229-233,235-236,244-252,267-285,300-308
+templates/atuin/template.json
+  s_63277f590bac80::t_ac076749d9bbd7 33-37,47-51
+  s_63277f590bac80::t_0b0b3ee8233ad0 43-44,76
+  s_63277f590bac80::t_be8b3af765f1df 77
+  s_63277f590bac80::t_d7e074ee4a382d 9-12,45,52-53
+  s_63277f590bac80::t_b8c5bb371a90cc 20-21,23,27-28,32,38-42,46,55,62,64-73,78
+  s_63277f590bac80::t_6cabca5c7bf450 1-8,22,24-26,29-31,79-81
+  s_63277f590bac80::t_56e9f4f7eea5ff 13-18,54,56-61,63,74-75
+  s_63277f590bac80::t_c694de3ee96fc5 19
+templates/atuin/README.md
+  s_480cf9c6d6d06b::t_baf2296905b9ee 150-151
+  s_63277f590bac80::t_dd9c881c0a20cf 79,84,191-193
+  s_63277f590bac80::t_c00a1464f886dd 215-218,222-224,226-231
+  s_480cf9c6d6d06b::t_a96ceb64656e48 135
+  s_480cf9c6d6d06b::t_9c7036d432c2b2 110-116
+  s_f121be01e763b0::t_824c3fd3cdbd62 26-28
+  s_480cf9c6d6d06b::t_01c39403482e14 124,130
+  s_63277f590bac80::t_2b0fd1cb0fb403 200-201
+  s_480cf9c6d6d06b::t_d549b762848452 131-134,136-138
+  s_480cf9c6d6d06b::t_d97884267001d3 219-220
+  s_d9d66348b783ff::t_c8384a88e3946c 120-123,178
+  s_480cf9c6d6d06b::t_905560b885259d 126-129
+  s_480cf9c6d6d06b::t_c10fcecd847e1f 221
+  s_63277f590bac80::t_5a9e945e0717de 99
+  s_63277f590bac80::t_663c0c78aa580b 194
+  s_480cf9c6d6d06b::t_465368b32c0186 225
+  s_63277f590bac80::t_b373b9c1af54b4 1-25,29-48,53-78,80-83,85-98,100-109,117-119,139,142-148,174-177,179-181,186-190,195-196,198-199,202-214
+  s_480cf9c6d6d06b::t_4a530acd7613d0 161-162,168-169
+  s_63277f590bac80::t_69cdb6903cd964 182-183
+  s_63277f590bac80::t_bfec44aa6ca2a1 49-52
+  s_480cf9c6d6d06b::t_65ac51e25552f5 166
+  s_480cf9c6d6d06b::t_867ffb1e058744 140-141,149,152-160,163-165,167,170-173
+  s_480cf9c6d6d06b::t_6456893cc4bc58 184-185
+  s_480cf9c6d6d06b::t_d2808a909f2b57 125
+  s_63277f590bac80::t_16b2d7a01f21c7 197
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c73de542d521ffc33923239fbbe6fab9e201ec3d",
+  "prompts": {},
+  "sessions": {
+    "s_2eeb8b1e647140": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f096-ffc7-7192-ba4f-0fa33bc36ffb",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_480cf9c6d6d06b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3707b008-5970-46ca-a1a5-c9d51b342962",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_63277f590bac80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "98d5e11d-a035-4f66-a7d2-fd06a267a2a0",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_82a8b95f6feac8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7405745d-4a38-41c6-878c-a8e0b0cf8d25",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d9d66348b783ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e481db8e-48cb-4e65-a245-ef378487be45",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f121be01e763b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bf17bd7a-02c4-4515-81eb-e580b75adb01",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
