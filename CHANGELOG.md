@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add an ntfy template for the web app, publishing, webhooks and subscriptions over SSE, WebSocket and long poll, with raised rate and connection limits, ntfy's own JSON errors kept, and scoped CRS exclusions.
 - [@TheophileDiot] Add an n8n template for the editor and its push channel, production, test and waiting webhooks, forms, the Chat Trigger, MCP and the public API, with scoped CRS exclusions and an optional webhook-only mode.
 - [@TheophileDiot] Add a Garage template for the S3 API with path-style and virtual-host-style addressing, large and multipart uploads, presigned requests, a token-free `/health` route, and CRS exclusions limited to signed requests.
 - [@TheophileDiot] Add a Beszel template for the hub dashboard, the PocketBase API and WebSocket agent connections, with proxy and client-address handling and scoped CRS exclusions.
