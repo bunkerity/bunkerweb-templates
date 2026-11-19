@@ -1,0 +1,47 @@
+templates/docuseal/README.md
+  s_d9d66348b783ff::t_842c4e4e90232c 28
+templates/drupal/README.md
+  s_d9d66348b783ff::t_5fb1291c413f57 29
+templates/jellyfin/README.md
+  s_d9d66348b783ff::t_0b5732d7864e87 28
+templates/nextcloud/README.md
+  s_d9d66348b783ff::t_e22189ae2bca69 28
+templates/pi-hole/README.md
+  s_7c8594f4d6a059::t_c031e390205188 9
+templates/seafile/README.md
+  s_d9d66348b783ff::t_a17a9fadec271e 18
+templates/synapse/README.md
+  s_d9d66348b783ff::t_381b3cae5c8307 72
+templates/tomcat/README.md
+  s_d9d66348b783ff::t_b62e61465638de 28
+templates/tuwunel/README.md
+  s_d9d66348b783ff::t_aa7282bce6b0f0 55
+templates/uptime-kuma/README.md
+  s_d9d66348b783ff::t_96eb49d016135e 22
+templates/xen-orchestra/README.md
+  s_d9d66348b783ff::t_1847fa25dc1d0c 31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9b7d1a3bbeea209786b272e73af8777b22556a61",
+  "prompts": {},
+  "sessions": {
+    "s_7c8594f4d6a059": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2385caea-1c39-452f-ba46-5e0f9673c5a2",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d9d66348b783ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e481db8e-48cb-4e65-a245-ef378487be45",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
