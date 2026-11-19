@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add an Open WebUI template with WebSocket support for the Socket.IO connection and voice calls, long streamed replies, larger buffers for the OAuth token cookies, a raised body limit for chat history and uploads, and path-scoped CRS exclusions for the code, SQL and markup people paste into chats.
 - [@TheophileDiot] Add an ntfy template for the web app, publishing, webhooks and subscriptions over SSE, WebSocket and long poll, with raised rate and connection limits, ntfy's own JSON errors kept, and scoped CRS exclusions.
 - [@TheophileDiot] Add an n8n template for the editor and its push channel, production, test and waiting webhooks, forms, the Chat Trigger, MCP and the public API, with scoped CRS exclusions and an optional webhook-only mode.
 - [@TheophileDiot] Add a Garage template for the S3 API with path-style and virtual-host-style addressing, large and multipart uploads, presigned requests, a token-free `/health` route, and CRS exclusions limited to signed requests.

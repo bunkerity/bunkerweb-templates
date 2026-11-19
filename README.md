@@ -48,6 +48,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | [NetBird](templates/netbird/)                   | Self-hosted template with gRPC and websocket routing             |
 | [Nextcloud](templates/nextcloud/)               | Secure template with WebDAV-aware defaults                       |
 | [ntfy](templates/ntfy/)                         | Push notification template with publish and subscribe tuning     |
+| [Open WebUI](templates/open-webui/)             | AI chat template with WebSocket and prompt-aware WAF tuning      |
 | [openGym](templates/opengym/)                   | Passkey PWA template with JSON sync and WebAuthn tuning          |
 | [Pi-hole](templates/pi-hole/)                   | Reverse proxy template with admin UI and API tuning              |
 | [ProjectSend](templates/projectsend/)           | File sharing template with chunked-upload-aware defaults         |
