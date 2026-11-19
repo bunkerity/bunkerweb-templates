@@ -5,6 +5,8 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+## Templates release v0.9 - 2026-11-19
+
 - [@TheophileDiot] Document the ModSecurity rule id blocks and the CRS rule form in the template guide.
 - [@TheophileDiot] Load the exclusions of authentik, Forgejo, Grafana, NetBird, openGym, Vaultwarden and WordPress from `modsec-crs`, before the CRS, and scope the WordPress admin-ajax exclusion to its exact path and the NetBird OAuth2 exclusions to their endpoints and methods. To update an installed copy, remove the old `modsec` config of the template in the web UI editor before uploading the new files, or replace the plugin directory and restart BunkerWeb; never remove the plugin first, and check the result as the "Updating" section of the README shows.
 - [@TheophileDiot] Renumber the ModSecurity rule ids of the existing templates into per-template blocks (9850000-9899999), write the exclusions in CRS form, match the Jellyfin exclusion on its exact path only and drop a second Jellyfin exclusion that had no effect.
