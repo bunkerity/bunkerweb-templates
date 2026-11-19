@@ -200,7 +200,7 @@ A minimal `template.json`:
     "MAX_CLIENT_SIZE": "50m",
     "MODSECURITY_CRS_PLUGINS": "wordpress-rule-exclusions"
   },
-  "configs": ["modsec/wordpress_false_positives.conf"],
+  "configs": ["modsec-crs/wordpress_false_positives.conf"],
   "steps": [
     {
       "title": "Domains and TLS",
@@ -215,7 +215,7 @@ A minimal `template.json`:
         "MAX_CLIENT_SIZE",
         "MODSECURITY_CRS_PLUGINS"
       ],
-      "configs": ["modsec/wordpress_false_positives.conf"]
+      "configs": ["modsec-crs/wordpress_false_positives.conf"]
     }
   ]
 }

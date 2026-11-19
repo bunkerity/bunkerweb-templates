@@ -14,7 +14,7 @@
     "LIMIT_REQ_RATE": "20r/s",
     "SERVE_FILES": "no"
   },
-  "configs": ["modsec/vaultwarden_false_positives.conf"],
+  "configs": ["modsec-crs/vaultwarden_false_positives.conf"],
   "steps": [
     {
       "title": "Web service - Domains and TLS",
@@ -45,7 +45,7 @@
     {
       "title": "Security - Review encrypted-field CRS exclusions",
       "subtitle": "Five rules skip all arguments on the listed POST and PUT paths.",
-      "configs": ["modsec/vaultwarden_false_positives.conf"]
+      "configs": ["modsec-crs/vaultwarden_false_positives.conf"]
     }
   ]
 }

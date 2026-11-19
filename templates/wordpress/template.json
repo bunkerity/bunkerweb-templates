@@ -38,7 +38,7 @@
     "MODSECURITY_CRS_PLUGINS": "wordpress-rule-exclusions"
   },
   "configs": [
-    "modsec/wordpress_false_positives.conf",
+    "modsec-crs/wordpress_false_positives.conf",
     "modsec-crs/wordpress_crs_tuning.conf"
   ],
   "steps": [
@@ -106,7 +106,7 @@
       "subtitle": "Keep the WordPress CRS exclusions or tailor them to your site.",
       "settings": ["MODSECURITY_CRS_PLUGINS"],
       "configs": [
-        "modsec/wordpress_false_positives.conf",
+        "modsec-crs/wordpress_false_positives.conf",
         "modsec-crs/wordpress_crs_tuning.conf"
       ]
     }

@@ -16,7 +16,7 @@
   },
   "configs": [
     "modsec-crs/forgejo_protocol.conf",
-    "modsec/forgejo_false_positives.conf"
+    "modsec-crs/forgejo_false_positives.conf"
   ],
   "steps": [
     {
@@ -50,7 +50,7 @@
       "subtitle": "Review the documented exception scopes before enabling the service.",
       "configs": [
         "modsec-crs/forgejo_protocol.conf",
-        "modsec/forgejo_false_positives.conf"
+        "modsec-crs/forgejo_false_positives.conf"
       ]
     }
   ]

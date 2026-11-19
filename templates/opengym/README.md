@@ -76,7 +76,7 @@ in `api/server.js`; the web PWA itself remains same-origin.
 
 - `template.json` – BunkerWeb template definition containing default settings, configs, and guided
   steps.
-- `configs/modsec/opengym_false_positives.conf` – ModSecurity CRS tuning for the base64url WebAuthn
+- `configs/modsec-crs/opengym_false_positives.conf` – ModSecurity CRS tuning for the base64url WebAuthn
   ceremony bodies, the Web Push subscription endpoint and user-authored state sync.
 
 ## Setup
@@ -122,7 +122,7 @@ in `api/server.js`; the web PWA itself remains same-origin.
 - This template covers the main application vhost only. An openGym deployment may also expose a
   separate card-preview host and an MCP endpoint; the MCP endpoint uses a long-lived
   `text/event-stream` and is normally kept off the public vhost entirely.
-- Review and narrow the WebAuthn exclusions in `configs/modsec/opengym_false_positives.conf` for
+- Review and narrow the WebAuthn exclusions in `configs/modsec-crs/opengym_false_positives.conf` for
   your installation. They remove individual JSON parameters with `ctl:ruleRemoveTargetById`, scoped
   by an anchored path and the request method, so each CRS rule stays active everywhere else.
   `PUT /api/data` instead excludes the `attack-sqli` and `attack-rce` families for that exact path
@@ -139,7 +139,7 @@ in `api/server.js`; the web PWA itself remains same-origin.
 
 Run `jq . template.json` to confirm the JSON definition is valid before importing via the UI.
 
-Load the snippet as a service-scoped `modsec` custom config on a multisite BunkerWeb instance,
+Load the snippet as a service-scoped `modsec-crs` custom config on a multisite BunkerWeb instance,
 then run `nginx -t` in its BunkerWeb container before reloading it. A syntax error names the
 file and line; a successful parse alone does not prove an exclusion matches a request.
 

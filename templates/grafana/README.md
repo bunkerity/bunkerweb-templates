@@ -12,7 +12,7 @@ it accepts some SQLi strings throughout dashboard-save requests.
    [proxy guide](https://grafana.com/tutorials/run-grafana-behind-a-proxy/) and
    [`root_url` reference](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#root_url).
 2. Follow the repository [installation guide](../../README.md#install). Raw import
-   requires `template.json` and `configs/modsec/grafana_false_positives.conf`; plugin bundles use
+   requires `template.json` and `configs/modsec-crs/grafana_false_positives.conf`; plugin bundles use
    the layout in that guide.
 3. Select `grafana` for the service (or set `USE_TEMPLATE=grafana`), change `SERVER_NAME` and
    **all three** upstream settings: `REVERSE_PROXY_HOST`, `_1` and `_2`. Review the guided steps.
@@ -44,19 +44,19 @@ own authentication and dashboard/data-source permissions configured.
 
 ## CRS exception scope and cost
 
-All rules live in `configs/modsec/grafana_false_positives.conf`, at service scope:
+All rules live in `configs/modsec-crs/grafana_false_positives.conf`, at service scope:
 
-- Rule `77400` removes response rule `953100` for **any GET** whose `Accept` contains the
+- Rule `9858100` removes response rule `953100` for **any GET** whose `Accept` contains the
   literal `text/html`. This prevents plugin names such as `SQLConnect` from truncating HTML
   pages. It also removes that PHP-leak check on every matching GET response; there is no path
   restriction. A JSON-accepting page request receives no exception.
-- Rule `77401` applies only to `POST /api/ds/query`. Rules `942100`, `942151`, `942160`,
+- Rule `9858101` applies only to `POST /api/ds/query`. Rules `942100`, `942151`, `942160`,
   `942190`, `942280`, `942320`, `942350` skip only the literal
   `ARGS:json.queries.array_0.rawSql` through `ARGS:json.queries.array_9.rawSql` targets.
   Index **10 and above remains inspected**, as do other fields and endpoints. Split larger query
   batches or review additional literal targets; a regex target did not work in the source tests.
   Query parameters with those exact target names also match on an allowed POST.
-- Rule `77402` applies only to `POST /api/dashboards/db`. It removes `932340`, `941100`,
+- Rule `9858102` applies only to `POST /api/dashboards/db`. It removes `932340`, `941100`,
   `941120`, `941160`, `941390`, `942100`, `942190` **for the entire request**, because dashboard
   panel/query indices vary. This body-wide SQLi exception also removes those rules' checks on
   query/header targets: it is not confined to SQL fields. SQL in a dashboard title was accepted

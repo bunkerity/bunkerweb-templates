@@ -21,7 +21,7 @@
     "REVERSE_PROXY_HOST_2": "http://grafana:3000",
     "REVERSE_PROXY_MAX_CLIENT_SIZE_2": "64m"
   },
-  "configs": ["modsec/grafana_false_positives.conf"],
+  "configs": ["modsec-crs/grafana_false_positives.conf"],
   "steps": [
     {
       "title": "Domains and TLS",
@@ -71,7 +71,7 @@
     {
       "title": "CRS exclusions",
       "subtitle": "Review the documented exception scopes before enabling the service.",
-      "configs": ["modsec/grafana_false_positives.conf"]
+      "configs": ["modsec-crs/grafana_false_positives.conf"]
     }
   ]
 }

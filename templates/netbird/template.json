@@ -52,7 +52,7 @@
     "REVERSE_PROXY_URL_999": "/",
     "REVERSE_PROXY_HOST_999": "http://netbird-dashboard"
   },
-  "configs": ["modsec/netbird_false_positives.conf"],
+  "configs": ["modsec-crs/netbird_false_positives.conf"],
   "steps": [
     {
       "title": "Step 1 - Domain and HTTPS",
@@ -132,7 +132,7 @@
         "LIMIT_CONN_MAX_HTTP2",
         "LIMIT_CONN_MAX_HTTP3"
       ],
-      "configs": ["modsec/netbird_false_positives.conf"]
+      "configs": ["modsec-crs/netbird_false_positives.conf"]
     }
   ]
 }

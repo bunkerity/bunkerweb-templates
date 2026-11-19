@@ -19,8 +19,16 @@ custom headers and long-lived timeout defaults suited for control-plane traffic.
 
 - `template.json` - Template definition with guided steps for TLS, proxy, and
   gRPC settings.
-- `configs/modsec/netbird_false_positives.conf` - CRS exclusions for known
-  NetBird OAuth2 false positives.
+- `configs/modsec-crs/netbird_false_positives.conf` - CRS exclusions for known
+  NetBird OAuth2 false positives. NetBird's embedded identity provider (Dex)
+  serves `/oauth2/`. The file removes `931100` and `934110` (a redirect URI that
+  holds an IP address or a URL) for `GET` and `POST` on `/oauth2/auth` and the
+  connector paths below it (`/oauth2/auth/<connector>`,
+  `/oauth2/auth/<connector>/login`), and for `POST /oauth2/token`. Other
+  methods, names that only start the same way (`/oauth2/authx`,
+  `/oauth2/tokens`) and the other `/oauth2/` paths stay under the full CRS.
+  Both rules remove the two rule ids for the whole request on those paths, so
+  the other arguments of those requests are not checked by them either.
 
 ## Setup
 
@@ -45,7 +53,7 @@ custom headers and long-lived timeout defaults suited for control-plane traffic.
   hosts together.
 - Lower `LIMIT_REQ_RATE` or `LIMIT_CONN_MAX_HTTP*` only after confirming your
   expected number of peers and API clients.
-- Adjust `configs/modsec/netbird_false_positives.conf` if CRS rule IDs change
+- Adjust `configs/modsec-crs/netbird_false_positives.conf` if CRS rule IDs change
   in your deployment.
 
 ## Validation

@@ -18,7 +18,7 @@ imports, attachments and WebSocket sync notifications.
 
 ## Import and initial detect run
 
-Import `template.json` and `configs/modsec/vaultwarden_false_positives.conf` using the
+Import `template.json` and `configs/modsec-crs/vaultwarden_false_positives.conf` using the
 repository [installation guide](../../README.md#install), or its plugin bundle
 layout. Assign `USE_TEMPLATE=vaultwarden`, update `SERVER_NAME` and `REVERSE_PROXY_HOST`
 including port `80`, and review the guided steps. Keep the upstream URL without a trailing
@@ -56,7 +56,7 @@ imports or bulk writes. ModSecurity remains enabled.
 
 ## CRS exception scope and cost
 
-`configs/modsec/vaultwarden_false_positives.conf` is a service-scoped **modsec** config:
+`configs/modsec-crs/vaultwarden_false_positives.conf` is a service-scoped **modsec-crs** config:
 
 - For **POST or PUT** to `/api/ciphers`, `/api/folders`, `/api/sends` or their descendants,
   `ctl:ruleRemoveTargetById` removes **the entire `ARGS` collection** from rules `930120`,

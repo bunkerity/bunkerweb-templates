@@ -18,7 +18,7 @@
     "COOKIE_FLAGS": "* SameSite=Lax",
     "CONTENT_SECURITY_POLICY": ""
   },
-  "configs": ["modsec/authentik_false_positives.conf"],
+  "configs": ["modsec-crs/authentik_false_positives.conf"],
   "steps": [
     {
       "title": "Web service - Domains and TLS",
@@ -53,7 +53,7 @@
     {
       "title": "Security - Review CRS exclusions",
       "subtitle": "Allow Python, CSS and HTML only in the documented admin fields.",
-      "configs": ["modsec/authentik_false_positives.conf"]
+      "configs": ["modsec-crs/authentik_false_positives.conf"]
     }
   ]
 }

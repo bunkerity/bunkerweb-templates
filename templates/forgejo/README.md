@@ -43,21 +43,21 @@ validation against Forgejo's proxy guide; they were not exercised in the source 
 
 `configs/modsec-crs/forgejo_protocol.conf` loads before the CRS:
 
-- Rule `77300` removes only target `REQUEST_FILENAME` from CRS `930130` for `GET|POST|PUT` on
+- Rule `9856100` removes only target `REQUEST_FILENAME` from CRS `930130` for `GET|POST|PUT` on
   `/<owner>/<repo>.git/info/refs`, `git-upload-pack`, `git-receive-pack` and `info/lfs/...`.
-- Rule `77301` removes content-type rule `920420` for `POST|PUT` on the Git pack/LFS paths and
+- Rule `9856101` removes content-type rule `920420` for `POST|PUT` on the Git pack/LFS paths and
   `/api/packages/<owner>/...`. Any content type is accepted by that rule on these requests;
   this is not restricted to known Git/LFS MIME types and does not add a body parser.
-- Rule `77302` removes extension rule `920440` for `GET|HEAD|POST|PUT|PATCH|DELETE` on
+- Rule `9856102` removes extension rule `920440` for `GET|HEAD|POST|PUT|PATCH|DELETE` on
   `/api/v1/repos/<owner>/<repo>/contents/...` and
   `/<owner>/<repo>/{src,raw,blame,_new,_edit,_delete,_upload,commits}/...`.
   Other fields on the matched request also lose this rule's coverage.
 
-`configs/modsec/forgejo_false_positives.conf` expands all tested literal fields and tags:
+`configs/modsec-crs/forgejo_false_positives.conf` expands all tested literal fields and tags:
 
-- Rule `77303`: `POST|PUT|PATCH` on `/api/v1/repos/<owner>/<repo>/{issues,pulls,contents}`
+- Rule `9856103`: `POST|PUT|PATCH` on `/api/v1/repos/<owner>/<repo>/{issues,pulls,contents}`
   and their subpaths; fields `json.body`, `json.title`, `json.content`, `json.message`.
-- Rule `77304`: `POST` on `/<owner>/<repo>/issues/new`,
+- Rule `9856104`: `POST` on `/<owner>/<repo>/issues/new`,
   `/<owner>/<repo>/{issues,pulls}/<number>/comments`, `_new/...` and `_edit/...`;
   fields `content`, `title`, `commit_summary`, `commit_message`.
 

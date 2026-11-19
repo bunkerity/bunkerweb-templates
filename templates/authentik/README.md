@@ -21,7 +21,7 @@ own forward-auth configuration.
 ## Import
 
 1. Follow the repository [installation guide](../../README.md#install).
-   Import `template.json` and upload `configs/modsec/authentik_false_positives.conf` when
+   Import `template.json` and upload `configs/modsec-crs/authentik_false_positives.conf` when
    prompted, or use the documented plugin bundle layout.
 2. Assign `USE_TEMPLATE=authentik` to your service. Change `SERVER_NAME` and **both**
    `REVERSE_PROXY_HOST` and `REVERSE_PROXY_HOST_1` to your upstream, including port `9000`.
@@ -65,7 +65,7 @@ Do not change the `/ws/` entry when doing so.
 
 ## CRS exception scope
 
-`configs/modsec/authentik_false_positives.conf` is a service-scoped **modsec** config.
+`configs/modsec-crs/authentik_false_positives.conf` is a service-scoped **modsec-crs** config.
 Its phase 1 chains match only `POST`, `PUT` or `PATCH` to the following collection or UUID
 detail endpoints (each ending in `/`):
 
