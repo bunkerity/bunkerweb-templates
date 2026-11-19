@@ -52,6 +52,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | [openGym](templates/opengym/)                   | Passkey PWA template with JSON sync and WebAuthn tuning          |
 | [Outline](templates/outline/)                   | Wiki template with realtime collaboration and MCP support        |
 | [Pi-hole](templates/pi-hole/)                   | Reverse proxy template with admin UI and API tuning              |
+| [Pocket ID](templates/pocket-id/)               | OIDC provider template with passkey and callback WAF tuning      |
 | [ProjectSend](templates/projectsend/)           | File sharing template with chunked-upload-aware defaults         |
 | [Seafile](templates/seafile/)                   | File sharing template with WebDAV-aware proxy defaults           |
 | [Synapse](templates/synapse/)                   | Matrix homeserver template with well-known delegation            |
