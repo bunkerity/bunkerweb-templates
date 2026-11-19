@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Renumber the ModSecurity rule ids of the existing templates into per-template blocks (9850000-9899999), write the exclusions in CRS form, match the Jellyfin exclusion on its exact path only and drop a second Jellyfin exclusion that had no effect.
 - [@TheophileDiot] Add a Kaneo template for the task board, its live-update WebSockets, MCP clients and the CLI device login, with raised request and connection limits for many people behind one address, a single forwarded client address, room for large single sign-on cookies, the ChatGPT MCP connector let through the user-agent blacklist, and scoped CRS exclusions for the text people write in tasks and comments.
 - [@TheophileDiot] Add an Umami template that serves the dashboard and the visitor tracker (`/script.js` and `POST /api/send`) from one service, with a login rate limit, a bad-behavior list that ignores the `400` answers of stale tracker snippets, CRS exclusions for tracker payloads, dashboard filters and passwords, and an example config to add by hand for renamed tracker paths.
 - [@TheophileDiot] Add a SearXNG template with CRS exclusions for the search query on `/search` and the autocompleter, a single forwarded client address for SearXNG's limiter, larger proxy buffers for the cookies a preferences save sets, and a content security policy that lets external bangs work.

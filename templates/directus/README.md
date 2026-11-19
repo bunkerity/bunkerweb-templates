@@ -125,15 +125,23 @@ If your collections hold rich text, scope an exclusion to the one field, taking 
 from `matched_var_name` in the logs:
 
 ```conf
-# configs/modsec/directus_false_positives.conf
+# configs/modsec-crs/directus_false_positives.conf
 # Editors post rich HTML into articles.body. POST/PUT/PATCH under /items/articles only.
 # t:normalizePath is required: REQUEST_FILENAME is URL-decoded but not normalised.
-SecRule REQUEST_FILENAME "@rx ^/items/articles(?:/|$)" \
-    "id:3000110,phase:1,pass,nolog,t:none,t:normalizePath,chain,\
+# Use an id from 1 to 99,999 (yours to pick), never one from a template block.
+SecRule REQUEST_FILENAME "@rx \A/items/articles(?:/|\z)" \
+    "id:10110,\
+    phase:1,\
+    pass,\
+    t:none,\
+    t:normalizePath,\
+    nolog,\
     ctl:ruleRemoveTargetById=941160;ARGS:json.body,\
-    ctl:ruleRemoveTargetById=941180;ARGS:json.body"
-SecRule REQUEST_METHOD "@rx ^(?:POST|PUT|PATCH)$" \
-    "t:none,nolog"
+    ctl:ruleRemoveTargetById=941180;ARGS:json.body,\
+    chain"
+    SecRule REQUEST_METHOD "@rx \A(?:POST|PUT|PATCH)\z" \
+        "t:none,\
+        nolog"
 ```
 
 Remove targets, never whole rules, and confirm the same payload is still refused on another
