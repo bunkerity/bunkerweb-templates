@@ -6,7 +6,7 @@ Pi-hole on port 53 and only front the HTTP interface with BunkerWeb.
 
 ## Setup
 
-1. Follow the repository's [installation guide](../../README.md#installing-templates)
+1. Follow the repository's [installation guide](../../README.md#install)
    for the web UI or plugin bundle method.
 2. Assign the template to the Pi-hole service (`USE_TEMPLATE=pi-hole` or select
    it in the easy-mode UI).

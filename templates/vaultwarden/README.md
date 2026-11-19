@@ -19,7 +19,7 @@ imports, attachments and WebSocket sync notifications.
 ## Import and initial detect run
 
 Import `template.json` and `configs/modsec/vaultwarden_false_positives.conf` using the
-repository [installation guide](../../README.md#installing-templates), or its plugin bundle
+repository [installation guide](../../README.md#install), or its plugin bundle
 layout. Assign `USE_TEMPLATE=vaultwarden`, update `SERVER_NAME` and `REVERSE_PROXY_HOST`
 including port `80`, and review the guided steps. Keep the upstream URL without a trailing
 slash or path.

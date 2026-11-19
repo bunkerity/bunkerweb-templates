@@ -19,7 +19,7 @@ upstream JSON errors. It keeps the CRS enabled.
 
 ## Import and configure
 
-1. Follow the repository's [installation guide](../../README.md#installing-templates).
+1. Follow the repository's [installation guide](../../README.md#install).
    Import `template.json` and upload `configs/modsec-crs/uptime-kuma_false_positives.conf` when
    prompted. Keep the config type `modsec-crs`: rule 920420 runs in phase 1.
 2. Select this template for the service, or set `USE_TEMPLATE=uptime-kuma`.

@@ -52,7 +52,7 @@ rules; the template does not exclude them because that would need an exclusion o
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates) for the web UI or
+   - Follow the repository's [installation guide](../../README.md#install) for the web UI or
      plugin bundle method. When prompted for custom configs, upload `configs/server-http/well-known.conf` and `configs/modsec-crs/tuwunel_false_positives.conf`.
 2. **Assign the template** to your Matrix service via the easy-mode UI or by setting `USE_TEMPLATE=tuwunel`.
 3. **Customize the settings** highlighted in the template steps (server name, upstream host, TLS options) and edit `well-known.conf` as described above.

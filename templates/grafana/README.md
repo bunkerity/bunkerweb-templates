@@ -11,7 +11,7 @@ it accepts some SQLi strings throughout dashboard-save requests.
    With TLS terminated by BunkerWeb, keep Grafana's upstream protocol HTTP. See the official
    [proxy guide](https://grafana.com/tutorials/run-grafana-behind-a-proxy/) and
    [`root_url` reference](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#root_url).
-2. Follow the repository [installation guide](../../README.md#installing-templates). Raw import
+2. Follow the repository [installation guide](../../README.md#install). Raw import
    requires `template.json` and `configs/modsec/grafana_false_positives.conf`; plugin bundles use
    the layout in that guide.
 3. Select `grafana` for the service (or set `USE_TEMPLATE=grafana`), change `SERVER_NAME` and

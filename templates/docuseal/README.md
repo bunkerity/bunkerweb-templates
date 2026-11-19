@@ -25,7 +25,7 @@ The signing UI is not affected: it uploads signatures, initials and files as mul
 ## Setup
 
 1. Import `template.json` as described in the repository's
-   [installation guide](../../README.md#installing-templates), or in the web UI with Templates →
+   [installation guide](../../README.md#install), or in the web UI with Templates →
    **Create new template** → **Raw**, then upload or paste it.
 2. Assign `USE_TEMPLATE=docuseal` to the service, or select **DocuSeal** in the web UI.
 3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT` and `REVERSE_PROXY_HOST` with values for your

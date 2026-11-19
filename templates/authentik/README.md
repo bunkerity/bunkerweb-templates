@@ -20,7 +20,7 @@ own forward-auth configuration.
 
 ## Import
 
-1. Follow the repository [installation guide](../../README.md#installing-templates).
+1. Follow the repository [installation guide](../../README.md#install).
    Import `template.json` and upload `configs/modsec/authentik_false_positives.conf` when
    prompted, or use the documented plugin bundle layout.
 2. Assign `USE_TEMPLATE=authentik` to your service. Change `SERVER_NAME` and **both**

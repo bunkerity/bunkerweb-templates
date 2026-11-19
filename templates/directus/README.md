@@ -28,7 +28,7 @@ and anonymous access were all exercised through the proxy.
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates) for the web
+   - Follow the repository's [installation guide](../../README.md#install) for the web
      UI or plugin bundle method.
 2. **Assign the template** to the service that fronts Directus (`USE_TEMPLATE=directus` via
    environment variables, or pick it in the UI).

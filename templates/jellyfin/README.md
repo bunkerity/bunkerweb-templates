@@ -25,7 +25,7 @@ match typical media streaming workloads without sacrificing security headers.
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates)
+   - Follow the repository's [installation guide](../../README.md#install)
      for the web UI or plugin bundle method.
 2. **Assign the template** to the site serving Jellyfin (`USE_TEMPLATE=jellyfin`
    or choose it in the UI).

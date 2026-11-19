@@ -29,7 +29,7 @@ mobile apps, block-editor plugins). If your site does not need them, narrow the 
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates) for the web UI or
+   - Follow the repository's [installation guide](../../README.md#install) for the web UI or
      plugin bundle method.
 2. **Assign the template** to your WordPress service via the easy-mode UI or by setting `USE_TEMPLATE=wordpress`.
 3. **Customize the settings** highlighted in the template steps (domains, upstream host, TLS options).

@@ -12,7 +12,7 @@ install Forgejo or configure SSH.
    `https://forgejo.example.com/`, including any public nonstandard port. Generated LFS links
    depend on this URL. See the upstream [configuration reference](https://forgejo.org/docs/latest/admin/config-cheat-sheet/#server-server)
    and [reverse-proxy guide](https://forgejo.org/docs/latest/admin/setup/reverse-proxy/).
-3. Follow the repository [installation guide](../../README.md#installing-templates). For Raw
+3. Follow the repository [installation guide](../../README.md#install). For Raw
    import, upload `template.json` and both referenced configs when prompted. For a plugin bundle,
    preserve the guide's template/config layout.
 4. Select `forgejo` for the service (or set `USE_TEMPLATE=forgejo`), change `SERVER_NAME`, review

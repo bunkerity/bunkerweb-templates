@@ -82,7 +82,7 @@ in `api/server.js`; the web PWA itself remains same-origin.
 ## Setup
 
 1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#installing-templates) for the web
+   - Follow the repository's [installation guide](../../README.md#install) for the web
      UI or plugin bundle method.
 2. **Assign the template** to your openGym service via the easy-mode UI or by setting
    `USE_TEMPLATE=opengym`.
