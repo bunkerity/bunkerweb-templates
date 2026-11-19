@@ -1,0 +1,89 @@
+{
+  "id": "kaneo",
+  "name": "Kaneo",
+  "settings": {
+    "SERVER_NAME": "kaneo.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://kaneo:5173",
+    "REVERSE_PROXY_WS": "yes",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|PATCH|DELETE",
+    "LIMIT_REQ_RATE": "100r/s",
+    "MAX_CLIENT_SIZE": "25m",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "BLACKLIST_IGNORE_USER_AGENT": "^openai-(?:mcp|connectors-oauth)/",
+    "REVERSE_PROXY_HEADERS": "X-Forwarded-For $remote_addr",
+    "LIMIT_CONN_MAX_HTTP1": "200",
+    "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "25m",
+    "COOKIE_FLAGS_1": "better-auth.last_used_login_method SameSite=Lax",
+    "BAD_BEHAVIOR_STATUS_CODES": "401 403 404 405 429 444"
+  },
+  "configs": [
+    "modsec-crs/kaneo_false_positives.conf",
+    "server-http/kaneo_large_cookies.conf"
+  ],
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Match your public hostname to Kaneo's KANEO_CLIENT_URL.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Point BunkerWeb at Kaneo's single port and upgrade its live-update WebSockets.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST",
+        "REVERSE_PROXY_WS",
+        "REVERSE_PROXY_INTERCEPT_ERRORS"
+      ]
+    },
+    {
+      "title": "Methods, request rate and body size",
+      "subtitle": "Allow the web app's own methods, load without throttling and accept the largest imports.",
+      "settings": [
+        "ALLOWED_METHODS",
+        "LIMIT_REQ_RATE",
+        "MAX_CLIENT_SIZE",
+        "MODSECURITY_REQ_BODY_NO_FILES_LIMIT"
+      ]
+    },
+    {
+      "title": "Security - Real client address",
+      "subtitle": "Replace a client-sent X-Forwarded-For; also set TRUSTED_PROXIES on Kaneo to BunkerWeb's address only.",
+      "settings": ["REVERSE_PROXY_HEADERS"]
+    },
+    {
+      "title": "HTTP - Many users behind one address",
+      "subtitle": "Each open tab holds two WebSockets: raise the per-address connection limit for offices and schools.",
+      "settings": ["LIMIT_CONN_MAX_HTTP1"]
+    },
+    {
+      "title": "Security - Sign-in method cookie",
+      "subtitle": "Kaneo's page reads its last-used sign-in method cookie from JavaScript: keep HttpOnly off for that one cookie.",
+      "settings": ["COOKIE_FLAGS_1"]
+    },
+    {
+      "title": "HTTP - Large single sign-on cookies",
+      "subtitle": "Accept the big Cookie headers an OpenID Connect provider leaves behind; drop it if you only use passwords.",
+      "configs": ["server-http/kaneo_large_cookies.conf"]
+    },
+    {
+      "title": "Security - ChatGPT connector",
+      "subtitle": "Let ChatGPT's MCP connector through the user-agent blacklist; drop it if you never connect ChatGPT.",
+      "settings": ["BLACKLIST_IGNORE_USER_AGENT"]
+    },
+    {
+      "title": "Security - Bad behavior ban",
+      "subtitle": "The CLI and MCP sign-in poll answers 400 every 5 seconds until you approve it: stop counting 400 toward the ban.",
+      "settings": ["BAD_BEHAVIOR_STATUS_CODES"]
+    },
+    {
+      "title": "Security - Review text CRS exclusions",
+      "subtitle": "Skip injection rules for the text people write in tasks, comments, names and searches.",
+      "configs": ["modsec-crs/kaneo_false_positives.conf"]
+    }
+  ]
+}
