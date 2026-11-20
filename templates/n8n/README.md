@@ -1,9 +1,42 @@
-# n8n Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/n8n.svg" alt="n8n logo" width="96" height="96" />
+</p>
+
+<h1 align="center">n8n</h1>
+
+<p align="center">Workflow automation template with editor and webhook tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/n8n-2.48.4-248651?labelColor=1d6f93&style=flat" alt="n8n 2.48.4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-n8n-for-the-proxy">Configure n8n</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#things-to-think-about">Things to think about</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Expose an existing n8n instance through BunkerWeb: the editor (saving and running workflows, the
 push channel), production, test and waiting webhooks with JSON and file bodies, forms, the Chat
 Trigger, MCP (the MCP Server Trigger and n8n's instance-level MCP server), the public API, and an
 optional webhook-only mode. ModSecurity and the OWASP CRS stay on.
+
+## At a glance
+
+| Fact        | Value                                     |
+| ----------- | ----------------------------------------- |
+| Template id | `n8n`                                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, n8n 2.48.4 |
+| Configs     | 5 (modsec-crs)                            |
+| Rule ids    | `9861000` to `9861999`                    |
+| Upstream    | `http://n8n:5678`                         |
 
 ## Prerequisites
 
@@ -39,7 +72,7 @@ one. With `2` it takes the forged first entry: a Webhook node whitelisted for `6
 request that carried `X-Forwarded-For: 6.6.6.6`. Raise it only when another proxy that you control
 sits in front of BunkerWeb, and then set `USE_REAL_IP` on the BunkerWeb service too (not tested).
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and the five files under `configs/modsec-crs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
@@ -55,7 +88,8 @@ Before enabling blocking on your instance:
    the CRS section).
 4. Switch to `SECURITY_MODE=block`.
 
-False positives return `403`.
+> [!IMPORTANT]
+> False positives return `403`.
 
 ### Optional: webhook-only exposure
 
@@ -69,7 +103,7 @@ final template: the production webhook, the hosted chat page and its API, the Fo
 clients, and test webhooks from the editor, need their own `REVERSE_PROXY_URL` entry. The
 exclusions for `/webhook-test/` and the editor paths then have nothing to apply to.
 
-## Settings and tradeoffs
+## Settings
 
 Every non-default value was checked against the BunkerWeb default on the same app. The numbers
 come from `curl`, a Node WebSocket client and n8n's own HTTP Request node through BunkerWeb.
@@ -106,6 +140,82 @@ Costs and choices:
 - `BAD_BEHAVIOR_STATUS_CODES` drops `404` and `429` from the default list. A scanner that
   floods `404` is then no longer banned, and a client that is rate limited does not escalate to
   a ban. `400`, `401`, `403`, `405` and `444` still count.
+
+## CRS exception scope and cost
+
+Every file is a service-scoped **modsec-crs** config (rule ids `9861100` to `9861399`).
+
+**`n8n_editor_false_positives.conf`**, five exact method and path pairs:
+
+| Id | Request | What is removed |
+| --- | --- | --- |
+| `9861100` | `POST /rest/workflows` | `ARGS` from 89 injection rules |
+| `9861101` | `PATCH /rest/workflows/<id>` | same |
+| `9861102` | `POST /rest/workflows/<id>/run` | same |
+| `9861103` | `POST /rest/dynamic-node-parameters/<kind>` | same |
+| `9861104` | `GET /types/credentials.json` | the file name target of `930130` only |
+
+A workflow is code: Code nodes (JavaScript with `require`), SQL queries, shell commands, HTML and
+expressions are argument values, so the SQL, shell, XSS, PHP and Node injection rules fire on
+content the user is meant to write. The 89 ids are every paranoia-level-1 rule of the CRS 4.29
+families `930` to `934`, `941` and `942` that inspect `ARGS`, plus `921120` and `921130`. The list
+comes from the shipped rule files, not from test workflows. `ARGS` is excluded as a whole because
+the argument name carries the node position and pinned data carries the node name; regex targets
+fail to parse in 1.6.17 and `ARGS_POST` does not match JSON arguments.
+
+**Cost:** on these requests the listed rules stop inspecting body and query arguments. They need
+a signed-in n8n user, who can already run code on the n8n host. Cookies, headers, every other
+rule and every other path stay inspected. `949110` is never excluded. Rules of paranoia level 2
+and above are not in the list. `9861104` exists because the editor cannot start without that file
+and its name is on the CRS restricted-file list.
+
+**`n8n_api_false_positives.conf`**, the same 89 ids on `ARGS`, for scripts and AI clients that
+send workflow code: `9861105` `POST /api/v1/workflows`, `9861106` `PUT /api/v1/workflows/<id>`,
+`9861107` `POST /mcp-server/http`. Same cost; the callers hold an API key.
+
+**`n8n_webhook_false_positives.conf`**, `POST`, `PUT` and `PATCH` to `/webhook/`,
+`/webhook-test/` and `/webhook-waiting/`:
+
+| Id | Rule | Condition |
+| --- | --- | --- |
+| `9861110` | `920420` on `Content-Type` | the type contains no `json` or `xml` and does not start with `text/` |
+| `9861111` | `920340` and `920640` | the request has a body and no `Content-Type` at all |
+| `9861112` | `920450` on the `Expect` header name only | `Expect: 100-continue`; every other restricted header stays blocked, with or without `Expect` |
+
+These let file uploads through: `application/octet-stream`, `application/pdf`, images, zips, and
+the `Expect: 100-continue` that `curl` sends for bodies over 1 MiB. **Cost:** a body of such a type
+has no ModSecurity body processor, so it is never inspected (with or without these rules); the
+workflow must treat it as untrusted binary. The JSON, form and multipart bodies on the same path
+are inspected as before. Still blocked, by design: `text/plain`, `application/atom+xml`,
+`application/vnd.api+json` (`920420`), any request with `X-HTTP-Method-Override` and the other
+restricted headers (`920450`), and gzip or deflate request bodies (`Content-Encoding`). The
+`Expect` exception names the header as `Expect` (HTTP/1) and `expect` (HTTP/2); a header
+spelled `eXpEcT` is still blocked.
+
+**`n8n_forms_false_positives.conf`**: rule `9861122` removes BunkerWeb's rules `200002` and
+`200003` for `POST` with a `multipart/form-data` body on `/form/<id>`, `/form-test/<id>` and
+`/form-waiting/<id>`. Rule `200004` stays active: it never fired on a browser post. **Cost:** once
+the parser fails on an empty-name part it builds no argument list, so the CRS inspects none of
+the fields of that request (measured: SQL injection, XSS, shell, path traversal and PHP payloads
+in the first or a later field all passed). A truncated or badly bounded multipart body on these
+paths is no longer refused by the WAF either, n8n answers it. A form post without an empty-name
+part is inspected and blocked as usual, and so are the query string, cookies and headers; a
+malformed JSON, XML or `multipart/mixed` body on a form path keeps its block. Only the CRS rules
+that also read the raw body (Java `944xxx`, some `920`, `921`, `931` and `934` rules) still
+fire. No narrower version held: BunkerWeb defines `200002` and `200003` before the custom
+configs, so a rule here cannot lift them after reading the body, and rescanning the raw body
+with own rules reproduced only 19 of the 38 payloads and blocked file uploads. The cause is
+upstream: the form page appends every form element, nameless submit button included
+(`packages/cli/templates/form-trigger.handlebars` in n8n `2.48.4`). Drop this file if you use no
+browser forms.
+
+**`n8n_clients_false_positives.conf`**: `9861120` (Chat Trigger) and `9861121` (MCP Server Trigger)
+remove the argument name `sessionId` from CRS `943120`, for those exact paths and `POST` only. The
+name is a conversation key chosen by the client, not a login session.
+
+When a new node or caller gets `403`, read the rule id and the target in the BunkerWeb log, then
+add one `ctl:ruleRemoveTargetById=<id>;<target>` line to the matching chain. Do not remove
+`949110`.
 
 ## Things to think about
 
@@ -185,83 +295,7 @@ Costs and choices:
   `REVERSE_PROXY_URL` entry. Form paths are not listed in that doc.
 - **SSO, LDAP, MFA, OAuth callback.** Not verified (see the end).
 
-## CRS exception scope and cost
-
-Every file is a service-scoped **modsec-crs** config (rule ids `9861100` to `9861399`).
-
-**`n8n_editor_false_positives.conf`**, five exact method and path pairs:
-
-| Id | Request | What is removed |
-| --- | --- | --- |
-| `9861100` | `POST /rest/workflows` | `ARGS` from 89 injection rules |
-| `9861101` | `PATCH /rest/workflows/<id>` | same |
-| `9861102` | `POST /rest/workflows/<id>/run` | same |
-| `9861103` | `POST /rest/dynamic-node-parameters/<kind>` | same |
-| `9861104` | `GET /types/credentials.json` | the file name target of `930130` only |
-
-A workflow is code: Code nodes (JavaScript with `require`), SQL queries, shell commands, HTML and
-expressions are argument values, so the SQL, shell, XSS, PHP and Node injection rules fire on
-content the user is meant to write. The 89 ids are every paranoia-level-1 rule of the CRS 4.29
-families `930` to `934`, `941` and `942` that inspect `ARGS`, plus `921120` and `921130`. The list
-comes from the shipped rule files, not from test workflows. `ARGS` is excluded as a whole because
-the argument name carries the node position and pinned data carries the node name; regex targets
-fail to parse in 1.6.17 and `ARGS_POST` does not match JSON arguments.
-
-**Cost:** on these requests the listed rules stop inspecting body and query arguments. They need
-a signed-in n8n user, who can already run code on the n8n host. Cookies, headers, every other
-rule and every other path stay inspected. `949110` is never excluded. Rules of paranoia level 2
-and above are not in the list. `9861104` exists because the editor cannot start without that file
-and its name is on the CRS restricted-file list.
-
-**`n8n_api_false_positives.conf`**, the same 89 ids on `ARGS`, for scripts and AI clients that
-send workflow code: `9861105` `POST /api/v1/workflows`, `9861106` `PUT /api/v1/workflows/<id>`,
-`9861107` `POST /mcp-server/http`. Same cost; the callers hold an API key.
-
-**`n8n_webhook_false_positives.conf`**, `POST`, `PUT` and `PATCH` to `/webhook/`,
-`/webhook-test/` and `/webhook-waiting/`:
-
-| Id | Rule | Condition |
-| --- | --- | --- |
-| `9861110` | `920420` on `Content-Type` | the type contains no `json` or `xml` and does not start with `text/` |
-| `9861111` | `920340` and `920640` | the request has a body and no `Content-Type` at all |
-| `9861112` | `920450` on the `Expect` header name only | `Expect: 100-continue`; every other restricted header stays blocked, with or without `Expect` |
-
-These let file uploads through: `application/octet-stream`, `application/pdf`, images, zips, and
-the `Expect: 100-continue` that `curl` sends for bodies over 1 MiB. **Cost:** a body of such a type
-has no ModSecurity body processor, so it is never inspected (with or without these rules); the
-workflow must treat it as untrusted binary. The JSON, form and multipart bodies on the same path
-are inspected as before. Still blocked, by design: `text/plain`, `application/atom+xml`,
-`application/vnd.api+json` (`920420`), any request with `X-HTTP-Method-Override` and the other
-restricted headers (`920450`), and gzip or deflate request bodies (`Content-Encoding`). The
-`Expect` exception names the header as `Expect` (HTTP/1) and `expect` (HTTP/2); a header
-spelled `eXpEcT` is still blocked.
-
-**`n8n_forms_false_positives.conf`**: rule `9861122` removes BunkerWeb's rules `200002` and
-`200003` for `POST` with a `multipart/form-data` body on `/form/<id>`, `/form-test/<id>` and
-`/form-waiting/<id>`. Rule `200004` stays active: it never fired on a browser post. **Cost:** once
-the parser fails on an empty-name part it builds no argument list, so the CRS inspects none of
-the fields of that request (measured: SQL injection, XSS, shell, path traversal and PHP payloads
-in the first or a later field all passed). A truncated or badly bounded multipart body on these
-paths is no longer refused by the WAF either, n8n answers it. A form post without an empty-name
-part is inspected and blocked as usual, and so are the query string, cookies and headers; a
-malformed JSON, XML or `multipart/mixed` body on a form path keeps its block. Only the CRS rules
-that also read the raw body (Java `944xxx`, some `920`, `921`, `931` and `934` rules) still
-fire. No narrower version held: BunkerWeb defines `200002` and `200003` before the custom
-configs, so a rule here cannot lift them after reading the body, and rescanning the raw body
-with own rules reproduced only 19 of the 38 payloads and blocked file uploads. The cause is
-upstream: the form page appends every form element, nameless submit button included
-(`packages/cli/templates/form-trigger.handlebars` in n8n `2.48.4`). Drop this file if you use no
-browser forms.
-
-**`n8n_clients_false_positives.conf`**: `9861120` (Chat Trigger) and `9861121` (MCP Server Trigger)
-remove the argument name `sessionId` from CRS `943120`, for those exact paths and `POST` only. The
-name is a conversation key chosen by the client, not a login session.
-
-When a new node or caller gets `403`, read the rule id and the target in the BunkerWeb log, then
-add one `ctl:ruleRemoveTargetById=<id>;<target>` line to the matching chain. Do not remove
-`949110`.
-
-## Validation and test history
+## Validation
 
 Run on 2026-11-17 and 2026-11-18: n8n `2.48.4` (SQLite, internal task runner), BunkerWeb
 all-in-one `1.6.17` (CRS `4.29.0`), default paranoia level and thresholds,
@@ -296,3 +330,9 @@ responses, HTTPS, HTTP/3 and Let's Encrypt (the test hostname was plain HTTP on 
 `USE_REAL_IP` behind a CDN, binary downloads, a sub-path deployment, `N8N_PUSH_BACKEND=sse` in a
 browser, voice input, a real browser idle past 130 s (a Node client was used), gzip request
 bodies and `text/plain` webhooks.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

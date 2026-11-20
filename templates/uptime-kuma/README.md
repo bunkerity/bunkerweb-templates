@@ -1,10 +1,37 @@
-# Uptime Kuma Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/uptime-kuma.svg" alt="Uptime Kuma logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Uptime Kuma</h1>
+
+<p align="center">Monitoring template with Socket.IO polling and WebSockets</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Proxy Uptime Kuma's dashboard, status pages, push monitors and metrics through BunkerWeb.
 The template enables WebSockets on `/socket.io/`, allows its polling requests, and preserves
 upstream JSON errors. It keeps the CRS enabled.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `uptime-kuma`                 |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9876000` to `9876999`        |
+| Upstream    | `http://uptime-kuma:3001`     |
 
 ## Prerequisites
 
@@ -17,7 +44,7 @@ upstream JSON errors. It keeps the CRS enabled.
   `AUTO_LETS_ENCRYPT` and configure BunkerWeb's `USE_CUSTOM_SSL`, `CUSTOM_SSL_CERT` and
   `CUSTOM_SSL_KEY` settings instead.
 
-## Import and configure
+## Install
 
 1. Follow the repository's [installation guide](../../README.md#install).
    Import `template.json` and upload `configs/modsec-crs/uptime-kuma_false_positives.conf` when
@@ -46,7 +73,7 @@ upstream JSON errors. It keeps the CRS enabled.
 | `LIMIT_REQ_RATE` | `50r/s` | Allow polling handshakes and page-load bursts. |
 | `SERVE_FILES` | `no` | Serve application content through the upstream. |
 
-## Security and compatibility notes
+### Security and compatibility notes
 
 - **Polling exception:** only `POST /socket.io/` with `Content-Type: text/plain` (optionally
   followed by parameters) removes rule 920420. Other paths, methods and content types keep that
@@ -91,3 +118,9 @@ They covered setup, login, polling, WebSockets, HTTP and push monitors, metrics,
 editing and negative exclusion boundaries. Notification providers, Docker/database monitors,
 status-page domain mapping, MariaDB mode and a real browser were not tested. Those results
 predate this packaged template and do not certify another version or deployment.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

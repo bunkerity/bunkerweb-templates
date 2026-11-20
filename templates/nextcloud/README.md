@@ -1,42 +1,45 @@
-# Nextcloud Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/nextcloud.svg" alt="Nextcloud logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Nextcloud</h1>
+
+<p align="center">Secure template with WebDAV-aware defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#reverse-proxy-settings">Reverse proxy settings</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#files">Files</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Generate a hardened BunkerWeb configuration for Nextcloud. The template keeps TLS automation, WebDAV
 verbs, uploads, caching, and ModSecurity CRS exclusions aligned with common Nextcloud guidance so your
 instance stays reachable and protected.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `nextcloud`                   |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9863000` to `9863999`        |
+| Upstream    | `http://nextcloud`            |
 
 ## Prerequisites
 
 - A reachable Nextcloud backend (container, VM, or service) that accepts traffic from BunkerWeb.
 - Access to the BunkerWeb UI or the ability to apply settings via environment variables.
 - Nextcloud configured for life behind a reverse proxy (see [Reverse proxy settings](#reverse-proxy-settings)).
-
-## Files
-
-- `template.json` – Template definition with default settings and the guided step layout.
-- `configs/modsec-crs/nextcloud_false_positives.conf` – Enables the CRS v3 Nextcloud exclusion set.
-  It is a `modsec-crs` config on purpose: those load **before** the CRS rules, which is the only point
-  where `tx.crs_exclusions_nextcloud` is still read. The same file under `modsec/` would load after the
-  CRS and do nothing.
-  It also lets WebDAV `UNLOCK` under `/remote.php/dav/files/` carry a `Lock-Token` header: the plugin
-  covers `If` but not `Lock-Token`, so CRS rule `920450` would otherwise answer `403`.
-
-## Setup
-
-1. **Import the template**
-   - Follow the repository's [installation guide](../../README.md#install) for the web UI or
-     plugin bundle method.
-2. **Assign the template** to the service that fronts Nextcloud (set `USE_TEMPLATE=nextcloud` or pick it
-   from the easy-mode UI).
-3. **Adjust the TLS and domain entries** so `SERVER_NAME` and certificate options match your deployment.
-4. **Point the reverse proxy** at your upstream host (for example `http://nextcloud:8080`) and confirm the
-   service resolves from the BunkerWeb container or pod.
-5. **Configure Nextcloud itself** for the proxy – see [Reverse proxy settings](#reverse-proxy-settings).
-   Skipping this yields `http://` links, wrong client IPs in the logs, and broken federation.
-6. **Review the HTTP hardening options** – keep the WebDAV verbs, upload size, rate limit, caching, and
-   CRS plugin values or tailor them to your workload.
-7. **Reload BunkerWeb** and run the checks in [Validation](#validation).
 
 ## Reverse proxy settings
 
@@ -52,15 +55,42 @@ matching environment variables on the official image):
 | `overwritehost`    | `OVERWRITEHOST`             | Public hostname used in generated URLs.                     |
 | `overwrite.cli.url`| `OVERWRITECLIURL`           | Base URL for `occ`, cron, and notification links.           |
 
-Keep `trusted_proxies` as narrow as possible — the BunkerWeb container IP or its `/32`, not `0.0.0.0/0`.
-Nextcloud treats a trusted proxy's `X-Forwarded-For` as authoritative, so an over-broad value lets any
-client spoof its source IP and defeat both Nextcloud's brute-force protection and BunkerWeb's bans.
+> [!WARNING]
+> Keep `trusted_proxies` as narrow as possible — the BunkerWeb container IP or its `/32`, not `0.0.0.0/0`.
+> Nextcloud treats a trusted proxy's `X-Forwarded-For` as authoritative, so an over-broad value lets any
+> client spoof its source IP and defeat both Nextcloud's brute-force protection and BunkerWeb's bans.
 
 On the BunkerWeb side, leave `USE_REAL_IP` at its default `no`. Only enable it (with a matching
 `REAL_IP_FROM`) when BunkerWeb is itself behind another proxy, load balancer, or CDN — otherwise you are
 trusting client-supplied `X-Forwarded-For` headers.
 
-## Upload sizing
+## Install
+
+1. **Import the template**
+   - Follow the repository's [installation guide](../../README.md#install) for the web UI or
+     plugin bundle method.
+2. **Assign the template** to the service that fronts Nextcloud (set `USE_TEMPLATE=nextcloud` or pick it
+   from the easy-mode UI).
+3. **Adjust the TLS and domain entries** so `SERVER_NAME` and certificate options match your deployment.
+4. **Point the reverse proxy** at your upstream host (for example `http://nextcloud:8080`) and confirm the
+   service resolves from the BunkerWeb container or pod.
+5. **Configure Nextcloud itself** for the proxy – see [Reverse proxy settings](#reverse-proxy-settings).
+   Skipping this yields `http://` links, wrong client IPs in the logs, and broken federation.
+6. **Review the HTTP hardening options** – keep the WebDAV verbs, upload size, rate limit, caching, and
+   CRS plugin values or tailor them to your workload.
+7. **Reload BunkerWeb** and run the checks in [Validation](#validation).
+
+## Settings
+
+- Set `REVERSE_PROXY_HOST` to the correct scheme and port for your Nextcloud backend.
+- Keep `ALLOWED_METHODS` aligned with the WebDAV verbs required by Nextcloud; remove verbs only if you are
+  sure the clients do not need them.
+- `SERVE_FILES=no` ensures Nextcloud handles static assets; change it only if you delegate asset delivery
+  elsewhere.
+- Set `REVERSE_PROXY_WS` to `"yes"` to enable WebSocket support, which is required by some Nextcloud
+  applications (for example Talk or Collabora).
+
+### Upload sizing
 
 `MAX_CLIENT_SIZE` defaults to `512m`, matching the `client_max_body_size 512M` in Nextcloud's own nginx
 reference configuration. This is not the maximum file size your users can upload:
@@ -81,7 +111,7 @@ The practical ceiling is therefore roughly `MAX_CLIENT_SIZE` × concurrent uploa
 values in the multi-gigabyte range are an out-of-memory risk rather than a capability. Prefer leaving
 Nextcloud's chunked uploads enabled over raising this value.
 
-## Rate limiting
+### Rate limiting
 
 | Slot | Path pattern              | Rate    | Covers                                    |
 | ---- | ------------------------- | ------- | ----------------------------------------- |
@@ -109,15 +139,16 @@ Raise the values if legitimate clients trip them. Common triggers: a Files or Ph
 thumbnails from `/core/preview` at once, Talk or collaborative editing polling one endpoint, and several
 users sharing a NAT or CGNAT egress address. `429` responses in the BunkerWeb logs are the signal.
 
-Do not treat any of this as brute-force protection. It is per-IP, so it is weak against distributed
-attempts. Nextcloud's own brute-force protection and `AnonRateLimit` are the controls for authentication
-abuse.
+> [!IMPORTANT]
+> Do not treat any of this as brute-force protection. It is per-IP, so it is weak against distributed
+> attempts. Nextcloud's own brute-force protection and `AnonRateLimit` are the controls for authentication
+> abuse.
 
 `BAD_BEHAVIOR_STATUS_CODES` omits `401` for the same reason: Nextcloud answers `401` on unauthenticated
 WebDAV requests, and WebDAV clients that probe before authenticating would accumulate enough of them to
 earn a ban during normal operation.
 
-## ModSecurity and the CRS
+### ModSecurity and the CRS
 
 - `MODSECURITY_CRS_PLUGINS=nextcloud-rule-exclusions` pulls the
   [CRS plugin](https://github.com/coreruleset/nextcloud-rule-exclusions-plugin) that carries the Nextcloud
@@ -136,7 +167,7 @@ earn a ban during normal operation.
 - Service-scoped `modsec-crs` configs are unsupported when `USE_MODSECURITY_GLOBAL_CRS=yes` (default is
   `no`). On a global-CRS deployment, promote the snippet to a global config scoped with a `Host` rule.
 
-## CalDAV / CardDAV discovery
+### CalDAV / CardDAV discovery
 
 Calendar and contacts clients expect `/.well-known/caldav` and `/.well-known/carddav` to redirect to
 `/remote.php/dav/`. The template does not add those redirects, because the official Nextcloud images
@@ -154,15 +185,15 @@ server layer (the `.htaccess` or nginx snippet shipped with your image) rather t
 ACME challenge path stays intact. The DAV verbs those clients need — `PROPFIND`, `REPORT`, `MKCALENDAR`,
 `ACL` — are already in `ALLOWED_METHODS`.
 
-## Customization Tips
+## Files
 
-- Set `REVERSE_PROXY_HOST` to the correct scheme and port for your Nextcloud backend.
-- Keep `ALLOWED_METHODS` aligned with the WebDAV verbs required by Nextcloud; remove verbs only if you are
-  sure the clients do not need them.
-- `SERVE_FILES=no` ensures Nextcloud handles static assets; change it only if you delegate asset delivery
-  elsewhere.
-- Set `REVERSE_PROXY_WS` to `"yes"` to enable WebSocket support, which is required by some Nextcloud
-  applications (for example Talk or Collabora).
+- `template.json` – Template definition with default settings and the guided step layout.
+- `configs/modsec-crs/nextcloud_false_positives.conf` – Enables the CRS v3 Nextcloud exclusion set.
+  It is a `modsec-crs` config on purpose: those load **before** the CRS rules, which is the only point
+  where `tx.crs_exclusions_nextcloud` is still read. The same file under `modsec/` would load after the
+  CRS and do nothing.
+  It also lets WebDAV `UNLOCK` under `/remote.php/dav/files/` carry a `Lock-Token` header: the plugin
+  covers `If` but not `Lock-Token`, so CRS rule `920450` would otherwise answer `403`.
 
 ## Validation
 
@@ -189,3 +220,9 @@ After applying the template:
 - Confirm `/.well-known/caldav` and `/.well-known/carddav` redirect as shown above.
 - Watch for `429` responses and ModSecurity denials in the BunkerWeb logs while doing the above; both
   indicate a value that needs raising for your workload.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

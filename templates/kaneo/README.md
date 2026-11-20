@@ -1,9 +1,42 @@
-# Kaneo Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/usekaneo/kaneo/main/apps/web/public/favicon.svg" alt="Kaneo logo" width="96" height="96" />
+</p>
+
+<h1 align="center">Kaneo</h1>
+
+<p align="center">Task board template with WebSocket and task-text WAF tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/Kaneo-2.49.0-248651?labelColor=1d6f93&style=flat" alt="Kaneo 2.49.0" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-kaneo-for-the-proxy">Configure Kaneo</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings-and-tradeoffs">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#things-to-think-about">Things to think about</a>
+</p>
 
 Put an existing [Kaneo](https://kaneo.app/) server behind BunkerWeb with ModSecurity and the OWASP
 CRS on: task titles, descriptions and comments that hold SQL, shell and HTML, search, the board's
 live updates over WebSocket, file and image uploads, the CLI's device login, MCP clients such as
 Claude and ChatGPT, Git forge webhooks and single sign-on.
+
+## At a glance
+
+| Fact        | Value                                       |
+| ----------- | ------------------------------------------- |
+| Template id | `kaneo`                                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Kaneo 2.49.0 |
+| Configs     | 2 (modsec-crs, server-http)                 |
+| Rule ids    | `9860000` to `9860999`                      |
+| Upstream    | `http://kaneo:5173`                         |
 
 ## Prerequisites
 
@@ -48,7 +81,7 @@ appending to what the client sent. That keeps a forged `X-Forwarded-For` out eve
 range is wider than it should be (see the settings table). It does not help a client that reaches
 the Kaneo port directly: keep that port private.
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and the files under `configs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
@@ -67,9 +100,10 @@ Before enabling blocking on your instance:
    where your traffic requires them.
 4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflows.
 
-False positives return `403` in block mode. The template removes `400` from the bad-behavior status
-list (see below); the remaining codes still ban a client after `BAD_BEHAVIOR_THRESHOLD` matching
-responses in 60 seconds (default 10, one day), so the detect run matters.
+> [!IMPORTANT]
+> False positives return `403` in block mode. The template removes `400` from the bad-behavior status
+> list (see below); the remaining codes still ban a client after `BAD_BEHAVIOR_THRESHOLD` matching
+> responses in 60 seconds (default 10, one day), so the detect run matters.
 
 ## Settings and tradeoffs
 
@@ -102,8 +136,9 @@ exercised). Kaneo's nginx and BunkerWeb both add `X-Content-Type-Options`, `X-Fr
 `204` directly). The browser app is same-origin and never sends one. Add `OPTIONS` to
 `ALLOWED_METHODS` only for a web page on another origin, and list that origin in `CORS_ORIGINS`.
 
-curl and some scripts send `Expect: 100-continue` on large bodies, which CRS rule `920450` blocks.
-Browsers do not. Add `-H 'Expect:'` to API calls with big bodies.
+> [!NOTE]
+> curl and some scripts send `Expect: 100-continue` on large bodies, which CRS rule `920450` blocks.
+> Browsers do not. Add `-H 'Expect:'` to API calls with big bodies.
 
 ## CRS exception scope and cost
 
@@ -177,34 +212,7 @@ Not covered, so a payload there is blocked: dropdown options from the eleventh o
 the matrix did not exercise, and the same text in a field the table does not name. Add one
 exclusion per argument your logs name.
 
-## Things to think about
-
-- **MCP clients.** Claude Code, Cursor and ChatGPT use `/.well-known/oauth-*`, `/api/mcp/register`,
-  `/api/mcp/authorize`, `/api/mcp/token` and `POST /api/mcp`. The full flow passed for a generic
-  client and for ChatGPT's user agents. `localhost` redirect addresses of desktop clients trip rule
-  `934110` and are excluded on the three OAuth paths. The tool call reply is one
-  `text/event-stream` message, so no buffering setting is needed.
-- **Device login of the CLI.** `kaneo login` polls every 5 seconds and the pending answer is `400`;
-  the template keeps `400` out of the ban list for that reason.
-- **Many people behind one address.** Each tab holds two WebSockets (`LIMIT_CONN_MAX_HTTP1`), and the board
-  polls a few URIs several times a second (`LIMIT_REQ_RATE` counts per URI; the smoke peaked at 5). A
-  `429` also feeds the bad-behavior ban, which bans the shared address. Raise both for offices.
-- **Git forge webhooks.** `POST /api/github-integration/webhook`,
-  `/api/gitea-integration/webhook/<id>` and `/api/gitlab-integration/webhook/<id>` verify a
-  signature over the raw body. They pass the CRS with the by-id exclusions and answer the app's own
-  `401` for a bad signature. Only replays with a computed signature were run, not a real forge.
-- **Uploads.** The presigned `PUT` goes to the S3 endpoint, outside BunkerWeb. The download
-  `GET /api/asset/<id>` streams through BunkerWeb and worked in the browser smoke.
-- **25 MiB.** Bigger imports need both `MAX_CLIENT_SIZE` and
-  `MODSECURITY_REQ_BODY_NO_FILES_LIMIT` raised, and Kaneo's own nginx limit too.
-- **Board filters.** `GET /api/task/tasks/<projectId>?dueBefore=...` with a non-date value answers
-  `500` from the app itself. That is an app bug, not a proxy matter.
-- **Not verified:** a real OpenID Connect provider (only the callback request shapes were
-  replayed), SMTP, a real GitHub, Forgejo or GitLab sending webhooks, the mobile app, the real
-  `kaneo` CLI binary (a scripted device flow ran instead), large `Set-Cookie` response headers,
-  HTTPS and HTTP/2, a sub-path deployment, several Kaneo replicas with Redis.
-
-## Validation and test history
+## Validation
 
 Tested on 2026-11-19: Kaneo `2.49.0` (`ghcr.io/usekaneo/kaneo:2.49.0@sha256:cd1826b1aba3ce736015cadf6f6c975d923aac00f4b6aaa7aedb29bc722dae49`, PostgreSQL 16,
 Garage `v2.5.0` as the S3 service), `bunkerity/bunkerweb-all-in-one:1.6.17` (libmodsecurity
@@ -234,3 +242,36 @@ HTTP on a local test host.
   (10 steps, 16 settings, 2 configs) and is listed next to the plugin copy.
 
 Not verified: see the list at the end of "Things to think about". Validate your own clients.
+
+## Things to think about
+
+- **MCP clients.** Claude Code, Cursor and ChatGPT use `/.well-known/oauth-*`, `/api/mcp/register`,
+  `/api/mcp/authorize`, `/api/mcp/token` and `POST /api/mcp`. The full flow passed for a generic
+  client and for ChatGPT's user agents. `localhost` redirect addresses of desktop clients trip rule
+  `934110` and are excluded on the three OAuth paths. The tool call reply is one
+  `text/event-stream` message, so no buffering setting is needed.
+- **Device login of the CLI.** `kaneo login` polls every 5 seconds and the pending answer is `400`;
+  the template keeps `400` out of the ban list for that reason.
+- **Many people behind one address.** Each tab holds two WebSockets (`LIMIT_CONN_MAX_HTTP1`), and the board
+  polls a few URIs several times a second (`LIMIT_REQ_RATE` counts per URI; the smoke peaked at 5). A
+  `429` also feeds the bad-behavior ban, which bans the shared address. Raise both for offices.
+- **Git forge webhooks.** `POST /api/github-integration/webhook`,
+  `/api/gitea-integration/webhook/<id>` and `/api/gitlab-integration/webhook/<id>` verify a
+  signature over the raw body. They pass the CRS with the by-id exclusions and answer the app's own
+  `401` for a bad signature. Only replays with a computed signature were run, not a real forge.
+- **Uploads.** The presigned `PUT` goes to the S3 endpoint, outside BunkerWeb. The download
+  `GET /api/asset/<id>` streams through BunkerWeb and worked in the browser smoke.
+- **25 MiB.** Bigger imports need both `MAX_CLIENT_SIZE` and
+  `MODSECURITY_REQ_BODY_NO_FILES_LIMIT` raised, and Kaneo's own nginx limit too.
+- **Board filters.** `GET /api/task/tasks/<projectId>?dueBefore=...` with a non-date value answers
+  `500` from the app itself. That is an app bug, not a proxy matter.
+- **Not verified:** a real OpenID Connect provider (only the callback request shapes were
+  replayed), SMTP, a real GitHub, Forgejo or GitLab sending webhooks, the mobile app, the real
+  `kaneo` CLI binary (a scripted device flow ran instead), large `Set-Cookie` response headers,
+  HTTPS and HTTP/2, a sub-path deployment, several Kaneo replicas with Redis.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

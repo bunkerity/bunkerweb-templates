@@ -1,11 +1,39 @@
-# Xen Orchestra Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/xen-orchestra.svg" alt="Xen Orchestra logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Xen Orchestra</h1>
+
+<p align="center">Reverse proxy template with WebSocket and rate limiting defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#files">Files</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Provision a BunkerWeb configuration tailored for Xen Orchestra so HTTPS
 automation, reverse proxy, WebSocket upgrades, and request rate limiting work
 out of the box. Bad behavior detection is disabled to avoid false positives
 caused by XO's frequent API polling.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `xen-orchestra`               |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9879000` to `9879999`        |
+| Upstream    | `https://192.168.1.1`         |
 
 ## Prerequisites
 
@@ -16,16 +44,7 @@ caused by XO's frequent API polling.
 - Confirm XO listens on HTTPS and that `REVERSE_PROXY_SSL_SNI` is set to `no`
   when using a self-signed upstream certificate.
 
-## Files
-
-- `template.json` – Template definition with steps for TLS, reverse proxy,
-  rate limiting, and security tuning.
-- `configs/modsec-crs/xen-orchestra_false_positives.conf` – CRS exclusion of rule `920420` for
-  `POST /api/<token>`, the `application/octet-stream` upload XO uses for config, VM and disk
-  imports. It is a `modsec-crs` config on purpose: those load before the CRS rules, which is the
-  only point where the removal still applies.
-
-## Setup
+## Install
 
 1. **Import the template**
    - Follow the repository's [installation guide](../../README.md#install)
@@ -42,7 +61,7 @@ caused by XO's frequent API polling.
 6. **Reload BunkerWeb** and log into Xen Orchestra to verify dashboard access,
    VM console websockets, and live migration actions work through the proxy.
 
-## Customization Tips
+## Settings
 
 - Raise or lower `MAX_CLIENT_SIZE` depending on whether you transfer ISOs or
   large files through the proxy.
@@ -58,9 +77,24 @@ caused by XO's frequent API polling.
 - Edit `configs/modsec-crs/xen-orchestra_false_positives.conf` if future CRS
   updates require different rule IDs.
 
+## Files
+
+- `template.json` – Template definition with steps for TLS, reverse proxy,
+  rate limiting, and security tuning.
+- `configs/modsec-crs/xen-orchestra_false_positives.conf` – CRS exclusion of rule `920420` for
+  `POST /api/<token>`, the `application/octet-stream` upload XO uses for config, VM and disk
+  imports. It is a `modsec-crs` config on purpose: those load before the CRS rules, which is the
+  only point where the removal still applies.
+
 ## Validation
 
 - Run `jq . template.json` to ensure the definition is valid JSON.
 - Test a dashboard login, VM console session (websocket), and a live migration
   or snapshot action through BunkerWeb to confirm proxying, rate limits, and
   security settings behave as expected.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

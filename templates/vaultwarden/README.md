@@ -1,7 +1,40 @@
-# Vaultwarden Template
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/vaultwarden-light.svg">
+    <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/vaultwarden.svg" alt="Vaultwarden logo" width="96" height="96" />
+  </picture>
+</p>
+
+<h1 align="center">Vaultwarden</h1>
+
+<p align="center">Password vault template with encrypted-field WAF tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Expose an existing Vaultwarden server through BunkerWeb, including encrypted vault writes,
 imports, attachments and WebSocket sync notifications.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `vaultwarden`                 |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9877000` to `9877999`        |
+| Upstream    | `http://vaultwarden:80`       |
 
 ## Prerequisites
 
@@ -16,7 +49,7 @@ imports, attachments and WebSocket sync notifications.
   files, use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and
   `CUSTOM_SSL_KEY`, mounted so the scheduler can read them.
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and `configs/modsec-crs/vaultwarden_false_positives.conf` using the
 repository [installation guide](../../README.md#install), or its plugin bundle
@@ -39,7 +72,7 @@ for 86400 seconds (one day). Bulk-write `429` responses count too. This is why t
 run matters. Detect mode still enforces nginx body limits. Use the explicit HTTPS URL when
 testing a nonstandard public HTTPS port; the HTTP redirect omits that port.
 
-## Settings and tradeoffs
+## Settings
 
 | Setting | Purpose |
 | --- | --- |
@@ -50,9 +83,10 @@ testing a nonstandard public HTTPS port; the HTTP redirect omits that port.
 | `LIMIT_REQ_RATE=20r/s` | Support scripted bulk writes that returned `429` at the default `2r/s`. |
 | `SERVE_FILES=no` | Fetch content from Vaultwarden rather than local files. |
 
-Both body allowances apply service-wide and increase potential buffering/memory use.
-Keep lower limits or the default request rate if your clients do not need larger uploads,
-imports or bulk writes. ModSecurity remains enabled.
+> [!NOTE]
+> Both body allowances apply service-wide and increase potential buffering/memory use.
+> Keep lower limits or the default request rate if your clients do not need larger uploads,
+> imports or bulk writes. ModSecurity remains enabled.
 
 ## CRS exception scope and cost
 
@@ -76,7 +110,7 @@ requires `/` or end-of-path, so `/api/ciphers-other` does not match. Do not make
 exceptions global or expand their method/path scope. Folders and Sends carry EncStrings,
 but the source saw no hit there and did not stress-test those paths.
 
-## Validation and test history
+## Validation
 
 On 2026-11-03, the packaged template was imported through a local test plugin into BunkerWeb
 `:tests` (1.6.18-rc2, libmodsecurity 3.0.17, CRS 4.30.0). Applied defaults matched the JSON and
@@ -103,3 +137,9 @@ from other rules. The attachment `920120` exception only had real-upload pass/fa
 Not verified: public Send access (app returned `404` for tested routes), SSO, two-factor,
 mail, mobile and browser-extension clients, organizations/collections, icon downloads or
 `OPTIONS`. Real browser behavior and those clients require deployment-specific validation.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

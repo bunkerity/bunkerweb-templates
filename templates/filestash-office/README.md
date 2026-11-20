@@ -1,6 +1,25 @@
-# Filestash Office Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/filestash.svg" alt="Filestash logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Filestash Office</h1>
+
+<p align="center">Collabora (WOPI) host template with WebSocket proxy defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#custom-configs">Custom configs</a> ·
+  <a href="#docker-compose-example">Docker Compose example</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Provision a BunkerWeb configuration for the Collabora Online (WOPI) server that Filestash uses to
 edit Office documents. Filestash and Collabora run on two hostnames: users open Filestash, and
@@ -11,6 +30,15 @@ The template proxies the Collabora container on port 9980 with automatic Let's E
 certificates, WebSocket support (Collabora's `/cool/.../ws` connections) and a 50m request size
 limit. It allows only `GET`, `POST`, `HEAD` and `OPTIONS`.
 
+## At a glance
+
+| Fact        | Value                          |
+| ----------- | ------------------------------ |
+| Template id | `filestash-office`             |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4  |
+| Configs     | 0                              |
+| Upstream    | `http://filestash-office:9980` |
+
 ## Prerequisites
 
 - A running Collabora server (`collabora/code`) and a Filestash server that BunkerWeb can reach. The
@@ -20,7 +48,7 @@ limit. It allows only `GET`, `POST`, `HEAD` and `OPTIONS`.
 - A public hostname for Collabora pointing to BunkerWeb, separate from the Filestash hostname.
 - Access to the BunkerWeb web UI or service environment variables.
 
-## Setup
+## Install
 
 1. Import `template.json` (Templates → **Create new template** → **Raw**, then upload or paste it).
 2. Assign `USE_TEMPLATE=filestash-office` to the service that fronts Collabora, or select
@@ -31,7 +59,9 @@ limit. It allows only `GET`, `POST`, `HEAD` and `OPTIONS`.
    the Compose example.
 5. Reload BunkerWeb, open a document from Filestash, and check that the editor loads.
 
-## Placeholders
+For both import methods (web UI and plugin), see the repository [installation guide](../../README.md#install).
+
+### Placeholders
 
 The values below are examples. Replace them with your own before using the template:
 
@@ -40,7 +70,9 @@ The values below are examples. Replace them with your own before using the templ
 - `http://filestash-office:9980` → the name of the Collabora container on the shared Docker network
   and its port (9980), or the IP address and port of the server, for example `http://10.0.0.5:9980`
 
-## Notes
+## Settings
+
+### Notes
 
 - **Certificates:** the HTTP challenge needs port 80 on BunkerWeb to be reachable from the internet
   for every domain in `SERVER_NAME`.
@@ -67,8 +99,6 @@ The values below are examples. Replace them with your own before using the templ
 - **WOPI hosts:** the `aliasgroup1` variable of the Collabora container lists the WOPI hosts it
   accepts. Keep it limited to the Filestash address, as in the Compose example, so other sites
   cannot use your Collabora server.
-
-## Settings
 
 ### Web service - Front service
 
@@ -180,3 +210,9 @@ After applying it:
 - Open an Office document from Filestash and check that the editor loads and saves.
 - Check BunkerWeb logs for rate-limit, bad behavior, and ModSecurity events before changing
   security controls.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

@@ -1,6 +1,25 @@
-# openGym Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/opengym.svg" alt="openGym logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">openGym</h1>
+
+<p align="center">Passkey PWA template with JSON sync and WebAuthn tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/openGym-v1.4.1-248651?labelColor=1d6f93&style=flat" alt="openGym v1.4.1" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#files">Files</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Provision a curated BunkerWeb configuration for openGym, the workout tracking PWA. This
 template ships sensible defaults for TLS, reverse proxying, request throttling on the passkey and
@@ -10,59 +29,15 @@ self-hosted instance works through BunkerWeb without breaking sign-in or cloud s
 openGym deliberately ships no rate limiting of its own and no HSTS, leaving both to the reverse
 proxy. Validated against openGym v1.4.1 and BunkerWeb 1.6.17 with CRS 4.29.0.
 
-## The session cookie is `__Host-` prefixed
+## At a glance
 
-When the application's `ORIGIN` is an `https://` URL, openGym names its session cookie
-`__Host-gymsid`. Browsers reject a `__Host-` cookie outright unless it is `Secure`, uses `Path=/`,
-and carries **no** `Domain` attribute. The rejection is silent: the application never sees an error,
-and the user simply never appears signed in.
-
-So `COOKIE_FLAGS` may add flags, but it must never introduce a `Domain` or a different `Path`, and
-`COOKIE_AUTO_SECURE_FLAG` must stay `yes`.
-
-Safe (browser keeps the cookie):
-
-```text
-"COOKIE_FLAGS": "* HttpOnly SameSite=Lax"
-"COOKIE_AUTO_SECURE_FLAG": "yes"
-```
-
-Breaks every sign-in (browser drops the cookie):
-
-```text
-"COOKIE_FLAGS": "* HttpOnly SameSite=Lax Domain=example.com"
-```
-
-Set the application's own `ORIGIN` to the public `https://` URL as well. If it is left on `http://`,
-openGym falls back to the unprefixed `gymsid` name and sends it without `Secure`.
-
-## PUT and the two body limits
-
-Cloud sync writes the whole application state with a single `PUT /api/data`, capped at 5 MB by the
-application. Two BunkerWeb defaults block that, and they have to be raised together: nginx enforces
-`MAX_CLIENT_SIZE`, but ModSecurity enforces `MODSECURITY_REQ_BODY_NO_FILES_LIMIT` first, so a
-generous `MAX_CLIENT_SIZE` alone still fails at 128 KB.
-
-Default (sync returns 405, then 413 once the method is allowed):
-
-```text
-"ALLOWED_METHODS": "GET|POST|HEAD|QUERY"
-"MAX_CLIENT_SIZE": "10m"
-"MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "131072"
-```
-
-Updated (sync works):
-
-```text
-"ALLOWED_METHODS": "GET|POST|HEAD|PUT|OPTIONS|DELETE"
-"MAX_CLIENT_SIZE": "6m"
-"MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "6291456"
-```
-
-`OPTIONS` reaches the API so the official mobile app can complete its CORS preflight. The API
-reflects `Origin` without allowing credentials, and the paired app authenticates with a Bearer
-token. `DELETE` serves the account password, email and passkey removal routes. These handlers live
-in `api/server.js`; the web PWA itself remains same-origin.
+| Fact        | Value                                         |
+| ----------- | --------------------------------------------- |
+| Template id | `opengym`                                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, openGym v1.4.1 |
+| Configs     | 1 (modsec-crs)                                |
+| Rule ids    | `9866000` to `9866999`                        |
+| Upstream    | `http://myopengym:80`                         |
 
 ## Prerequisites
 
@@ -72,14 +47,7 @@ in `api/server.js`; the web PWA itself remains same-origin.
 - The BunkerWeb UI or the ability to edit multisite settings directly.
 - Domain name(s) that will serve the openGym instance.
 
-## Files
-
-- `template.json` – BunkerWeb template definition containing default settings, configs, and guided
-  steps.
-- `configs/modsec-crs/opengym_false_positives.conf` – ModSecurity CRS tuning for the base64url WebAuthn
-  ceremony bodies, the Web Push subscription endpoint and user-authored state sync.
-
-## Setup
+## Install
 
 1. **Import the template**
    - Follow the repository's [installation guide](../../README.md#install) for the web
@@ -90,7 +58,7 @@ in `api/server.js`; the web PWA itself remains same-origin.
    options).
 4. **Reload the service** and verify that registration, sign-in and a workout save all complete.
 
-## Customization Tips
+## Settings
 
 - Update `REVERSE_PROXY_HOST` to the URL of your openGym front end (e.g. `http://myopengym:80`).
   The bundled nginx listens on `NGINX_PORT`, which defaults to `80`.
@@ -135,6 +103,68 @@ in `api/server.js`; the web PWA itself remains same-origin.
   base64url bodies but is inert at the default level 1, and it targets `REQUEST_BODY` rather than a
   named parameter, so it is left out of the shipped file.
 
+### The session cookie is `__Host-` prefixed
+
+When the application's `ORIGIN` is an `https://` URL, openGym names its session cookie
+`__Host-gymsid`. Browsers reject a `__Host-` cookie outright unless it is `Secure`, uses `Path=/`,
+and carries **no** `Domain` attribute. The rejection is silent: the application never sees an error,
+and the user simply never appears signed in.
+
+> [!WARNING]
+> So `COOKIE_FLAGS` may add flags, but it must never introduce a `Domain` or a different `Path`, and
+> `COOKIE_AUTO_SECURE_FLAG` must stay `yes`.
+
+Safe (browser keeps the cookie):
+
+```text
+"COOKIE_FLAGS": "* HttpOnly SameSite=Lax"
+"COOKIE_AUTO_SECURE_FLAG": "yes"
+```
+
+Breaks every sign-in (browser drops the cookie):
+
+```text
+"COOKIE_FLAGS": "* HttpOnly SameSite=Lax Domain=example.com"
+```
+
+Set the application's own `ORIGIN` to the public `https://` URL as well. If it is left on `http://`,
+openGym falls back to the unprefixed `gymsid` name and sends it without `Secure`.
+
+### PUT and the two body limits
+
+Cloud sync writes the whole application state with a single `PUT /api/data`, capped at 5 MB by the
+application. Two BunkerWeb defaults block that, and they have to be raised together: nginx enforces
+`MAX_CLIENT_SIZE`, but ModSecurity enforces `MODSECURITY_REQ_BODY_NO_FILES_LIMIT` first, so a
+generous `MAX_CLIENT_SIZE` alone still fails at 128 KB.
+
+Default (sync returns 405, then 413 once the method is allowed):
+
+```text
+"ALLOWED_METHODS": "GET|POST|HEAD|QUERY"
+"MAX_CLIENT_SIZE": "10m"
+"MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "131072"
+```
+
+Updated (sync works):
+
+```text
+"ALLOWED_METHODS": "GET|POST|HEAD|PUT|OPTIONS|DELETE"
+"MAX_CLIENT_SIZE": "6m"
+"MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "6291456"
+```
+
+`OPTIONS` reaches the API so the official mobile app can complete its CORS preflight. The API
+reflects `Origin` without allowing credentials, and the paired app authenticates with a Bearer
+token. `DELETE` serves the account password, email and passkey removal routes. These handlers live
+in `api/server.js`; the web PWA itself remains same-origin.
+
+## Files
+
+- `template.json` – BunkerWeb template definition containing default settings, configs, and guided
+  steps.
+- `configs/modsec-crs/opengym_false_positives.conf` – ModSecurity CRS tuning for the base64url WebAuthn
+  ceremony bodies, the Web Push subscription endpoint and user-authored state sync.
+
 ## Validation
 
 Run `jq . template.json` to confirm the JSON definition is valid before importing via the UI.
@@ -160,11 +190,18 @@ JSON state bodies included `state`, `stamped`, `baseRev` and `baseWid`:
 The bar note's full production text was unavailable in the truncated audit log. The reconstruction
 reproduced a SQLi-family block, not the original libinjection fingerprint `sos` (`942100`).
 
-When rechecking a deployment, keep bad-behavior bans disabled on the isolated test instance so
-negative controls do not ban the test client. Reproduce the note's 403 before adding the exclusion;
-afterwards, require the path, method and XSS controls above to remain blocked by CRS.
+> [!TIP]
+> When rechecking a deployment, keep bad-behavior bans disabled on the isolated test instance so
+> negative controls do not ban the test client. Reproduce the note's 403 before adding the exclusion;
+> afterwards, require the path, method and XSS controls above to remain blocked by CRS.
 
 After a real sign-in, confirm the WebAuthn exclusions matched the parameters they were meant to.
 Set `SecDebugLogLevel 9` and look for `Skipped rule id` on `/api/login/verify`. If a CRS rule still
 fires there, read `matched_var_name` from the log line: that is the exact target name to add to the
 chain, and it is the only reliable source for it.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

@@ -1,8 +1,38 @@
-# authentik Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/authentik.svg" alt="authentik logo" width="96" height="96" />
+</p>
+
+<h1 align="center">authentik</h1>
+
+<p align="center">Identity provider template with flow and cookie-aware WAF tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope">CRS exceptions</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Expose an existing authentik server through BunkerWeb, including its API, admin editors and
 WebSockets. This configures authentik itself; applications using its proxy provider need their
 own forward-auth configuration.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `authentik`                   |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9851000` to `9851999`        |
+| Upstream    | `http://authentik:9000`       |
 
 ## Prerequisites
 
@@ -18,7 +48,7 @@ own forward-auth configuration.
   which BunkerWeb connects. Trust only actual proxies. See the upstream
   [reverse proxy guide](https://docs.goauthentik.io/install-config/reverse-proxy/).
 
-## Import
+## Install
 
 1. Follow the repository [installation guide](../../README.md#install).
    Import `template.json` and upload `configs/modsec-crs/authentik_false_positives.conf` when
@@ -30,7 +60,7 @@ own forward-auth configuration.
    Start with service `SECURITY_MODE=detect`, inspect BunkerWeb logs, then switch to `block`
    after verifying your flows. Detect mode still enforces nginx upload limits.
 
-## Settings and tradeoffs
+## Settings
 
 | Setting | Purpose |
 | --- | --- |
@@ -81,7 +111,7 @@ those fields on matching writes; other fields, paths, methods and CRS rules rema
 Literal `ARGS:json.*` targets also cover query/form arguments with that exact name, not only
 JSON fields. Rule `949110` remains active. Do not apply these configs globally.
 
-## Validation and test history
+## Validation
 
 On 2026-11-03, the packaged template was imported through a local test plugin into BunkerWeb
 `:tests` (1.6.18-rc2, libmodsecurity 3.0.17, CRS 4.30.0). Applied defaults matched the JSON and
@@ -89,8 +119,9 @@ nginx/ModSecurity loading passed. Against an echo backend, Python policy and HTM
 requests passed while another path or field remained blocked. This does not revalidate all
 exclusions, cookie/CSP browser behavior or authentik itself.
 
-Check JSON locally with `jq . templates/authentik/template.json`, then validate the import
-and your flows on your own instance. JSON parsing is not runtime or browser proof.
+> [!NOTE]
+> Check JSON locally with `jq . templates/authentik/template.json`, then validate the import
+> and your flows on your own instance. JSON parsing is not runtime or browser proof.
 
 Historical scripted tests: **authentik 2026.8.3**, PostgreSQL **16.15**, BunkerWeb **1.6.15**,
 **2026-10-06**, using a self-signed certificate. They covered session login, bearer API calls,
@@ -104,3 +135,9 @@ flows, Kubernetes, multiple instances, and authentik's forwarded-client-IP trust
 before relying on them. Repeated authentik `400`, `401`, `403`, `404` and rate-limit `429`
 responses can trigger BunkerWeb's bad-behavior ban (default ten failures in 60 seconds,
 24-hour ban); preserving app error bodies does not disable that accounting.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

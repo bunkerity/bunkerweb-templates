@@ -1,29 +1,63 @@
-# Grafana Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/grafana.svg" alt="Grafana logo" width="96" height="96" />
+</p>
+
+<h1 align="center">Grafana</h1>
+
+<p align="center">Dashboard template with query and HTML-response WAF tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Proxy Grafana at a dedicated hostname with Grafana Live, JSON API errors and SQL/dashboard CRS
 exceptions from a historically tested recipe. Review the dashboard exception before importing:
 it accepts some SQLi strings throughout dashboard-save requests.
 
-## Prerequisites and import
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `grafana`                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9858000` to `9858999`        |
+| Upstream    | `http://grafana:3000`         |
+
+## Prerequisites
 
 1. Run Grafana on a network reachable by BunkerWeb at `http://grafana:3000` or change the upstream.
    Set `GF_SERVER_ROOT_URL=https://grafana.example.com/`, including any public nonstandard port.
    With TLS terminated by BunkerWeb, keep Grafana's upstream protocol HTTP. See the official
    [proxy guide](https://grafana.com/tutorials/run-grafana-behind-a-proxy/) and
    [`root_url` reference](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#root_url).
-2. Follow the repository [installation guide](../../README.md#install). Raw import
+
+## Install
+
+1. Follow the repository [installation guide](../../README.md#install). Raw import
    requires `template.json` and `configs/modsec-crs/grafana_false_positives.conf`; plugin bundles use
    the layout in that guide.
-3. Select `grafana` for the service (or set `USE_TEMPLATE=grafana`), change `SERVER_NAME` and
+2. Select `grafana` for the service (or set `USE_TEMPLATE=grafana`), change `SERVER_NAME` and
    **all three** upstream settings: `REVERSE_PROXY_HOST`, `_1` and `_2`. Review the guided steps.
-4. Reload and validate your dashboards. Automatic Let's Encrypt requires DNS and HTTP-01
+3. Reload and validate your dashboards. Automatic Let's Encrypt requires DNS and HTTP-01
    reachability. For another certificate source, set `AUTO_LETS_ENCRYPT=no` and configure
    `USE_CUSTOM_SSL` and its certificate settings; local tests can use `GENERATE_SELF_SIGNED_SSL`.
 
-This recipe serves `/`; subpath hosting needs separate configuration and validation. Keep Grafana's
-own authentication and dashboard/data-source permissions configured.
+> [!NOTE]
+> This recipe serves `/`; subpath hosting needs separate configuration and validation. Keep Grafana's
+> own authentication and dashboard/data-source permissions configured.
 
-## Routing and limits
+## Settings
 
 - `REVERSE_PROXY_URL_1=/api/live/` and `REVERSE_PROXY_WS_1=yes` enable Grafana Live upgrades on
   that prefix only. The main proxy location keeps WebSocket support at its default `no`.
@@ -63,7 +97,7 @@ All rules live in `configs/modsec-crs/grafana_false_positives.conf`, at service 
   in the historical test. Other rules remain active (a `<script>` title still triggered `941110`).
   Grafana must validate and authorize saved content; remove this exception if its cost is unsuitable.
 
-## Validation and historical evidence
+## Validation
 
 On 2026-11-03, the packaged template was imported through a local test plugin into BunkerWeb
 `:tests` (1.6.18-rc2, libmodsecurity 3.0.17, CRS 4.30.0). Applied defaults matched the JSON and
@@ -82,3 +116,9 @@ SQLi in a dashboard title passed deliberately because of the broad exception abo
 alerting, Loki/Prometheus data sources, plugin installation, SSO, a real browser or uploads over
 16 MB. PromQL text in a saved dashboard did not prove a Prometheus data source. Revalidate the
 flows and boundaries you use after import and upgrades.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

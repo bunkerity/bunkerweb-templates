@@ -91,13 +91,153 @@ Example:
 
 While not required by BunkerWeb, consider adding:
 
-- `README.md`: Brief context about the service, prerequisites, and customization tips.
+- `README.md`: Brief context about the service, prerequisites, and customization tips, laid out as described in [README layout](#readme-layout).
 - `.env.example` or helper scripts: Only when they simplify recreating the service locally.
 - Screenshot or diagram references when they improve understanding (keep assets lightweight).
 
+### README layout
+
+Every template README follows one layout, so the pages read as a set on GitHub (light and dark
+theme). [`templates/wordpress/README.md`](templates/wordpress/README.md) is the worked example:
+copy its header and section names, then keep your own technical text. GitHub strips `style`,
+`class` and scripts, so the design comes from layout tags GitHub keeps (`p`, `h1`, `img`,
+`picture`, `source`, `a`, `br`, `sub`, `details`, tables), shields.io badges and GitHub alerts.
+Do not use `div`, `span`, `style=` or emoji in headings.
+
+**Sections, in this order.** Leave out a section the service does not need. Do not add empty ones;
+only the header, At a glance and the footer are always present.
+
+1. **Header**: the skeleton below (icon, name, one-line summary, badges, nav line).
+2. **Intro**: the opening paragraph, with no "Overview" heading.
+3. `## At a glance`: the table below.
+4. `## Prerequisites`.
+5. Service-side configuration (for example `## Configure Pocket ID for the proxy`). It comes before
+   Install because the service is set up before the template is imported.
+6. `## Install`: import steps and template-specific import notes. Link to the root
+   [installation guide](README.md#install) instead of repeating it.
+7. `## Settings`: settings, tradeoffs and customization tips. Template-specific parts are `###`
+   subsections.
+8. `## Files`.
+9. `## Validation`: how it was validated and tested.
+10. Troubleshooting or known-limit sections, with names that say what they hold.
+11. **Footer**: a rule (`---`) and the `All templates` link.
+
+**Header skeleton.** Replace the slug, name, summary and section links. `<icon base>` is the URL
+in the Icons list below, up to and including `/svg`. Keep `width` and `height` on every image. The
+header icon takes an `alt` that names the service (`alt="<Name> logo"`); an icon in a root README
+table takes `alt=""`, because the service name sits right beside it, and `align="absmiddle"` (see
+Root README below).
+
+```html
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="<icon base>/<slug>-light.svg">
+    <img src="<icon base>/<slug>.svg" alt="<Name> logo" width="96" height="96" />
+  </picture>
+</p>
+
+<h1 align="center"><Name></h1>
+
+<p align="center">One-line summary, the same words as the root README row</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a>
+</p>
+```
+
+Footer:
+
+```html
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>
+```
+
+**At a glance.** A two-column table (`Fact`, `Value`). Every value comes from the README itself,
+`template.json` or the Rule IDs table in this guide; never invent one.
+
+| Row           | Value                                                                  | Source                                                                        |
+| ------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `Template id` | the `id`, in code                                                      | `template.json`                                                               |
+| `Tested with` | `BunkerWeb 1.6.17, OWASP CRS 4`, plus the service version if tested    | the note in the root README. List a service version only if your README says it was tested on BunkerWeb 1.6.17 with that version. A version tested on an older BunkerWeb stays out |
+| `Requires`    | a minimum version, such as `BunkerWeb >= 1.6.9~rc1`; omit when none   | only a minimum your README states. A minimum never counts as tested           |
+| `Configs`     | always present: count and config types, such as `2 (modsec-crs)`, or `0` when `template.json` lists no configs | the `configs` paths in `template.json` |
+| `Rule ids`    | the template's block, such as `9878000` to `9878999`; omit without rules | the Rule IDs table below; only when the template ships ModSecurity rules     |
+| `Upstream`    | the default `REVERSE_PROXY_HOST`, in code; omit when unset             | `template.json`                                                               |
+
+Badges follow the same rule: `BunkerWeb`, `OWASP CRS`, and a `<Service> | <version>` badge only when
+the README says the template was tested on BunkerWeb 1.6.17 with that service version. A service
+version tested on an older BunkerWeb gets no badge. Every badge takes the same label colour,
+`labelColor=1d6f93`, and the value colour is `0b5577` (BunkerWeb, OWASP CRS) or `248651` (the
+service version). White text on each is at least 4.5:1 (`1d6f93` 5.6:1, `0b5577` 8.1:1, `248651`
+4.56:1), and each colour keeps at least 2:1 against GitHub dark (`#0d1117`): `1d6f93` 3.4:1,
+`0b5577` 2.3:1, `248651` 4.1:1. Do not pick other colours.
+
+**Alerts.** A paragraph that already warns (it opens with "Security:", says "Do not" or "must", or
+describes data loss or a ban) may become `> [!WARNING]` or `> [!IMPORTANT]`; a note becomes
+`> [!NOTE]` or `> [!TIP]`. Keep the text word for word and use a few alerts per README, so each one
+keeps its weight. An alert wraps at most three source lines of text (the `> [!TYPE]` line does not
+count); a longer warning stays a plain paragraph, with its bold lead-in (such as `**Cost:**`) as the
+signal. Wrap a long table in `<details>` only when it is evidence for a claim made above it, never
+for steps the reader must follow.
+
+**Icons.** Use the service's own logo from
+[Dashboard Icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0), hotlinked from its
+`main` branch. Compare it with the product's own site or repository, since a same-named icon can
+belong to another project.
+
+- URL: `https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/<slug>.svg`, always
+  on the source's default branch (`main` for Dashboard Icons and Kaneo, `master` for DocuSeal),
+  never a commit SHA or another branch. Icons follow upstream, so a redrawn icon shows
+  up without a change here: raw.githubusercontent.com caches for 5 minutes and GitHub's image proxy
+  follows it. The cost is that a renamed or deleted upstream file shows as a broken image until a
+  README is fixed, so re-check the icons before a release. Do not use the jsDelivr form of this URL:
+  it answered `403` for some files of a large icon repository.
+- No credit line: the icons are only linked, nothing is copied into this repository, so no licence
+  notice is due. The root README License section keeps one sentence about trademarks. Do not copy
+  SVG files into the repository: a copy makes the Apache-2.0 notice due.
+- Variants: `<slug>.svg` has the brand colours and `<slug>-light.svg` is white (for dark
+  backgrounds), when upstream has one. None of the services in this repository has a `-dark`
+  variant in Dashboard Icons (checked 2026-11-19), so an icon that is hard to see on white has no
+  replacement: ask in the pull request.
+- Theme rule: use `<slug>.svg` in both themes. When it is hard to see on GitHub dark (`#0d1117`)
+  and `<slug>-light.svg` exists, wrap it in `<picture>` with a dark `<source>` for
+  `<slug>-light.svg`, as in the skeleton. Check the README in both themes.
+- No entry for the service, or an entry that is another project's logo? Use the logo mark from
+  the project's own repository on its default branch (Kaneo:
+  `https://raw.githubusercontent.com/usekaneo/kaneo/main/apps/web/public/favicon.svg`; DocuSeal,
+  whose Dashboard Icons entry is a cartoon seal face:
+  `https://raw.githubusercontent.com/docusealco/docuseal/master/public/logo.svg`), the square mark
+  and not a wordmark. When the project has no logo at all, use the mark of the
+  protocol it serves, say so in `alt`, and mention it in the pull request.
+- Sizes: 96 px in the header of a template README, 24 px in the root README table.
+
+**Root README.** Add a row for your template to its category table, in alphabetical order. The
+tables have two columns, `| Template | Summary |`. The first cell is the 24 px icon markup (an
+`<img>`, or a `<picture>` when the icon needs a dark variant), one space, then the linked name:
+
+```html
+| <img src="<icon base>/<slug>.svg" align="absmiddle" alt="" width="24" height="24" /> [Name](templates/<name>/) | Same summary as the README subtitle |
+```
+
+`align="absmiddle"` centres the icon on the name: GitHub strips `style`, but keeps `align` on an
+`<img>`, and without it the icon sits about 6 px above the middle of the text. In a `<picture>`
+the `align` goes on the inner `<img>`. Nothing else goes in that cell. Add a new category only
+when none of the existing ones fits.
+
 ### Distribution options
 
-Use the repository's [installation guide](README.md#installing-templates) for both supported delivery methods:
+Use the repository's [installation guide](README.md#install) for both supported delivery methods:
 
 1. **Web UI Raw import (recommended)** – Upload or paste `template.json`, upload every missing custom config when prompted, save, then select the template for a service.
 2. **Plugin bundle** – Copy `template.json` to `<plugin>/templates/<name>.json` and copy `configs/` to `<plugin>/templates/<name>/configs/` before installing or reloading the plugin.
