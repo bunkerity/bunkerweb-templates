@@ -1,0 +1,261 @@
+templates/tuwunel/README.md
+  s_bbec093be526ee::t_78f8890fe16906 1-26,30-39,55-56,62-80,95-97,99,101-103,108-113
+TEMPLATE_CATALOG.md
+  s_d00e46a179f4e7::t_3f0d16d8b7de43 3
+templates/uptime-kuma/README.md
+  s_f3f352231f80dd::t_0809a7fde563b8 17,47
+  s_0d74da95d65d89::t_13eaa0c78121cd 1-3,5-16,18-20,26-35,76,121-126
+templates/pocket-id/README.md
+  s_f43c44b021cab5::t_6faa283eaccc41 368
+  s_cbdeb87639509e::t_8ae0971d79b7ec 13-15,23,25,117,238,363
+  s_d00e46a179f4e7::t_33a2a44475593b 1-2,5-12,16-22,24,26-27,35-44,81-85,96,113-115,143-145,252-254,305-306,315-362,364-367,369
+  s_f43c44b021cab5::t_be7dc9fdd94c8c 3-4
+  s_cda2d5fa92b7f7::t_8fde6004dee335 142
+templates/directus/README.md
+  s_33850e3db6011e::t_de2692e0d67589 1-3,5-21,35-36,56,68-70,77,94,112-115,117,139,178-180,182,188-191,193,256-261
+  s_6891f223c4bb3a::t_3d9a9f986f4805 37-43
+  s_6891f223c4bb3a::t_6de55762887eeb 44
+templates/opengym/README.md
+  s_bbec093be526ee::t_e018c20c1e17d3 1-3,5-22,32,34-40,50,61,106-167,193-196,202-207
+templates/atuin/README.md
+  s_33850e3db6011e::t_7c33577f46d075 1-24,33-42,59-61,80,127-129,215-243,273,275-277
+templates/authentik/README.md
+  s_f3f352231f80dd::t_0809a7fde563b8 17,51
+  s_33850e3db6011e::t_d07e473a4af330 1-16,18-21,27-36,63,114,122-124,138-143
+templates/open-webui/README.md
+  s_bbec093be526ee::t_78f8890fe16906 1-27,34-43,85,103-106,108,138-140,208-240,282,284-286
+templates/filestash/README.md
+  s_33850e3db6011e::t_aeb7586bc95ee8 1-3,5-22,33-42,52,66,76-78,244-247,351-356
+  s_bf1f32f2df3a98::t_0f26bc59568a56 64-65
+templates/filestash-office/README.md
+  s_bf1f32f2df3a98::t_dd4fcb6abdc3b1 62-63
+  s_bf1f32f2df3a98::t_ff24a258a3c9ac 39
+  s_bf1f32f2df3a98::t_3876728d64c014 36-38
+  s_bf1f32f2df3a98::t_f325c5aa1cd036 40-41
+  s_bf1f32f2df3a98::t_e7057c18a949de 64
+templates/forgejo/README.md
+  s_bf1f32f2df3a98::t_6f150b2d2768b6 37
+  s_bf1f32f2df3a98::t_1825a51b640628 51
+  s_bf1f32f2df3a98::t_8f866582d6b4ec 46-48
+  s_f3f352231f80dd::t_0809a7fde563b8 18-20,60,103
+  s_bf1f32f2df3a98::t_223a81551fc7d1 16-17
+  s_bf1f32f2df3a98::t_d7416ce323dfc3 45
+  s_bf1f32f2df3a98::t_d4e88b5e4e0f63 13-15
+  s_f3f352231f80dd::t_14de8147da1741 21
+  s_bf1f32f2df3a98::t_f581fc8d1257b1 34-36
+templates/jellyfin/README.md
+  s_bbec093be526ee::t_2d08e8c5754ed1 1-3,5-21,27-36,46,62,75-81,87-92
+templates/grafana/README.md
+  s_bf1f32f2df3a98::t_0eea42a635b5af 50
+  s_bf1f32f2df3a98::t_20f9bb6c620de0 16-17
+  s_bf1f32f2df3a98::t_02a641c94062be 52
+  s_bbec093be526ee::t_80b5d1072dc1fe 1-15,19,21,27-36,56-58,119-124
+  s_f3f352231f80dd::t_0809a7fde563b8 18,20,60,100
+  s_bf1f32f2df3a98::t_f95060005d7937 44
+  s_bf1f32f2df3a98::t_2af714afccb3c6 37
+  s_bf1f32f2df3a98::t_1a7da4c350d5ed 45-47
+templates/xen-orchestra/README.md
+  s_0d74da95d65d89::t_13eaa0c78121cd 1-3,5-21,28-37,47,64,80-88,95-100
+CHANGELOG.md
+  s_f43c44b021cab5::t_2d228b1972111f 8
+  s_d00e46a179f4e7::t_773062273df1b1 9
+templates/garage/README.md
+  s_33850e3db6011e::t_a98c5522068ec2 1-21,24,31-40,59-75,102-105,107,256,264-266,312-313,320-325
+  s_f3f352231f80dd::t_4c99ca63dfed4f 22-23,205-255
+CONTRIBUTING.md
+  s_d00e46a179f4e7::t_31f2982932b033 35
+templates/vaultwarden/README.md
+  s_0d74da95d65d89::t_13eaa0c78121cd 1-24,29-38,52,75,86-89,113,140-145
+templates/projectsend/README.md
+  s_0d74da95d65d89::t_4bfcefeed4e312 32-34,36-38
+  s_bf1f32f2df3a98::t_e1aba3c4345a65 164-165
+  s_0d74da95d65d89::t_3dbb4ee4a62ebe 1-3,5-22,30-31,35,47-152,166,178-180,212,347-352
+  s_0d74da95d65d89::t_b08f22b2b5a822 39
+  s_0d74da95d65d89::t_23995fed4000ef 153
+templates/pi-hole/README.md
+  s_bbec093be526ee::t_80b5d1072dc1fe 1-16,18-22,28-37,85-90,134,136-138
+  s_f3f352231f80dd::t_0809a7fde563b8 17,47
+TEMPLATE_GUIDE.md
+  s_d00e46a179f4e7::t_745dbd8b719115 240
+  s_cbdeb87639509e::t_8ae0971d79b7ec 144-145
+  s_d00e46a179f4e7::t_7eb5953032a386 125
+  s_cbdeb87639509e::t_268c31bd5b2c78 181-184
+  s_f43c44b021cab5::t_c502b10a3e8585 210-212
+  s_cbdeb87639509e::t_f0593297275bde 126-127
+  s_d00e46a179f4e7::t_decfbd93d2bea8 94,98-122,124,130-143,146-161,163-171,173,175-178,185-188,193,198
+  s_f43c44b021cab5::t_8155620ef0abe8 123
+  s_cbdeb87639509e::t_33717e5f9f96e3 189-192
+  s_f43c44b021cab5::t_a87564aa6bc968 194-197,199,202-203,209,213-215,222-224,230,233-236
+  s_cbdeb87639509e::t_a8b60b78661231 225-229,231-232
+  s_f3b541651048fd::t_68dd7492eaee08 174
+  s_f43c44b021cab5::t_7797a53d054cd8 128-129
+  s_f3b541651048fd::t_904667d52427af 179-180
+  s_f43c44b021cab5::t_910b7fec2be810 162
+  s_f3b541651048fd::t_9848300fc7477f 172
+  s_f43c44b021cab5::t_c649cf5effc006 206-208
+  s_91825590507001::t_f04efc2a9c4960 216-221
+  s_91825590507001::t_7eb414dd27b3f1 200-201
+  s_f43c44b021cab5::t_c2a55d1989d822 204-205
+  s_3db8e41af06d6d::t_70d488d9800ad6 237
+README.md
+  s_d00e46a179f4e7::t_71f155289a1c2e 33-42,48-50,59-61,67-69,76-78,84-86,93-95,101-103,109-111,441
+  s_f43c44b021cab5::t_b385cacad7c7fc 45-47,53-58,65-66,72-75,81-83,89-92,98-100,106-108,114-117
+  s_cbdeb87639509e::t_f439c4a870d0be 43-44,51-52,62-63,70-71,79-80,87-88,96-97,104-105,112-113
+  s_91825590507001::t_fcda07bc8393dd 64
+  s_f43c44b021cab5::t_dc6513f28d65a3 442
+templates/outline/README.md
+  s_33850e3db6011e::t_b4222e6a35c34d 1-24,31-40,83-85,94,117,144-146,192,236-306
+templates/wordpress/README.md
+  s_f43c44b021cab5::t_e08774e9abfa58 83
+  s_cbdeb87639509e::t_8ae0971d79b7ec 10-11
+  s_d00e46a179f4e7::t_4aa4a6dfff5830 50,62-63
+  s_d00e46a179f4e7::t_e33572d6868e0c 1,3,5,7,9,12,14-21,23-33,41,60,64-75,79-82,84
+  s_f43c44b021cab5::t_29b1c8870c4adf 2
+  s_cda2d5fa92b7f7::t_660be54d174d7a 61
+templates/tomcat/README.md
+  s_bbec093be526ee::t_78f8890fe16906 1-3,5-21,27-36,46,61,78-84,90-95
+templates/n8n/README.md
+  s_f3f352231f80dd::t_937fb05a0fa69e 33-35,37-39
+  s_f3f352231f80dd::t_435e204857fd55 36
+  s_f3f352231f80dd::t_933ffb9b66222b 12
+  s_f3f352231f80dd::t_ee07db03a4e24e 22-23,298
+  s_f3f352231f80dd::t_9cba2f0e040da2 1-11,13-21,24,31-32,40,75,91-92,106,144-219,333-338
+templates/kaneo/README.md
+  s_f3f352231f80dd::t_2f2f5cc6928ec7 1-24,31-40,84,103-106,139-141,215,245-277
+templates/docuseal/README.md
+  s_33850e3db6011e::t_b4222e6a35c34d 1-3,5-21,34-39,41-42,52-118,129,140-142,269-274
+  s_bf1f32f2df3a98::t_6e40480a9d81a5 40
+templates/searxng/README.md
+  s_bbec093be526ee::t_4e7b8801a97954 1-24,31-40,76,93-95,97,176-217,264,266-268
+templates/beszel/README.md
+  s_0d74da95d65d89::t_f742772a6e8945 1-24,29-38,73,94,153-155,230,237-239,272-317
+.github/PULL_REQUEST_TEMPLATE.md
+  s_d00e46a179f4e7::t_9b4711c4ec4cfa 23
+templates/seafile/README.md
+  s_0d74da95d65d89::t_74edc82ac7bfe2 1-3,5-21,27-32,34-35,107-157,176-181
+  s_bf1f32f2df3a98::t_bb0603593bfb95 33
+templates/nextcloud/README.md
+  s_bbec093be526ee::t_0ae15cadbbd394 1-3,5-22,28-37,58-61,67-93,114,142-145,151,170,188,190-196,223-228
+templates/ntfy/README.md
+  s_bbec093be526ee::t_3253c094a9ab3c 1-24,31-40,85,107,205,253-309
+templates/drupal/README.md
+  s_33850e3db6011e::t_ba0849261fe3ce 1-3,5-21,28-37,47,63,83-89,95-100
+templates/netbird/README.md
+  s_bbec093be526ee::t_8ea8d90609f256 1-3,5-21,27-37,47,61,73-87,93-98
+templates/synapse/README.md
+  s_0d74da95d65d89::t_bf46a10ea19697 1-25,33-42,59-77,86,88-91,93,108-110,112,114-119,128-133
+templates/umami/README.md
+  s_0d74da95d65d89::t_a945f041c73585 1-27,34-43,72-75,80-101,125,206,212-214,251-252,260-313
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ab8d5d0a6fe30b4763de4dcdf5182a81a2fa16c9",
+  "prompts": {},
+  "sessions": {
+    "s_0d74da95d65d89": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34d93beb-f027-4a2e-96cd-adf3ff8bfa25",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_33850e3db6011e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "21c13aec-ced4-4503-8f45-aaeded61cd50",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_3db8e41af06d6d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a1935b64-4c02-4f16-9a5e-736c2d055428",
+        "model": "unknown"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_6891f223c4bb3a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79a6bb57-d266-462d-aad5-9d5a12730e07",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_91825590507001": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a549f6d4-91e7-4ede-a6a2-fbee4a417ef3",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_bbec093be526ee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a820f30f-56c7-48d8-a03a-98f001b380ee",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_bf1f32f2df3a98": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ae61426-b5d0-46be-8388-66363796599e",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_cbdeb87639509e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "92b414b1-82b1-4803-989c-8d41b31607ca",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_cda2d5fa92b7f7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "63d14e68-6b37-4683-8352-d99c8934f771",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_d00e46a179f4e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "440542a1-edcd-4c29-b38e-d4766b092306",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f3b541651048fd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e4504f9-bb60-4e06-be67-d8e3dbf0053f",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f3f352231f80dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5dff8407-d198-444a-8b4f-b9286b8c8d9a",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f43c44b021cab5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fd7e455-2bc3-4f01-8fd1-67f4c7c27dc8",
+        "model": "unknown"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
