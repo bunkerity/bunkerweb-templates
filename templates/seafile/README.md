@@ -9,6 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
   <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/Seafile-11.0.13-248651?labelColor=1d6f93&style=flat" alt="Seafile 11.0.13" />
 </p>
 
 <p align="center">
@@ -16,22 +17,26 @@
   <a href="#prerequisites">Prerequisites</a> ·
   <a href="#docker-compose-example">Docker Compose</a> ·
   <a href="#install">Install</a> ·
-  <a href="#uploads-webdav-and-notifications">Uploads and WebDAV</a> ·
+  <a href="#uploads-webdav-sync-and-notifications">Uploads, WebDAV and sync</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
   <a href="#validation">Validation</a>
 </p>
 
-This template proxies Seafile through BunkerWeb with upload, WebDAV, rate-limit, compression, and
-client-compatibility defaults. The deployment example targets Seafile Community Edition 11.0.x; use
-Seafile's version-specific Compose file when deploying another release.
+This template proxies Seafile through BunkerWeb with upload, WebDAV, desktop sync, rate-limit,
+compression, and client-compatibility defaults, and ships the ModSecurity exceptions that browser
+uploads, WebDAV uploads, sync clients and the system admin console need. The deployment example
+targets Seafile Community Edition 11.0.x; use Seafile's version-specific Compose file when
+deploying another release.
 
 ## At a glance
 
-| Fact        | Value                         |
-| ----------- | ----------------------------- |
-| Template id | `seafile`                     |
-| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
-| Configs     | 0                             |
-| Upstream    | `http://seafile`              |
+| Fact        | Value                                        |
+| ----------- | -------------------------------------------- |
+| Template id | `seafile`                                    |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Seafile 11.0.13 |
+| Configs     | 1 (modsec-crs)                               |
+| Rule ids    | `9882000` to `9882999`                       |
+| Upstream    | `http://seafile`                             |
 
 ## Prerequisites
 
@@ -104,15 +109,27 @@ docker compose config --quiet
 docker compose up -d
 ```
 
+The two environment variables `SEAFILE_SERVER_HOSTNAME` and `FORCE_HTTPS_IN_CONF` are not enough
+behind a proxy: sign-in fails until you add the four `seahub_settings.py` lines from
+[Install](#install) step 4.
+
 ## Install
 
 1. Import `template.json` by following the repository's
    [installation guide](../../README.md#install).
-2. Assign `USE_TEMPLATE=seafile` to the service, or select **Seafile** in the web UI.
-3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT`, and `REVERSE_PROXY_HOST` with values for your
-   deployment. The default upstream, `http://seafile`, assumes both containers share a Docker network.
-4. Configure Seafile's public URL for HTTPS. For a fresh Seafile 11 Docker deployment, set
-   `SEAFILE_SERVER_HOSTNAME` and `FORCE_HTTPS_IN_CONF=true`. For an existing deployment, verify:
+2. In the web UI, create a service in Easy mode and pick **Seafile** in the **Templates** menu above
+   the steps. In an environment-variable setup, assign `USE_TEMPLATE=seafile` instead.
+3. In the first step, replace `SERVER_NAME` with your hostname and `EMAIL_LETS_ENCRYPT` with your
+   own address: the example `admin@example.com` is not yours. For a hostname that is not public,
+   turn off **Automatic Let's Encrypt**. BunkerWeb 1.6.17's web UI drops a toggle you switch off
+   while creating the service, so save the service, open it again, switch the toggle off and save
+   once more. In the second step, replace `REVERSE_PROXY_HOST` if the upstream is not
+   `http://seafile`: the default assumes both containers share a Docker network.
+4. Tell Seafile its public HTTPS address. This is required on every deployment, new or existing.
+   Seafile 11's Docker environment sets only the file-server URL (`FILE_SERVER_ROOT`). It leaves
+   `SERVICE_URL` on `http://` and sets no trusted origin, so sign-in answers `403` with
+   `Origin checking failed ... does not match any trusted origins` in `seahub.log`. Add these lines
+   to `/opt/seafile-data/seafile/conf/seahub_settings.py` and replace the example hostname:
 
    ```python
    SERVICE_URL = "https://seafile.example.com"
@@ -121,9 +138,10 @@ docker compose up -d
    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
    ```
 
-   Put manual overrides in `/opt/seafile-data/seafile/conf/seahub_settings.py`, replace the example
-   hostname, and restart Seafile. Do not add a trailing slash to the trusted origin.
-5. Reload BunkerWeb, sign in through the public URL, and upload and download a test file.
+   Do not add a trailing slash to the trusted origin. Restart Seafile
+   (`docker compose restart seafile`) and wait until it answers before you sign in.
+5. Save the service: BunkerWeb applies it, there is nothing else to reload. Sign in through the
+   public URL, and upload and download a test file.
 
 > [!NOTE]
 > The `COOKIE_FLAGS_4` override deliberately omits `HttpOnly` for Seafile's `sfcsrftoken` cookie. It
@@ -135,16 +153,43 @@ docker compose up -d
 Seahub only reads `X-Forwarded-Proto`, so removing the duplicate is enough. Keep this header override
 if you add routes of your own that proxy to Seahub.
 
-## Uploads, WebDAV, and notifications
+## Uploads, WebDAV, sync, and notifications
 
 > [!WARNING]
 > `MAX_CLIENT_SIZE=512m` limits each request, not the total file size used by chunked clients. Raising it
 > also raises ModSecurity's in-memory request-body limit, so increase it only for clients that need larger
 > single requests.
 
+Browser uploads, WebDAV uploads, desktop sync and the system admin console (`/sys/`) each need one
+ModSecurity exception, which the template ships. See
+[CRS exception scope and cost](#crs-exception-scope-and-cost).
+
 The template allows WebDAV methods and exempts `/seafdav` from the JavaScript challenge, but SeafDAV is
 disabled by default in Seafile. Enable it in `seafdav.conf`, set `share_name = /seafdav`, and test with a
 WebDAV client. See Seafile's [WebDAV documentation](https://manual.seafile.com/11.0/extension/webdav/).
+
+Behind a TLS proxy, WebDAV `COPY` and `MOVE` (rename and move in Finder, Windows Explorer and rclone)
+fail with `502`. Seafile's own nginx forwards `X-Forwarded-Proto http` to SeafDAV, so SeafDAV rejects
+the `https://` address in the `Destination` header. The template cannot change this, so fix it inside
+Seafile. On the Docker host, change that header in the `location /seafdav` block only, then reload
+the nginx of the Seafile container:
+
+```bash
+docker compose exec seafile sed -i \
+  '/location \/seafdav {/,/}/ s/X-Forwarded-Proto \$scheme;/X-Forwarded-Proto https;/' \
+  /shared/nginx/conf/seafile.nginx.conf
+docker compose exec seafile nginx -s reload
+```
+
+The change lives in the `/shared` volume and survives a restart of the container.
+
+The Seafile desktop client's sync (`/seafhttp/repo/...`) also goes through the template. The
+exceptions for it were tested with the command-line client `seaf-cli` 9.0.4 against Seafile 11.0.13.
+The graphical desktop and mobile apps send the same requests but were not run through BunkerWeb.
+
+Public share links (`/d/<token>/` for a folder, `/f/<token>/` for a file) skip the JavaScript
+challenge, so `curl`, `wget` and `?dl=1` links in other pages download without a browser. Upload
+links (`/u/d/<token>/`) are opened in a browser and still get the challenge.
 
 WebSockets are not enabled on the main `/` upstream. Seafile's optional notification server listens on
 a separate port and needs dedicated `/notification/ping` and `/notification` proxy routes; configure
@@ -154,6 +199,30 @@ those only after enabling the service by following Seafile's
 The bad-behavior status list excludes `401`, `403`, and `404`. Authentication, permission checks, and
 missing-object probes can legitimately return those codes, so counting them toward an IP ban can lock
 out normal sync or WebDAV clients.
+
+## CRS exception scope and cost
+
+`configs/modsec-crs/seafile_false_positives.conf` is a service-scoped **modsec-crs** config with
+five rules. Each one names a path prefix and a method, and removes only the CRS checks listed here.
+
+| Rule      | Path and method                                            | What it removes                                                                                                                                              |
+| --------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `9882100` | `POST /seafhttp/upload-aj/`, `update-aj/`, `upload-api/`, `update-api/` | CRS `920450` for the `Content-Range` header and `920600` for the `Accept` header (the web uploader sends both on every chunk).                        |
+| `9882110` | `PUT /seafdav/`                                            | CRS `920340`, `920420` and `920640` (WebDAV clients send a file with its own Content-Type, or with none).                                                    |
+| `9882120` | `GET` or `POST` under `/sys/`                              | CRS `930130` (Seafile's system admin pages live under `/sys/`).                                                                                              |
+| `9882130` | `PUT /seafhttp/repo/<id>/commit/`, `block/`, `fs/`         | CRS `920340` and `920640` (the sync client stores commits and blocks with no Content-Type).                                                                  |
+| `9882131` | `POST /seafhttp/repo/<id>/recv-fs/`                        | Body inspection (`requestBodyAccess=Off`): the sync client sends binary objects labelled as a web form, and CRS `920250` flags some of them.                  |
+
+Cost: the same checks stay on for every other path and method (each rule has controls that return
+`403`). Under `/seafdav/` a `PUT` is accepted with any Content-Type. On the five upload addresses the
+two header checks are off, but other restricted headers are still blocked. Rule `9882131` is the widest:
+no CRS rule reads those request bodies, and only a client with a valid repository token reaches the
+path. Delete a rule from the config if you do not use the feature (for example `9882110` without
+SeafDAV, or `9882130` and `9882131` without desktop sync).
+
+To adjust a rule in the web UI, open **Configs**, pick the custom config of your service (type
+`MODSEC_CRS`), edit it and save. A rule you copy from here for another path needs an id of your own
+(1 to 99,999).
 
 ## Validation
 
@@ -165,14 +234,45 @@ jq -e --arg expected "$(basename "$PWD")" '.id == $expected' template.json
 jq -e '(.settings | keys | sort) == ([.steps[] | .settings[]] | sort)' template.json
 ```
 
+Tested on BunkerWeb 1.6.17 with CRS 4.29 and Seafile 11.0.13 (`seafileltd/seafile-mc:11.0-latest`),
+with the service created in the web UI from the imported template, in Easy mode.
+
 After applying it:
 
 - Confirm the BunkerWeb scheduler reload completes without a template or unknown-setting error.
-- Sign in, browse a library, and upload and download a file larger than the default 10 MiB limit.
+- Sign in, browse a library, and upload and download a file larger than the default 10 MiB limit
+  (a 15 MB file went up in two chunks through the browser).
 - If SeafDAV is enabled, run `curl -u user:password -X PROPFIND -H 'Depth: 1'`
   `https://seafile.example.com/seafdav/` and confirm it is not challenged by Antibot.
+- Open **System Admin** as an administrator and confirm its pages load.
 - Check BunkerWeb logs for rate-limit, bad-behavior, and ModSecurity events before changing security
   controls.
+
+What the tests showed:
+
+| Check                           | Result                                                                                                                                                            |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sign-in                         | Without the four `seahub_settings.py` lines: `403 Origin checking failed`. With them: `302` to the library list.                                                  |
+| Same requests without the rules | Web upload `403` (`920450`, `920600`), WebDAV `PUT` `403` (`920340`, `920420`, `920640`), `/sys/` `403` (`930130`), sync `PUT` of a commit `403` and `recv-fs` `403` (`920250`). |
+| Same requests with the rules    | Browser upload `200`, WebDAV `PUT` of a small file, a 15 MB file, an image and a PDF, with accents, spaces and an apostrophe in the names `201` or `204`, `COPY` and `MOVE` `204` (after the fix above), `/sys/info/` and `/sys/users/` `200`, `seaf-cli` sync of three files of 0.2 to 3 MB `synchronized`. |
+| Controls                        | The cases listed below the table, all still `403` with the CRS rule that fired before.                                                                             |
+| Share links                     | `curl` of `/f/<token>/?dl=1` before: `302` to `/challenge`. After: `302` to the file, which downloaded byte for byte.                                             |
+
+Controls that still answer `403` with the template applied: the two header checks (`Content-Range`,
+`Accept` with a charset) on a `GET` or `PUT` of an upload address and on `/api2/` or `/seafhttp/files/`;
+a `Proxy` header on an upload address; a `PUT` or `POST` with or without a Content-Type on `/api2/`
+and `/seafhttp/other/`; a `POST` to `/seafdav/`; a `PUT` of a sync block that sets a Content-Type;
+`/api2/x/sys/`, `/seafhttp/sys/x` and a `.htaccess` path; a script payload in the query of `/sys/info/`,
+in the body of an upload address and in the body of `check-fs`. The same payload in the body of
+`recv-fs` passes the CRS, which is the cost of rule `9882131`.
+
+## Known limits
+
+- **Not run through BunkerWeb:** the graphical Seafile desktop client, the mobile apps, Finder,
+  Windows Explorer and rclone against SeafDAV (only `curl` and `seaf-cli` ran), the web editor's
+  file save (`update-aj`, covered by the same rule as the upload), OnlyOffice, and Seafile releases
+  other than 11.0.13.
+- **Sub-path and multiple hostnames** were not tested.
 
 ---
 
