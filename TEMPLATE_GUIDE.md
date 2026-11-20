@@ -322,6 +322,15 @@ over `@rx` for a literal path, and anchor the rest with `\A` and `\z`. Put runti
 `modsec-crs/`, which loads before the CRS: a `ctl:` only reaches rules that have not run yet. Run
 `crs-linter` over the file; the `ver` and `tag` findings do not apply to templates.
 
+The comments of a config file are shown to the administrator in the web UI config editor once the
+template is imported, and for most users they are the only explanation of the rules. Write them for that
+reader: say what traffic the rule lets through and which feature of the app needs it, what it costs (the
+CRS checks that are off for that traffic and any limit to change, such as an index range), and how to
+adjust or remove it. Leave out how the rule was tested, and never put a comment inside a multi-line
+directive (after a line that ends with `\`). Do not quote attack strings, function calls, HTML tags,
+SQL keywords after a quote, or a semicolon followed by a word in a comment: the web UI runs the CRS
+on the whole template during import, config text included, and one hit makes Save fail with a 403.
+
 Templates target CRS 4, the default of BunkerWeb 1.6.17. The legacy short tags (`attack-rce`, `attack-lfi`,
 `attack-xss`, `attack-sqli`, `attack-injection-php`) exist in CRS 3 and CRS 4, so a tag-based exclusion
 (`ruleRemoveByTag`, `ruleRemoveTargetByTag`) that uses only them needs no note. The `OWASP_CRS/<family>`
