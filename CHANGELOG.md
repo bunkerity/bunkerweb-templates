@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Stop the random `403` on Vaultwarden bulk imports: the encrypted vault fields trip CRS rules at random, so rule `9877100` now skips eleven rules (`932160`, `932230`, `932235`, `932250`, `932260` and `942100` added) on the cipher, folder and Send writes, and the README asks for several large test imports in detect mode.
 - [@TheophileDiot] Make openGym passkeys work by allowing `publickey-credentials-create` and `-get` in `PERMISSIONS_POLICY` (it replaces BunkerWeb's default list until the web UI accepts the full one), and document `RP_ID`, `ORIGIN` and `TRUST_PROXY`, the Let's Encrypt toggle, antibot and the bad-behavior ban.
 - [@TheophileDiot] Keep WordPress's own JSON errors and theme 404 page by leaving `400 401 404` out of `INTERCEPTED_ERROR_CODES`, allow `PATCH`, accept raw REST media uploads with plain permalinks (rule `9878112`), and document the PHP upload limits, the tested WordPress 6.9.4 and what the CRS plugin covers.
 - [@TheophileDiot] Let password-manager style passwords through the Umami confirm field, bot-probe URLs and shell-like event data through the tracker (`932125`, `932235`, also in the renamed-path example), and the bot probe through every dashboard filter, and document that the login limit's `429` counts toward the one-day ban.
