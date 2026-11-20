@@ -47,9 +47,12 @@ other sites.
   private network; do not expose that port publicly.
 - Set a strong `APP_SECRET`. A new Umami database has the login `admin` / `umami`: change the
   password before the service is reachable.
-- Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its
-  certificate (the default HTTP challenge needs inbound port 80). For existing certificate files, use
-  `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+- Point your public hostname at BunkerWeb. The template turns **Automatic Let's Encrypt** on, so
+  BunkerWeb requests the certificate itself (the default HTTP challenge needs inbound port 80). For a
+  name that is not public, switch that toggle off in step 1. For existing certificate files, switch it
+  off and open the service's **Advanced** tab: in the Custom SSL certificate section, turn on **Use
+  custom certificate** and fill in **Certificate path** and **Key path**. The guided steps do not
+  show these fields.
 - Embed the tracker the usual way:
   `<script defer src="https://umami.example.com/script.js" data-website-id="<id>"></script>`.
 - Renamed tracker paths are optional. If you set `COLLECT_API_ENDPOINT`:
@@ -62,9 +65,11 @@ other sites.
     `404` (tested). Setting `data-host-url` on the script tag should avoid that; not tested.
   - Add `examples/umami_renamed_paths.conf` yourself: it is not part of the template, so a plain import
     removes nothing for the renamed path and a request to it is inspected like any other. Change the
-    path in the file to your value, then add it to the service as a custom config of type `modsec-crs`
-    (BunkerWeb UI: Configs, New custom configuration, type `modsec-crs`, this service, the content of
-    the file). Without that file, event data with HTML or shell text sent to the renamed path gets `403`.
+    path in the file to your value, then add it to the service as a custom config of type `MODSEC_CRS`
+    (the web UI shows this spelling; it is the `modsec-crs` folder of the template). In the web UI:
+    Configs, **Create Custom Config**, pick this service, set **Config Type** to `MODSEC_CRS`, name it,
+    paste the content of the file and save. Without that file, tracker data with HTML or shell text or a
+    `../` path sent to the renamed path gets `403`.
 - Umami drops requests from bots: the collect endpoint answers `200 {"beep":"boop"}` and stores
   nothing for headless browsers (tested) and other bot user agents. Test with a normal browser, or set
   `DISABLE_BOT_CHECK=1` on a test instance only.
@@ -101,26 +106,29 @@ header after `X-Real-IP`, and a forged value did not change the stored visitor i
 ## Install
 
 Import `template.json` and the file under `configs/modsec-crs/` using the repository
-[installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=umami`, then change only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the upstream URL
-without a trailing slash or path). In the web UI raw import, the config dialog lists the file as
+[installation guide](../../README.md#install), or its plugin bundle layout. Then create a service in
+easy mode, open its **Templates** button, pick **Umami**, and change only the server name and the
+reverse proxy host (keep the upstream URL without a trailing slash or path). In the web UI raw import, the config dialog lists the file as
 `modsec_crs/umami_false_positives.conf`: upload the file of the same name there. The renamed-path
 file under `examples/` is not imported (see Prerequisites).
 
 Before enabling blocking on your instance:
 
-1. Set service `SECURITY_MODE=detect` and reload.
+1. Open the service's **Advanced** tab (or **Raw** mode), General, set **Security mode** to `detect`
+   and save: saving applies the change.
 2. Open a page that embeds the tracker, click an element with `data-umami-event`, then sign in to the
    dashboard, open a website, filter by a path and a query string, and open Events and a report, while
    reading BunkerWeb logs.
 3. Confirm the included exclusions match the targets in your logs. Narrow or add exceptions only where
    your traffic requires them.
-4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflows.
+4. Set **Security mode** back to `block` after those checks and repeat the workflows.
 
 False positives return `403` in block mode. The template sets the bad-behavior status list to
 `401 403 404 405 429 444` (the default also has `400`): about ten matching responses in 60 seconds ban
 the client for one day.
-The `401` Umami answers before sign-in counts as one hit and decays after about a minute.
+The `401` Umami answers before sign-in counts as one hit and decays after about a minute. So do the
+`429` answers of the login limit: about ten wrong logins within a minute ban the admin's own address
+for one day. The Bans page of the web UI lifts the ban.
 
 ## Settings
 
@@ -158,10 +166,10 @@ argument.
 
 | Id            | Method and path                                                              | Skipped                                                 | Rules                                                                              |
 | ------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `9875100`       | `POST /api/send`                                                             | by id, the whole request                                | 22 ids from `930`, `931`, `932`, `934`, `941`, `942`                                 |
+| `9875100`       | `POST /api/send`                                                             | by id, the whole request                                | 24 ids from `930`, `931`, `932`, `934`, `941`, `942`                                 |
 | `9875101`       | `POST /api/auth/login`                                                       | `json.password`                                         | `930100 930110 930120 932130 932160 932235 942100`                                 |
-| `9875102-9875104` | `POST /api/users`, `/api/users/<id>`, `/api/me/password`                     | `json.password`, `json.currentPassword`, `json.newPassword` | the same seven                                                                 |
-| `9875110-9875124` | `GET /api/websites/<id>/...` and the dashboard pages `/websites/<id>/...`    | one filter argument per rule                            | 16 ids from `930`, `932`, `941`, `942`                                             |
+| `9875102-9875104` | `POST /api/users`, `/api/users/<id>`, `/api/me/password`                     | `json.password`; `json.currentPassword`, `json.newPassword`, `json.confirmPassword` | the same seven                                                                 |
+| `9875110-9875124` | `GET /api/websites/<id>/...` and the dashboard pages `/websites/<id>/...`    | one filter argument per rule                            | 17 ids from `930`, `932`, `941`, `942`                                             |
 | `9875125`       | the same paths                                                               | `REQUEST_URI_RAW`                                       | `930100 930110`                                                                    |
 | `9875127`       | `GET`/`POST` for assets, API and pages, with a dashboard page as `Referer`   | the `Referer` header                                    | `941110 941120 941160 942100`                                                      |
 | `9875150`       | `POST /api/reports`, `/api/reports/<type>`                                   | by id                                                   | 18 ids                                                                             |
@@ -176,19 +184,26 @@ Why each one exists:
 
 - **Tracker (`9875100`).** A pageview carries the page's URL with its query string, its title and the
   referrer; an event carries a name and free-form data. Real pages hold `?q=' OR 1=1`, `<script>`
-  examples and `../` in all of them. Event data keys are chosen by the site owner and are unbounded,
-  and BunkerWeb 1.6.17 rejects regex targets in `ctl:` (the reload fails), so no target can be named.
-  The 22 ids are the union the matrix recorded for URL, referrer, title, event name, event data and
-  identify data; `934190` is the one for a page URL or referrer on `localhost`. **Cost:** those rules no longer inspect any part of a `POST /api/send` request, the
-  query string and headers included. Other rules still do (protocol, scanner user agents, PHP, Java
-  and log4j patterns, SSRF ids outside the list).
+  examples, shell text such as `hello; ls | cat` and `../` paths such as a bot's
+  `?file=../../etc/passwd` in all of them. Event data keys are chosen by the site owner and are
+  unbounded, and BunkerWeb 1.6.17 rejects regex targets in `ctl:` (the reload fails), so no target can
+  be named. The 24 ids are the union the matrix recorded for URL, referrer, title, event name, event
+  data and identify data; `934190` is the one for a page URL or referrer on `localhost`, and `932125`
+  and `932235` are the ones for shell text and for a URL that holds `file=../../etc/passwd`.
+  **Cost:** those rules no longer inspect any part of a `POST /api/send` request, the query string and
+  headers included. Other rules still do (protocol, scanner user agents, PHP, Java and log4j
+  patterns, SSRF ids outside the list).
 - **Passwords (`9875101-9875104`).** Password managers produce `a;b|c&d$HOME1` (CRS `932160`), `$(x)`
   (`932130`, `932235`), `' or '1'='1` (`942100`) and `../` runs (`930100`). Only the password arguments
-  are skipped, the username is still inspected.
+  are skipped, the username is still inspected. The change-password form of the profile page posts a
+  third field, `json.confirmPassword`, so rule `9875104` skips it too. The forms that create a user or
+  set another user's password post only `json.password`.
 - **Dashboard filters (`9875110-9875125`).** Every filter value is data a visitor sent, and clicking it
   in the dashboard sends it back as an argument. A bot's `?file=../../etc/passwd` appears in the top
-  queries, and filtering by it needs `930110` and `930100` skipped on the raw URI too (`9875125`).
-  Search boxes on the data pages use `search`. Lists of websites, users and teams are not excluded.
+  queries, and filtering by it needs `932235` skipped on the argument (CRS reads `file=../../etc/passwd`
+  as a shell command with a path) and `930110` and `930100` skipped on the raw URI too (`9875125`).
+  Search boxes on the data pages and the funnel step suggestions use `search` and `event`. Lists of
+  websites, users and teams are not excluded.
 - **Referer (`9875127`).** After a filtered dashboard page loads, the browser sends its URL as `Referer`
   on every asset and API call, and CRS `942100`, `941110`, `941120`, `941160` read that header: the
   page's own assets got `403`. Browsers send cross-site requests an origin-only `Referer` by default, so this
@@ -242,8 +257,19 @@ Tested on 2026-11-17: Umami `3.4.1` (PostgreSQL 16), `bunkerity/bunkerweb-all-in
   URL held `' OR 1=1--` and `../`, and the funnels page. The BunkerWeb log showed no ModSecurity
   line, no `403`, no `429` and no ban for either path set. A `400` came from Umami for a
   half-defined test funnel.
-- **Web UI import:** raw mode with `template.json` and both config files imports and is listed with
-  7 steps, 11 settings and 2 configs.
+- **Retest on 2026-11-20:** on a service created in easy mode from the template, behind the web UI's
+  own CRS. A password-manager password (`Str0ng;Pass|w0rd&$HOME`) in all three fields of the profile
+  page's change-password form got `403` from `932160` on `json.confirmPassword` before the change and
+  `200` after. A pageview whose URL holds `?file=../../etc/passwd` and event data `hello; ls | cat`
+  got `403` from `932235` and `932125` on `/api/send`, and `200` on `/api/send` and on
+  `/stats/api/collect` (with the example file) after the change. All 15 filter arguments with the
+  value `/p?file=../../etc/passwd` (`eq.file=../../etc/passwd` for `query`), on the data API and on the
+  dashboard page, got `403` from `932235` before and `200` after, and so did the funnel step
+  suggestion `/api/websites/<id>/values?search=`. The same text in an argument the rules do not name (`os`, `browser`, `country`, `city`,
+  `device`), in `json.note` of the password form, in `json.name` of `/api/websites` and on
+  `/api/heartbeat` still got `403`.
+- **Web UI import:** raw mode with `template.json` and the one config file imports and is listed with
+  6 steps, 11 settings and 1 config. The example file is not part of the import.
 - **Proxy research:** forged client-IP and location headers, HTTPS and HTTP/2 headers and bursts,
   login and stale-tracker bans, `IGNORE_IP`, a share page in an iframe, `/mcp` and a root-level
   collect path were each measured through the service; the numbers are in the sections above.

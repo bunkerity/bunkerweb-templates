@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Let password-manager style passwords through the Umami confirm field, bot-probe URLs and shell-like event data through the tracker (`932125`, `932235`, also in the renamed-path example), and the bot probe through every dashboard filter, and document that the login limit's `429` counts toward the one-day ban.
 - [@TheophileDiot] Let `.com` Matrix identifiers through the Tuwunel client, federation and key API (join, knock, room state, push rules, browser preflight; rule `9874100`), raise `LIMIT_REQ_RATE` to `20r/s` so Element starts without `429`, and document blocked chat text, the delegation file, upload sizes and the tested Tuwunel 2.0.0.
 - [@TheophileDiot] Let `.com` Matrix identifiers through the Synapse client, federation and key API (join, knock, room state, push rules, browser preflight; rule `9872100`), raise `LIMIT_REQ_RATE` to `20r/s` so Element starts without `429`, and document blocked chat text, the delegation file and how to proxy `/_synapse/client/`.
 - [@TheophileDiot] Let prompt templates and SQL-style or brace-quoting text through the Open WebUI prompts, notes, model prompts, chat API and other text fields (CRS `942100` and `942550`), raise `LIMIT_CONN_MAX_HTTP2` to `400` so a cold page load gets no `429`, and document the web UI Save `403` on BunkerWeb 1.6.17.
