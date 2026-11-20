@@ -34,7 +34,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at the hostname that fronts Collabora.",
+      "subtitle": "Point the template at the hostname that fronts Collabora and your own e-mail. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {

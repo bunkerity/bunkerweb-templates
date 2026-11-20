@@ -24,7 +24,9 @@
 Provision a BunkerWeb configuration for the Collabora Online (WOPI) server that Filestash uses to
 edit Office documents. Filestash and Collabora run on two hostnames: users open Filestash, and
 Filestash loads the editor in an iframe from the Collabora hostname. This template fronts the
-Collabora hostname. The Filestash hostname uses the [filestash](../filestash/README.md) template.
+Collabora hostname. The Filestash hostname uses the [filestash](../filestash/README.md) template,
+and the editor only works when the settings in [Both hostnames](#both-hostnames) are in place on
+both sides.
 
 The template proxies the Collabora container on port 9980 with automatic Let's Encrypt
 certificates, WebSocket support (Collabora's `/cool/.../ws` connections) and a 50m request size
@@ -35,7 +37,7 @@ limit. It allows only `GET`, `POST`, `HEAD` and `OPTIONS`.
 | Fact        | Value                          |
 | ----------- | ------------------------------ |
 | Template id | `filestash-office`             |
-| Tested with | BunkerWeb 1.6.17, OWASP CRS 4  |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Collabora `24.04.10.2.1` |
 | Configs     | 0                              |
 | Upstream    | `http://filestash-office:9980` |
 
@@ -43,21 +45,38 @@ limit. It allows only `GET`, `POST`, `HEAD` and `OPTIONS`.
 
 - A running Collabora server (`collabora/code`) and a Filestash server that BunkerWeb can reach. The
   [Compose example](../filestash/README.md#docker-compose-example) in the filestash README starts
-  both and pins the Collabora image `collabora/code:24.04.10.2.1`. Only the proxy side was tested:
-  BunkerWeb 1.6.17 with an echo backend on port 9980, not a live Collabora server.
+  both and pins the Collabora image `collabora/code:24.04.10.2.1`. Tested with that image and
+  Filestash `machines/filestash:latest` (build `b6fe63f4f01e`): a `.docx` opens, is edited and
+  saved through BunkerWeb on two hostnames.
 - A public hostname for Collabora pointing to BunkerWeb, separate from the Filestash hostname.
-- Access to the BunkerWeb web UI or service environment variables.
+- Access to the BunkerWeb web UI.
 
 ## Install
 
-1. Import `template.json` (Templates → **Create new template** → **Raw**, then upload or paste it).
-2. Assign `USE_TEMPLATE=filestash-office` to the service that fronts Collabora, or select
-   **Filestash Collabora (WOPI) host with WebSocket proxy defaults** in the web UI.
+1. Import `template.json` (Templates → **Create template** → **Raw**, then upload or paste it).
+2. Create the service that fronts Collabora and pick **Filestash-office** in the **Templates** menu
+   above the steps (its description reads "Filestash Collabora (WOPI) host with WebSocket proxy
+   defaults"). Plugin users assign `USE_TEMPLATE=filestash-office` instead.
 3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT` and `REVERSE_PROXY_HOST` with values for your
-   deployment.
+   deployment. Keep the example e-mail only for a lab.
 4. In the Filestash container set `OFFICE_REWRITE_URL` to `https://` plus this `SERVER_NAME`, as in
    the Compose example.
-5. Reload BunkerWeb, open a document from Filestash, and check that the editor loads.
+5. Set the three settings of [Both hostnames](#both-hostnames): two on the Collabora container and
+   one on the Filestash service in BunkerWeb.
+6. Save the service: BunkerWeb applies it on its own. Open a document from Filestash and check
+   that the editor loads.
+
+### Both hostnames
+
+The editor needs all three of these. Each one fixes a different failure of the same loading screen:
+
+| Where | Setting | Without it |
+| ----- | ------- | ---------- |
+| Collabora container, `extra_params` | `--o:net.frame_ancestors=https://<Filestash hostname>` | The browser refuses to show the editor frame (`frame-ancestors` in the console). |
+| Collabora container, `extra_params` | `--o:ssl.termination=true` (next to `--o:ssl.enable=false`) | The editor opens but the document stays blank: Collabora announces `ws://` addresses and the browser refuses them on an HTTPS page. |
+| Filestash service in BunkerWeb (template [filestash](../filestash/README.md)) | `CONTENT_SECURITY_POLICY` with `form-action 'self' https://<this SERVER_NAME>` | The browser refuses the form that opens the editor (`form-action` in the console). |
+
+The [Compose example](../filestash/README.md#docker-compose-example) already carries the first two.
 
 For both import methods (web UI and plugin), see the repository [installation guide](../../README.md#install).
 
@@ -87,12 +106,17 @@ The values below are examples. Replace them with your own before using the templ
   files into documents.
 - **Methods:** only the listed HTTP methods are accepted; anything else is rejected before reaching
   Collabora.
-- **TLS:** Collabora runs with `ssl.enable=false` because BunkerWeb terminates TLS, so the upstream
-  is `http://`.
+- **TLS:** Collabora runs with `ssl.enable=false` and `ssl.termination=true` because BunkerWeb
+  terminates TLS: the first makes it serve plain HTTP, so the upstream is `http://`, the second
+  makes it hand the browser `wss://` addresses. Without `ssl.termination=true` the editor opens but
+  the document never loads.
 - **Upstream headers:** `KEEP_UPSTREAM_HEADERS` keeps `Content-Security-Policy` and
-  `X-Frame-Options` from Collabora. Collabora sets the `frame-ancestors` policy that lets the
-  Filestash hostname embed the editor, and BunkerWeb's default `frame-ancestors 'self'` would
-  block it.
+  `X-Frame-Options` from Collabora. Collabora lists the Filestash hostname in its `frame-ancestors`
+  policy only when you set `--o:net.frame_ancestors=https://<Filestash hostname>` on the Collabora
+  container, as in the Compose example. BunkerWeb's default `frame-ancestors 'self'` would replace
+  that policy, so the template keeps Collabora's header. On a few pages Collabora sends no policy
+  and BunkerWeb's default applies; the browser console then logs a blocked frame of the Collabora
+  root page, which does not affect the editor.
 - **Compression:** `USE_GZIP` is on so that `GZIP_PROXIED` takes effect.
 - **Allowlist:** `WHITELIST_IP` is not set by the template. Set it on the service only for the IP
   addresses or ranges that may bypass the security checks, and review the list regularly.
@@ -207,7 +231,8 @@ Run these from the repository root before importing the template:
 After applying it:
 
 - Confirm the BunkerWeb scheduler reload completes without a template or unknown-setting error.
-- Open an Office document from Filestash and check that the editor loads and saves.
+- Open an Office document from Filestash, type in it and save it with `Ctrl+S`: the editor loads
+  and the file in Filestash holds your text.
 - Check BunkerWeb logs for rate-limit, bad behavior, and ModSecurity events before changing
   security controls.
 
