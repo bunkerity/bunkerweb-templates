@@ -1,0 +1,27 @@
+CHANGELOG.md
+  s_c185a5043bd493::t_8c5ad2eede45e5 8
+templates/forgejo/README.md
+  s_c185a5043bd493::t_49158d35dc1d5d 12,24-28,35,48-51,58-63,78-81,99,102-110,119-126,135-161
+templates/forgejo/configs/modsec-crs/forgejo_false_positives.conf
+  s_c185a5043bd493::t_7681db720739bc 1,3-9,70-121
+templates/forgejo/configs/modsec-crs/forgejo_protocol.conf
+  s_c185a5043bd493::t_72ca6d03f53468 1-5,40-43,55-76
+templates/forgejo/template.json
+  s_c185a5043bd493::t_a440f1046b15bb 24,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "429743116ea860f833cfad4acc4480ca4c1425c6",
+  "prompts": {},
+  "sessions": {
+    "s_c185a5043bd493": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3ef427d3-6c8e-43e8-9cbb-cff0ef3cbbc7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
