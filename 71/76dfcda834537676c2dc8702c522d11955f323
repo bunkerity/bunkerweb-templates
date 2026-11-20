@@ -1,0 +1,20 @@
+CHANGELOG.md
+  h_a33a1e80933106 8
+templates/opengym/README.md
+  h_a33a1e80933106 29-31,48-58,67-68,70-74,85-87,94-98,100-110,116-120,124-128,136-137,226-235
+templates/opengym/configs/modsec-crs/opengym_false_positives.conf
+  h_a33a1e80933106 3-7,9-10,17-19,65-68,144-145
+templates/opengym/template.json
+  h_a33a1e80933106 40,51,90,106,111-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7176dfcda834537676c2dc8702c522d11955f323",
+  "prompts": {},
+  "humans": {
+    "h_a33a1e80933106": {
+      "author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
