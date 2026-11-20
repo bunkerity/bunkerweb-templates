@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add a Stirling-PDF template with a 100 MiB upload limit, a 20 minute job timeout, a request rate that lets the web app send one request per file, a single forwarded client address, a bad-behavior list that ignores the app's `401` answers, scoped CRS exclusions for the Automate pipeline, saved signatures and file names with quotes, and an optional authentik sign-in step.
 - [@TheophileDiot] Stop the random `403` on Vaultwarden bulk imports: the encrypted vault fields trip CRS rules at random, so rule `9877100` now skips eleven rules (`932160`, `932230`, `932235`, `932250`, `932260` and `942100` added) on the cipher, folder and Send writes, and the README asks for several large test imports in detect mode.
 - [@TheophileDiot] Make openGym passkeys work by allowing `publickey-credentials-create` and `-get` in `PERMISSIONS_POLICY` (it replaces BunkerWeb's default list until the web UI accepts the full one), and document `RP_ID`, `ORIGIN` and `TRUST_PROXY`, the Let's Encrypt toggle, antibot and the bad-behavior ban.
 - [@TheophileDiot] Keep WordPress's own JSON errors and theme 404 page by leaving `400 401 404` out of `INTERCEPTED_ERROR_CODES`, allow `PATCH`, accept raw REST media uploads with plain permalinks (rule `9878112`), and document the PHP upload limits, the tested WordPress 6.9.4 and what the CRS plugin covers.

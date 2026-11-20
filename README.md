@@ -69,6 +69,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | <img src="https://raw.githubusercontent.com/docusealco/docuseal/master/public/logo.svg" align="absmiddle" alt="" width="24" height="24" /> [DocuSeal](templates/docuseal/) | Document signing template with API-aware defaults |
 | <img src="https://raw.githubusercontent.com/usekaneo/kaneo/main/apps/web/public/favicon.svg" align="absmiddle" alt="" width="24" height="24" /> [Kaneo](templates/kaneo/) | Task board template with WebSocket and task-text WAF tuning |
 | <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/outline.svg" align="absmiddle" alt="" width="24" height="24" /> [Outline](templates/outline/) | Wiki template with realtime collaboration and MCP support |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/stirling-pdf.svg" align="absmiddle" alt="" width="24" height="24" /> [Stirling-PDF](templates/stirling-pdf/) | PDF toolbox template with big uploads, long jobs and tuned WAF rules |
 
 ### Websites and CMS
 

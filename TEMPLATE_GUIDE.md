@@ -311,6 +311,7 @@ CRS gives to that setup rule.
 | `9877000` | `vaultwarden` |
 | `9878000` | `wordpress` |
 | `9879000` | `xen-orchestra` |
+| `9880000` | `stirling-pdf` |
 | `9882000` | `seafile` |
 
 ### Rule form
