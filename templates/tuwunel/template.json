@@ -31,7 +31,7 @@
     "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|OPTIONS|PATCH",
     "USE_LIMIT_REQ": "yes",
     "LIMIT_REQ_URL": "/",
-    "LIMIT_REQ_RATE": "15r/s",
+    "LIMIT_REQ_RATE": "20r/s",
     "USE_WHITELIST": "no",
     "WHITELIST_IP": "",
     "WHITELIST_RDNS_GLOBAL": "yes",
@@ -52,7 +52,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your Matrix homeserver domain and configure TLS.",
+      "subtitle": "Point the template at your Matrix homeserver domain. Turn off Let's Encrypt for a name that is not public.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -72,7 +72,7 @@
     },
     {
       "title": "Web service - Upstream server",
-      "subtitle": "Direct the reverse proxy to your Tuwunel homeserver, with WebSocket support and long timeouts for federation and long-poll sync.",
+      "subtitle": "Direct the reverse proxy to your Tuwunel homeserver, with WebSocket support and long timeouts for federation and long-poll sync. Replace the example host tuwunel-server-ip with the name or address where BunkerWeb reaches Tuwunel.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_HOST",
@@ -101,7 +101,7 @@
     },
     {
       "title": "Security - Access control",
-      "subtitle": "Tune bad-behavior thresholds and optional IP/ASN whitelisting (disabled by default for this API-only homeserver).",
+      "subtitle": "Tune bad-behavior thresholds and optional IP/ASN whitelisting (disabled by default for this API-only homeserver). A whitelisted address skips the whole WAF.",
       "settings": [
         "USE_WHITELIST",
         "WHITELIST_IP",
@@ -125,7 +125,7 @@
     },
     {
       "title": "Federation - Well-known delegation",
-      "subtitle": "Serve the /.well-known/matrix/client and /server delegation files. Edit configs/server-http/well-known.conf to replace example.com with your homeserver domain.",
+      "subtitle": "Serve the /.well-known/matrix/client and /server delegation files. In the editor below, replace example.com in the two return 200 lines with your homeserver domain, and add the port when it is not 443.",
       "configs": ["server-http/well-known.conf"]
     }
   ]
