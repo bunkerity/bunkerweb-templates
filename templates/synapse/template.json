@@ -31,7 +31,7 @@
     "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|OPTIONS|PATCH",
     "USE_LIMIT_REQ": "yes",
     "LIMIT_REQ_URL": "/",
-    "LIMIT_REQ_RATE": "10r/s",
+    "LIMIT_REQ_RATE": "20r/s",
     "INTERCEPTED_ERROR_CODES": "400 401 403 404 405 413 429 501 502 503 504",
     "USE_WHITELIST": "no",
     "BAD_BEHAVIOR_STATUS_CODES": "405",
@@ -51,7 +51,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at the domain that hosts your Matrix homeserver.",
+      "subtitle": "Point the template at the domain that hosts your Matrix homeserver. Turn off Let's Encrypt for a name that is not public.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -71,7 +71,7 @@
     },
     {
       "title": "Web service - Upstream server",
-      "subtitle": "Direct the reverse proxy at your Synapse listener (default port 8008).",
+      "subtitle": "Direct the reverse proxy at your Synapse listener (default port 8008). Replace the example host mysynapse-server with the name or address where BunkerWeb reaches Synapse.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_HOST",
@@ -86,7 +86,7 @@
     },
     {
       "title": "HTTP - Synapse specific settings",
-      "subtitle": "Tune HTTP limits for Matrix, including the 50m media upload size.",
+      "subtitle": "Tune HTTP limits for Matrix, including the 50m media upload size and the request rate per client address.",
       "settings": [
         "HTTP3",
         "LISTEN_HTTP",
@@ -101,7 +101,7 @@
     },
     {
       "title": "Security - Access whitelisting",
-      "subtitle": "Tune bad behavior detection and optional IP/ASN whitelisting (disabled by default for this API-only homeserver).",
+      "subtitle": "Tune bad behavior detection and optional IP/ASN whitelisting (disabled by default for this API-only homeserver). A whitelisted address skips the whole WAF.",
       "settings": [
         "USE_WHITELIST",
         "WHITELIST_IP",
@@ -118,7 +118,7 @@
     },
     {
       "title": "Matrix - Well-known delegation",
-      "subtitle": "Serve the .well-known client and server delegation. Replace the placeholder domain in well-known.conf with your Matrix hostname.",
+      "subtitle": "Serve the .well-known client and server delegation. In the editor below, replace example.com in the two return 200 lines with your Matrix hostname, and add the port when it is not 443.",
       "configs": ["server-http/well-known.conf"]
     }
   ]

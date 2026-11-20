@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Let `.com` Matrix identifiers through the Synapse client, federation and key API (join, knock, room state, push rules, browser preflight; rule `9872100`), raise `LIMIT_REQ_RATE` to `20r/s` so Element starts without `429`, and document blocked chat text, the delegation file and how to proxy `/_synapse/client/`.
 - [@TheophileDiot] Let prompt templates and SQL-style or brace-quoting text through the Open WebUI prompts, notes, model prompts, chat API and other text fields (CRS `942100` and `942550`), raise `LIMIT_CONN_MAX_HTTP2` to `400` so a cold page load gets no `429`, and document the web UI Save `403` on BunkerWeb 1.6.17.
 - [@TheophileDiot] Make sign-in, browser uploads, WebDAV uploads, desktop sync and the admin console work through the Seafile template: add `modsec-crs/seafile_false_positives.conf` (rules `9882100` to `9882131`), make the `seahub_settings.py` sign-in lines mandatory in the README, let share links (`/d/`, `/f/`) skip the antibot challenge, and document the WebDAV COPY/MOVE fix.
 - [@TheophileDiot] Fix the Xen Orchestra template for XO 6: let the host list through CRS `932235` on the `fields` parameter of `GET /rest/v0/` (rule `9879101`), raise `LIMIT_REQ_RATE` to `10r/s` for the nine live-update subscriptions of each page load, correct the CSP and `X-Frame-Options` advice, and name the tested XO build.
