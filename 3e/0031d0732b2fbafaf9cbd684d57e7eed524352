@@ -1,0 +1,27 @@
+templates/umami/template.json
+  s_06d161d6ff8a68::t_4df67d63fc926e 21
+templates/umami/examples/umami_renamed_paths.conf
+  s_06d161d6ff8a68::t_4df67d63fc926e 8-9,25,29
+templates/umami/configs/modsec-crs/umami_false_positives.conf
+  s_06d161d6ff8a68::t_4df67d63fc926e 14-16,28,32,122-123,145-151,176,206,236,266,296,326,356,386,416,446,476,506,536,566,596
+templates/umami/README.md
+  s_06d161d6ff8a68::t_4df67d63fc926e 50-55,68-72,109-111,117-118,124,129-131,169,171-172,187-195,198-200,203-206,260-272
+CHANGELOG.md
+  s_06d161d6ff8a68::t_4df67d63fc926e 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3e0031d0732b2fbafaf9cbd684d57e7eed524352",
+  "prompts": {},
+  "sessions": {
+    "s_06d161d6ff8a68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc014455-ad2c-4f84-b60c-76c1e90b77a9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
