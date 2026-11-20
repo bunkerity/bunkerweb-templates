@@ -1,0 +1,27 @@
+templates/tuwunel/configs/modsec-crs/tuwunel_false_positives.conf
+  s_06d161d6ff8a68::t_4df67d63fc926e 5-13,20,22
+templates/tuwunel/configs/server-http/well-known.conf
+  s_06d161d6ff8a68::t_4df67d63fc926e 5-6
+templates/tuwunel/README.md
+  s_06d161d6ff8a68::t_4df67d63fc926e 15,36,43-46,55,71-81,85,88-105,113-120,127-148,154
+templates/tuwunel/template.json
+  s_06d161d6ff8a68::t_4df67d63fc926e 34,55,75,104,128
+CHANGELOG.md
+  s_06d161d6ff8a68::t_4df67d63fc926e 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2187cd7bac791e37c0f2bed36a3de72e1e17e06b",
+  "prompts": {},
+  "sessions": {
+    "s_06d161d6ff8a68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc014455-ad2c-4f84-b60c-76c1e90b77a9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
