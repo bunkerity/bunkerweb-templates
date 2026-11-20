@@ -32,14 +32,14 @@
     "USE_CLIENT_CACHE": "yes",
     "USE_GZIP": "yes",
     "COOKIE_FLAGS": "* SameSite=Lax",
-    "PERMISSIONS_POLICY": "accelerometer=(), ambient-light-sensor=(), battery=(), bluetooth=(), camera=(), clipboard-read=(), display-capture=(), document-domain=(), encrypted-media=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), interest-cohort=(), keyboard-map=(), local-fonts=(), magnetometer=(), microphone=(), payment=(), publickey-credentials-get=(), serial=(), sync-xhr=(), usb=(), xr-spatial-tracking=(), interest-cohort=()",
-    "CONTENT_SECURITY_POLICY": "default-src https: data: blob: ; img-src 'self' https://* ; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.youtube.com blob:; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; font-src 'self'"
+    "PERMISSIONS_POLICY": "accelerometer=(), ambient-light-sensor=(), battery=(), bluetooth=(), camera=(), clipboard-read=(), display-capture=(), document-domain=(), encrypted-media=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), interest-cohort=(), keyboard-map=(), local-fonts=(), magnetometer=(), microphone=(), payment=(), publickey-credentials-get=(), serial=(), sync-xhr=(), usb=(), xr-spatial-tracking=()",
+    "CONTENT_SECURITY_POLICY": "default-src https: data: blob: ; img-src 'self' https://* ; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.youtube.com blob:; worker-src 'self' blob:; connect-src 'self'; media-src 'self' blob:; object-src 'none'; font-src 'self'"
   },
   "configs": ["modsec-crs/jellyfin_false_positives.conf"],
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your Jellyfin hostname(s) and TLS options.",
+      "subtitle": "Set your Jellyfin host name. For a LAN name with no public DNS, turn Let's Encrypt off.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -59,7 +59,7 @@
     },
     {
       "title": "Web service - Upstream service",
-      "subtitle": "Direct the reverse proxy toward your Jellyfin backend and websocket endpoints.",
+      "subtitle": "Set the Jellyfin upstream host. The second host, URL and websocket fields are the /socket entry: change only its host.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_HOST",
