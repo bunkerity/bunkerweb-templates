@@ -1,0 +1,22 @@
+CHANGELOG.md
+  h_a33a1e80933106 8
+templates/wordpress/README.md
+  h_a33a1e80933106 12,31,39-40,42-45,52-53,55-58,63-76,79-88,92-93,104
+templates/wordpress/configs/modsec-crs/wordpress_crs_tuning.conf
+  h_a33a1e80933106 1-3,19-22,61-85
+templates/wordpress/configs/modsec-crs/wordpress_false_positives.conf
+  h_a33a1e80933106 1-4
+templates/wordpress/template.json
+  h_a33a1e80933106 23,29,47,90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2908d4f2b779287886d7c24d37217e14266df2fd",
+  "prompts": {},
+  "humans": {
+    "h_a33a1e80933106": {
+      "author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
