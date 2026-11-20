@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Let Forgejo issue, comment, title, preview, review, release and wiki forms carry shell-like text (rules `9856106` and `9856107`), let repository file views (`src`, `raw`, `blame`, API `raw` and `contents`) show files that quote error messages or are named `.env.example` (rule `9856105`), cover `.sql` files on the API `raw` route, and document the `Content-Type` that package and LFS uploads need.
 - [@TheophileDiot] Add a Stirling-PDF template with a 100 MiB upload limit, a 20 minute job timeout, a request rate that lets the web app send one request per file, a single forwarded client address, a bad-behavior list that ignores the app's `401` answers, scoped CRS exclusions for the Automate pipeline, saved signatures and file names with quotes, and an optional authentik sign-in step.
 - [@TheophileDiot] Stop the random `403` on Vaultwarden bulk imports: the encrypted vault fields trip CRS rules at random, so rule `9877100` now skips eleven rules (`932160`, `932230`, `932235`, `932250`, `932260` and `942100` added) on the cipher, folder and Send writes, and the README asks for several large test imports in detect mode.
 - [@TheophileDiot] Make openGym passkeys work by allowing `publickey-credentials-create` and `-get` in `PERMISSIONS_POLICY` (it replaces BunkerWeb's default list until the web UI accepts the full one), and document `RP_ID`, `ORIGIN` and `TRUST_PROXY`, the Let's Encrypt toggle, antibot and the bad-behavior ban.

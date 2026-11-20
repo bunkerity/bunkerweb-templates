@@ -21,7 +21,7 @@
   "steps": [
     {
       "title": "Domains and TLS",
-      "subtitle": "Set your public hostname and certificate settings.",
+      "subtitle": "Set your public hostname. Automatic Let's Encrypt needs public DNS: turn it off for a LAN or test host.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -47,7 +47,7 @@
     },
     {
       "title": "CRS exclusions",
-      "subtitle": "Review the documented exception scopes before enabling the service.",
+      "subtitle": "These two rules apply with the service. Read them, then save.",
       "configs": [
         "modsec-crs/forgejo_protocol.conf",
         "modsec-crs/forgejo_false_positives.conf"
