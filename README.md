@@ -5,11 +5,16 @@
 <h3 align="center">Ready-to-run BunkerWeb configurations for popular services,<br />fully editable to fit your stack.</h3>
 
 <p align="center">
+  <a href="#templates"><img src="https://img.shields.io/github/directory-file-count/bunkerity/bunkerweb-templates/templates?type=dir&label=templates&color=085577" alt="Number of templates" /></a>
+  <a href="https://github.com/bunkerity/bunkerweb-templates/releases"><img src="https://img.shields.io/github/v/release/bunkerity/bunkerweb-templates?label=release&color=085577" alt="Latest release" /></a>
+  <a href="https://github.com/bunkerity/bunkerweb-templates/releases"><img src="https://img.shields.io/github/downloads/bunkerity/bunkerweb-templates/total?label=downloads&color=085577" alt="Release downloads" /></a>
+  <a href="https://github.com/bunkerity/bunkerweb"><img src="https://img.shields.io/badge/BunkerWeb-1.6.17-085577" alt="Tested with BunkerWeb 1.6.17" /></a>
+  <a href="https://coreruleset.org/"><img src="https://img.shields.io/badge/OWASP%20CRS-4-085577" alt="OWASP CRS 4" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3" /></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/bunkerity/bunkerweb-templates/stargazers"><img src="https://img.shields.io/github/stars/bunkerity/bunkerweb-templates?color=ffb400&logo=github" alt="GitHub stars" /></a>
-  <a href="https://github.com/bunkerity/bunkerweb-templates/issues"><img src="https://img.shields.io/github/issues/bunkerity/bunkerweb-templates?label=issues" alt="Open issues" /></a>
-  <a href="https://github.com/bunkerity/bunkerweb-templates/pulls"><img src="https://img.shields.io/github/issues-pr/bunkerity/bunkerweb-templates?label=PRs" alt="Open pull requests" /></a>
-  <a href="https://github.com/bunkerity/bunkerweb-templates/commits"><img src="https://img.shields.io/github/last-commit/bunkerity/bunkerweb-templates?label=last%20update" alt="Last update" /></a>
   <a href="https://score.getplumber.io/github.com/bunkerity/bunkerweb-templates"><img src="https://score.getplumber.io/github.com/bunkerity/bunkerweb-templates.svg" alt="Plumber CI/CD security score" /></a>
   <a href="https://discord.gg/YEdMKqztMZ"><img src="https://img.shields.io/badge/community-Discord-5865F2?logo=discord&logoColor=white" alt="Join the Discord" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome" /></a>
