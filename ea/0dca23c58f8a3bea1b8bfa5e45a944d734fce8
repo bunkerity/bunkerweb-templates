@@ -1,0 +1,21 @@
+CHANGELOG.md
+  s_295b9e597446ec::t_6706d144235fe6 8
+README.md
+  s_295b9e597446ec::t_a340693995b249 8-12,14-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ea0dca23c58f8a3bea1b8bfa5e45a944d734fce8",
+  "prompts": {},
+  "sessions": {
+    "s_295b9e597446ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b7b0bfbe-fc63-44aa-84b3-61c9fb4c6bb4",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
