@@ -1,0 +1,27 @@
+templates/synapse/template.json
+  s_06d161d6ff8a68::t_4df67d63fc926e 34,54,74,89,104,121
+templates/synapse/configs/server-http/well-known.conf
+  s_06d161d6ff8a68::t_4df67d63fc926e 3-5
+templates/synapse/README.md
+  s_06d161d6ff8a68::t_4df67d63fc926e 15,39,47-49,56-61,68-87,100-120,133-140,147-168,177
+templates/synapse/configs/modsec-crs/synapse_false_positives.conf
+  s_06d161d6ff8a68::t_4df67d63fc926e 5-13,20,22
+CHANGELOG.md
+  s_06d161d6ff8a68::t_4df67d63fc926e 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ff9271616d37a896a67968acfecef49b72b82cff",
+  "prompts": {},
+  "sessions": {
+    "s_06d161d6ff8a68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc014455-ad2c-4f84-b60c-76c1e90b77a9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
