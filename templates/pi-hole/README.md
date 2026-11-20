@@ -1,10 +1,40 @@
-# Pi-hole Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/pi-hole.svg" alt="Pi-hole logo" width="96" height="96" />
+</p>
+
+<h1 align="center">Pi-hole</h1>
+
+<p align="center">Reverse proxy template with admin UI and API tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#host-header">Host header</a> ·
+  <a href="#cloudflare-real-ip-assumption">Cloudflare real IP</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#root-domain-caveat">Root domain caveat</a>
+</p>
 
 This template reverse-proxies the Pi-hole **web admin UI and REST API** through
 BunkerWeb. Pi-hole's DNS service is out of scope: keep serving DNS directly from
 Pi-hole on port 53 and only front the HTTP interface with BunkerWeb.
 
-## Setup
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `pi-hole`                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9868000` to `9868999`        |
+
+## Install
 
 1. Follow the repository's [installation guide](../../README.md#install)
    for the web UI or plugin bundle method.
@@ -14,7 +44,7 @@ Pi-hole on port 53 and only front the HTTP interface with BunkerWeb.
    review the real-IP settings described below.
 4. Reload BunkerWeb and verify the admin UI and REST API through the proxy.
 
-## Security tuning notes
+## Settings
 
 This template deliberately relaxes a few defaults so a self-hosted Pi-hole admin
 does not get locked out of their own dashboard. Each is safe to tighten once your
@@ -51,6 +81,12 @@ setting is unsuffixed: `REVERSE_PROXY_CUSTOM_HOST_1` has no effect.
 `CF-Connecting-IP` header, assuming Pi-hole sits behind Cloudflare. If you are
 **not** behind Cloudflare, edit `REAL_IP_FROM`/`REAL_IP_HEADER` to match your own
 proxy or set `USE_REAL_IP=no`, otherwise client IPs will be mis-attributed.
+
+## Validation
+
+- Run `jq . template.json` to confirm the template definition is valid JSON.
+- Sign in to the admin UI and exercise its API-backed dashboard through
+  BunkerWeb to confirm routing, client IP attribution, and rate limits.
 
 ## Root Domain Caveat
 
@@ -95,8 +131,8 @@ REVERSE_PROXY_CONNECT_TIMEOUT_1=30s
 REVERSE_PROXY_READ_TIMEOUT_1=90s
 ```
 
-## Validation
+---
 
-- Run `jq . template.json` to confirm the template definition is valid JSON.
-- Sign in to the admin UI and exercise its API-backed dashboard through
-  BunkerWeb to confirm routing, client IP attribution, and rate limits.
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

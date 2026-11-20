@@ -1,6 +1,24 @@
-# DocuSeal Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/docusealco/docuseal/master/public/logo.svg" alt="DocuSeal logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">DocuSeal</h1>
+
+<p align="center">Document signing template with API-aware defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#docker-compose-example">Docker Compose example</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 This template proxies DocuSeal through BunkerWeb with automatic Let's Encrypt certificates, reverse
 proxying, API-friendly error handling and a 50m request size limit.
@@ -13,6 +31,15 @@ signature value is a `data:` URI (for example `data:image/png;base64,...`, teste
 also accepts plain base64 or a URL on those fields, and plain base64 passes, so send that instead.
 The signing UI is not affected: it uploads signatures, initials and files as multipart.
 
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `docuseal`                    |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 0                             |
+| Upstream    | `http://docuseal:3000`        |
+
 ## Prerequisites
 
 - A running DocuSeal server that BunkerWeb can reach. The routes and the port (3000) come from the
@@ -22,7 +49,73 @@ The signing UI is not affected: it uploads signatures, initials and files as mul
 - A public hostname pointing to BunkerWeb.
 - Access to the BunkerWeb web UI or service environment variables.
 
-## Setup
+## Docker Compose example
+
+The layout follows DocuSeal's official `docker-compose.yml`, without the Caddy service and without
+publishing the app port: BunkerWeb reaches DocuSeal over the `bw-services` network. Usernames and
+passwords below are placeholders. Replace them with your own values before deploying. Save the
+block as `docker-compose.yml`.
+
+> [!NOTE]
+> `bw-services` is an external network. If your BunkerWeb stack does not define it yet, create
+> it with `docker network create bw-services` and attach BunkerWeb to it before running
+> `docker compose up -d`.
+
+```yaml
+services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: docuseal/docuseal:latest
+    restart: unless-stopped
+    volumes:
+      - ./docuseal:/data/docuseal
+    environment:
+      - FORCE_SSL=${HOST:?Set HOST}
+      - DATABASE_URL=postgresql://example-user:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/docuseal
+    networks:
+      default:
+      bw-services:
+        aliases:
+          - docuseal
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    volumes:
+      - "./pg_data:/var/lib/postgresql/18/docker"
+    environment:
+      POSTGRES_USER: "example-user"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}"
+      POSTGRES_DB: docuseal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U example-user -d docuseal"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  bw-services:
+    external: true
+```
+
+`FORCE_SSL` makes DocuSeal treat requests as HTTPS and redirect plain HTTP, which is what it needs
+behind a TLS-terminating proxy. Any value other than empty or `false` turns it on, and DocuSeal's
+own Compose file passes the public hostname. Compose reads `HOST` and `POSTGRES_PASSWORD` from a
+`.env` file next to `docker-compose.yml`. `POSTGRES_PASSWORD` is also written into `DATABASE_URL`,
+so use only URL-safe characters (letters, digits, `-`, `_`, `.`, `~`) or percent-encode it there;
+`openssl rand -hex 24` produces a safe value. Create the file before starting the stack:
+
+```bash
+cat > .env <<EOF
+HOST=docuseal.example.com
+POSTGRES_PASSWORD=$(openssl rand -hex 24)
+EOF
+docker compose config --quiet
+docker compose up -d
+```
+
+## Install
 
 1. Import `template.json` as described in the repository's
    [installation guide](../../README.md#install), or in the web UI with Templates →
@@ -33,7 +126,7 @@ The signing UI is not affected: it uploads signatures, initials and files as mul
 4. Reload BunkerWeb, open the public URL, and test sign-in and the main workflow of the application
    (for example a document, upload or API call).
 
-## Placeholders
+### Placeholders
 
 The values below are examples. Replace them with your own before using the template:
 
@@ -44,7 +137,9 @@ The values below are examples. Replace them with your own before using the templ
 - `example-user` → your own username
 - `openssl rand -hex 24` → generates a long random secret for each variable
 
-## Notes
+## Settings
+
+### Notes
 
 - **Certificates:** the HTTP challenge needs port 80 on BunkerWeb to be reachable from the internet
   for every domain in `SERVER_NAME`.
@@ -78,8 +173,6 @@ The values below are examples. Replace them with your own before using the templ
 - **Database password:** the database service and the connection URL read the same variable.
   Generate it with `openssl rand -hex 24`; if you choose your own password, percent-encode
   URI-reserved characters (`@ : / ? # %`) in the URL.
-
-## Settings
 
 ### Web service - Front service
 
@@ -149,71 +242,6 @@ Compress proxied responses; static files are served by DocuSeal, not BunkerWeb.
 | `USE_GZIP`     | `yes`                                    | Compress responses sent to clients.                                     |
 | `GZIP_PROXIED` | `expired no-cache no-store private auth` | Which proxied responses are compressed, based on their caching headers. |
 
-## Docker Compose example
-
-The layout follows DocuSeal's official `docker-compose.yml`, without the Caddy service and without
-publishing the app port: BunkerWeb reaches DocuSeal over the `bw-services` network. Usernames and
-passwords below are placeholders. Replace them with your own values before deploying. Save the
-block as `docker-compose.yml`.
-
-`bw-services` is an external network. If your BunkerWeb stack does not define it yet, create
-it with `docker network create bw-services` and attach BunkerWeb to it before running
-`docker compose up -d`.
-
-```yaml
-services:
-  app:
-    depends_on:
-      postgres:
-        condition: service_healthy
-    image: docuseal/docuseal:latest
-    restart: unless-stopped
-    volumes:
-      - ./docuseal:/data/docuseal
-    environment:
-      - FORCE_SSL=${HOST:?Set HOST}
-      - DATABASE_URL=postgresql://example-user:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/docuseal
-    networks:
-      default:
-      bw-services:
-        aliases:
-          - docuseal
-  postgres:
-    image: postgres:18
-    restart: unless-stopped
-    volumes:
-      - "./pg_data:/var/lib/postgresql/18/docker"
-    environment:
-      POSTGRES_USER: "example-user"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}"
-      POSTGRES_DB: docuseal
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U example-user -d docuseal"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-networks:
-  bw-services:
-    external: true
-```
-
-`FORCE_SSL` makes DocuSeal treat requests as HTTPS and redirect plain HTTP, which is what it needs
-behind a TLS-terminating proxy. Any value other than empty or `false` turns it on, and DocuSeal's
-own Compose file passes the public hostname. Compose reads `HOST` and `POSTGRES_PASSWORD` from a
-`.env` file next to `docker-compose.yml`. `POSTGRES_PASSWORD` is also written into `DATABASE_URL`,
-so use only URL-safe characters (letters, digits, `-`, `_`, `.`, `~`) or percent-encode it there;
-`openssl rand -hex 24` produces a safe value. Create the file before starting the stack:
-
-```bash
-cat > .env <<EOF
-HOST=docuseal.example.com
-POSTGRES_PASSWORD=$(openssl rand -hex 24)
-EOF
-docker compose config --quiet
-docker compose up -d
-```
-
 ## Validation
 
 Run these from the repository root before importing the template:
@@ -238,3 +266,9 @@ After applying it:
   call).
 - Check BunkerWeb logs for rate-limit, bad-behavior, and ModSecurity events before changing security
   controls.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

@@ -1,9 +1,42 @@
-# Garage Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/garage.svg" alt="Garage logo" width="96" height="96" />
+</p>
+
+<h1 align="center">Garage</h1>
+
+<p align="center">S3 object storage template with signed-request WAF tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/Garage-v2.5.0-248651?labelColor=1d6f93&style=flat" alt="Garage v2.5.0" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-garage-for-the-proxy">Configure Garage</a> ·
+  <a href="#import-and-initial-detect-run">Import</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#things-to-think-about">Things to think about</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Expose the S3 API of an existing [Garage](https://garagehq.deuxfleurs.fr) server through
 BunkerWeb: signed uploads and downloads, multipart uploads, bulk deletes, presigned URLs, browser
 uploads with CORS, in path-style and virtual-host-style addressing, plus a token-free `/health`
 endpoint for uptime monitors.
+
+## At a glance
+
+| Fact        | Value                                        |
+| ----------- | -------------------------------------------- |
+| Template id | `garage`                                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Garage v2.5.0 |
+| Configs     | 1 (modsec-crs)                               |
+| Rule ids    | `9857000` to `9857999`                       |
+| Upstream    | `http://garage:3900`                         |
 
 ## Prerequisites
 
@@ -22,6 +55,23 @@ endpoint for uptime monitors.
 - Keep your clients' single-request size below `MAX_CLIENT_SIZE` (`256m`): set the multipart part
   size, and for rclone the `--s3-upload-cutoff`, under it. rclone's default cutoff is 200 MiB, which
   fits.
+
+## Configure Garage for the proxy
+
+| Garage setting                                    | Value                                  | What breaks without it                                                                                                                                                  |
+| ------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[s3_api]` `s3_region`                            | The region your clients sign with      | Garage answers a request signed for another region with `AuthorizationHeaderMalformed` ([configuration reference][garage-conf]). The tests used `garage`.               |
+| `[s3_api]` `root_domain`                          | `".s3.example.com"`                    | Virtual-host-style requests (`mybucket.s3.example.com`) are not mapped to a bucket. Path-style needs no `root_domain`.                                                  |
+| One BunkerWeb service per bucket host             | See "Import and initial detect run"    | A wildcard `SERVER_NAME` is refused by BunkerWeb 1.6.17, so each virtual-host bucket needs its own service with `USE_TEMPLATE=garage`.                                  |
+| Client endpoint scheme                            | `https://s3.example.com`               | With TLS on, BunkerWeb answers plain HTTP with a `301` to HTTPS (`AUTO_REDIRECT_HTTP_TO_HTTPS` defaults to `yes`), so a client left on `http://` gets a redirect instead of S3.       |
+| Client `Host` with a port, when not 80 or 443     | Nothing to change on Garage            | BunkerWeb's default `Host $host` would drop the port and break the signature. The template sets `Host $http_host`, so any port works.                                    |
+
+[garage-conf]: https://garagehq.deuxfleurs.fr/documentation/reference-manual/configuration/
+
+Garage reads the client address only to label its own log line, so no trusted-proxy setting exists
+on the Garage side (`src/api/common/generic_server.rs` and `src/util/forwarded_headers.rs` at
+`v2.5.0`). The template still sends `X-Forwarded-For
+$remote_addr`, see "Things to think about".
 
 ## Import and initial detect run
 
@@ -49,79 +99,12 @@ Before enabling blocking on your instance:
    ModSecurity log lines; compare the rule ids with the list in "CRS exception scope and cost".
 3. Switch to `SECURITY_MODE=block` and repeat the workflows.
 
-False positives return `403` and BunkerWeb counts them for bad behavior: about ten matching
-responses in 60 seconds ban the client for one day. That includes a backup job that fails the same
-way for every object.
+> [!IMPORTANT]
+> False positives return `403` and BunkerWeb counts them for bad behavior: about ten matching
+> responses in 60 seconds ban the client for one day. That includes a backup job that fails the same
+> way for every object.
 
-## Configure Garage for the proxy
-
-| Garage setting                                    | Value                                  | What breaks without it                                                                                                                                                  |
-| ------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[s3_api]` `s3_region`                            | The region your clients sign with      | Garage answers a request signed for another region with `AuthorizationHeaderMalformed` ([configuration reference][garage-conf]). The tests used `garage`.               |
-| `[s3_api]` `root_domain`                          | `".s3.example.com"`                    | Virtual-host-style requests (`mybucket.s3.example.com`) are not mapped to a bucket. Path-style needs no `root_domain`.                                                  |
-| One BunkerWeb service per bucket host             | See "Import and initial detect run"    | A wildcard `SERVER_NAME` is refused by BunkerWeb 1.6.17, so each virtual-host bucket needs its own service with `USE_TEMPLATE=garage`.                                  |
-| Client endpoint scheme                            | `https://s3.example.com`               | With TLS on, BunkerWeb answers plain HTTP with a `301` to HTTPS (`AUTO_REDIRECT_HTTP_TO_HTTPS` defaults to `yes`), so a client left on `http://` gets a redirect instead of S3.       |
-| Client `Host` with a port, when not 80 or 443     | Nothing to change on Garage            | BunkerWeb's default `Host $host` would drop the port and break the signature. The template sets `Host $http_host`, so any port works.                                    |
-
-[garage-conf]: https://garagehq.deuxfleurs.fr/documentation/reference-manual/configuration/
-
-Garage reads the client address only to label its own log line, so no trusted-proxy setting exists
-on the Garage side (`src/api/common/generic_server.rs` and `src/util/forwarded_headers.rs` at
-`v2.5.0`). The template still sends `X-Forwarded-For
-$remote_addr`, see "Things to think about".
-
-## Things to think about
-
-- **Client IP in Garage's log.** Garage parses the whole `X-Forwarded-For` header as one address; a
-  list makes the parse fail and it logs BunkerWeb's address instead. BunkerWeb's default appends to
-  a client-supplied value. The template replaces it with `$remote_addr`: with it Garage logged the
-  real client for no header, one address and a list; without it, a client-supplied header made
-  Garage log BunkerWeb. The address is only a log label, so nothing can be spoofed into access. If
-  BunkerWeb itself sits behind another proxy, set `USE_REAL_IP` first, or `$remote_addr` is that
-  proxy (not tested).
-- **HTTPS with an HTTP upstream.** The signature binds the `Host` header, not the scheme: a
-  presigned `GET` and a signed listing over HTTPS to BunkerWeb with `http://garage:3900` behind it
-  returned `200` (HTTP/2), and rclone and the AWS CLI listed a bucket over HTTPS. Every client must use the `https`
-  endpoint: after TLS is on, plain HTTP gets a `301`. BunkerWeb also sends HSTS
-  (`includeSubDomains; preload`), which browsers apply to every subdomain.
-- **Health check.** The step "HTTP - Health check" maps `^/health$` to Garage's admin port, which
-  answers `GET /health` without a token (`200`, "Garage is fully operational"). `/metrics`,
-  `/v1/health`, `/health/x` and `/check` through BunkerWeb are answered by the S3 side with `403`,
-  so the rest of the admin API stays private. A bucket named `health` is the cost: with the step on,
-  `GET /health?list-type=2` reached the admin port (`200`); without it the same request reached the
-  S3 API. Clear `REVERSE_PROXY_URL_1` and `REVERSE_PROXY_HOST_1` if you have such a bucket or no
-  monitor.
-- **Website hosting (`3902`) and K2V.** Not covered and not tested. Serve a website
-  endpoint from a separate BunkerWeb service of its own, never from the S3 hostname, and do not
-  enable K2V behind this template without testing it.
-- **Browser uploads.** Garage's per-bucket CORS passes through unchanged. In real Chrome, from
-  another origin, a presigned `PUT` (`200`, ETag readable through `ExposeHeader`), a presigned
-  `GET`, an `<img>` and a presigned `POST` (PostObject, as Outline uploads) with a concrete key
-  (`201`, filename `upload (1).png`) all passed through the template's defaults. A key with the
-  `${filename}` placeholder in a PostObject policy returns `403` (rules `932130` and `933135` on
-  `ARGS:key`): use a concrete key.
-- **Embedding an object in an iframe.** BunkerWeb's default `Content-Security-Policy` is
-  `object-src 'none'; form-action 'self'; frame-ancestors 'self';`, so a browser refuses to frame an
-  object from another origin ("violates CSP directive frame-ancestors 'self'"). Set
-  `CONTENT_SECURITY_POLICY=object-src 'none'; form-action 'self'; frame-ancestors https://app.example.com`
-  on the S3 service to allow one embedding origin; `X-Frame-Options: SAMEORIGIN` was left in place in the test and the frame loaded. The setting is not shipped: it would apply to every object.
-- **Rate limits count per client address and path.** `LIMIT_REQ_RATE` keys on the client IP and the
-  request path without its query. A sync touching many distinct object paths never reaches it; the
-  same bucket path does, as each listing (`GET /bucket?prefix=...`) and `HEAD /bucket` counts on
-  `/bucket`. Many clients behind one NAT add up on that path.
-- **Caching proxies in front.** Garage users report `HEAD` returning `403` behind Cloudflare and
-  Traefik with caching ([#1410][g1410], [#1226][g1226]). Not tested here; do not cache S3 requests
-  between the client and BunkerWeb.
-- **SDK uploads that Garage rejects.** Upstream issue [#1549][g1549] (open): AWS SDK for Java v2
-  from `2.30` sends `STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER` uploads over plain HTTP and Garage
-  answers "Invalid payload signature". The report is about Garage and that SDK; it was not
-  reproduced through BunkerWeb here.
-
-[g1410]: https://git.deuxfleurs.fr/Deuxfleurs/garage/issues/1410
-[g1226]: https://git.deuxfleurs.fr/Deuxfleurs/garage/issues/1226
-[g1549]: https://git.deuxfleurs.fr/Deuxfleurs/garage/issues/1549
-
-## Settings and tradeoffs
+## Settings
 
 | Setting                                                | Purpose                                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
@@ -219,13 +202,67 @@ target, never the rule, and `949110` and `959100` are never touched.
 - The exclusions rely on ModSecurity matching `Content-Type`, `Expect` and `Content-Encoding` in the
   case the client sends them: rclone, the AWS CLI and a raw client sending lowercase names all passed.
 
-## Validation and test history
+## Things to think about
+
+- **Client IP in Garage's log.** Garage parses the whole `X-Forwarded-For` header as one address; a
+  list makes the parse fail and it logs BunkerWeb's address instead. BunkerWeb's default appends to
+  a client-supplied value. The template replaces it with `$remote_addr`: with it Garage logged the
+  real client for no header, one address and a list; without it, a client-supplied header made
+  Garage log BunkerWeb. The address is only a log label, so nothing can be spoofed into access. If
+  BunkerWeb itself sits behind another proxy, set `USE_REAL_IP` first, or `$remote_addr` is that
+  proxy (not tested).
+- **HTTPS with an HTTP upstream.** The signature binds the `Host` header, not the scheme: a
+  presigned `GET` and a signed listing over HTTPS to BunkerWeb with `http://garage:3900` behind it
+  returned `200` (HTTP/2), and rclone and the AWS CLI listed a bucket over HTTPS. Every client must use the `https`
+  endpoint: after TLS is on, plain HTTP gets a `301`. BunkerWeb also sends HSTS
+  (`includeSubDomains; preload`), which browsers apply to every subdomain.
+- **Health check.** The step "HTTP - Health check" maps `^/health$` to Garage's admin port, which
+  answers `GET /health` without a token (`200`, "Garage is fully operational"). `/metrics`,
+  `/v1/health`, `/health/x` and `/check` through BunkerWeb are answered by the S3 side with `403`,
+  so the rest of the admin API stays private. A bucket named `health` is the cost: with the step on,
+  `GET /health?list-type=2` reached the admin port (`200`); without it the same request reached the
+  S3 API. Clear `REVERSE_PROXY_URL_1` and `REVERSE_PROXY_HOST_1` if you have such a bucket or no
+  monitor.
+- **Website hosting (`3902`) and K2V.** Not covered and not tested. Serve a website
+  endpoint from a separate BunkerWeb service of its own, never from the S3 hostname, and do not
+  enable K2V behind this template without testing it.
+- **Browser uploads.** Garage's per-bucket CORS passes through unchanged. In real Chrome, from
+  another origin, a presigned `PUT` (`200`, ETag readable through `ExposeHeader`), a presigned
+  `GET`, an `<img>` and a presigned `POST` (PostObject, as Outline uploads) with a concrete key
+  (`201`, filename `upload (1).png`) all passed through the template's defaults. A key with the
+  `${filename}` placeholder in a PostObject policy returns `403` (rules `932130` and `933135` on
+  `ARGS:key`): use a concrete key.
+- **Embedding an object in an iframe.** BunkerWeb's default `Content-Security-Policy` is
+  `object-src 'none'; form-action 'self'; frame-ancestors 'self';`, so a browser refuses to frame an
+  object from another origin ("violates CSP directive frame-ancestors 'self'"). Set
+  `CONTENT_SECURITY_POLICY=object-src 'none'; form-action 'self'; frame-ancestors https://app.example.com`
+  on the S3 service to allow one embedding origin; `X-Frame-Options: SAMEORIGIN` was left in place in the test and the frame loaded. The setting is not shipped: it would apply to every object.
+- **Rate limits count per client address and path.** `LIMIT_REQ_RATE` keys on the client IP and the
+  request path without its query. A sync touching many distinct object paths never reaches it; the
+  same bucket path does, as each listing (`GET /bucket?prefix=...`) and `HEAD /bucket` counts on
+  `/bucket`. Many clients behind one NAT add up on that path.
+- **Caching proxies in front.** Garage users report `HEAD` returning `403` behind Cloudflare and
+  Traefik with caching ([#1410][g1410], [#1226][g1226]). Not tested here; do not cache S3 requests
+  between the client and BunkerWeb.
+- **SDK uploads that Garage rejects.** Upstream issue [#1549][g1549] (open): AWS SDK for Java v2
+  from `2.30` sends `STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER` uploads over plain HTTP and Garage
+  answers "Invalid payload signature". The report is about Garage and that SDK; it was not
+  reproduced through BunkerWeb here.
+
+[g1410]: https://git.deuxfleurs.fr/Deuxfleurs/garage/issues/1410
+[g1226]: https://git.deuxfleurs.fr/Deuxfleurs/garage/issues/1226
+[g1549]: https://git.deuxfleurs.fr/Deuxfleurs/garage/issues/1549
+
+## Validation
 
 Tested on 2026-11-17: Garage `v2.5.0` (single node), BunkerWeb `1.6.17` (OWASP CRS 4.29.0,
 libmodsecurity 3.0.17), default paranoia level and anomaly thresholds, `SECURITY_MODE=block`.
 The matrix and the smoke run used HTTP; the HTTPS checks used a self-signed certificate.
 Clients: rclone `1.69.1`, AWS CLI `2.22.35`, a SigV4 client that sends exact headers, and Chrome for
 the browser checks.
+
+<details>
+<summary>Test evidence</summary>
 
 - **Request matrix.** 133 requests, one at a time: 97 seeds, 32 controls and
   4 documented limits. Each seed passes on its status and on a read-back from Garage (the
@@ -272,9 +309,17 @@ the browser checks.
   saved, and listed next to the plugin copy (done on the first build of the template, before the
   health and forwarding settings were added; the final file was packed as a plugin for every run).
 
+</details>
+
 Not verified: HTTP/3; a multi-node Garage cluster; clients other than those named (minio-go and
 restic, boto3 and s3cmd with real transfers, not only a listing); streaming-signed uploads with a
 literal `Content-Encoding: aws-chunked` (the header name is excluded, the value is not what rule
 `920450` reads); SSE-C; Garage's website endpoint (`3902`) and K2V; `USE_REAL_IP` with
 BunkerWeb behind another proxy; uploads above 256 MiB; idle connections (S3 has no long-lived
 channel). Validate your own clients before enabling blocking.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

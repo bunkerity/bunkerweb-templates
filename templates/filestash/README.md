@@ -1,6 +1,25 @@
-# Filestash Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/filestash.svg" alt="Filestash logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Filestash</h1>
+
+<p align="center">File manager template with WebDAV-aware proxy defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#custom-configs">Custom configs</a> ·
+  <a href="#docker-compose-example">Docker Compose example</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Provision a BunkerWeb configuration for [Filestash](https://www.filestash.app/), the web file
 manager that connects to S3, SFTP, WebDAV and other storage backends. The template proxies
@@ -11,6 +30,16 @@ Editing Office documents inside Filestash needs a Collabora (WOPI) server on its
 [filestash-office](../filestash-office/README.md) template fronts that server and uses the same
 Compose example, shown further down on this page.
 
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `filestash`                   |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9855000` to `9855999`        |
+| Upstream    | `http://filestash:8334`       |
+
 ## Prerequisites
 
 - A running Filestash server that BunkerWeb can reach. The request shapes behind the ModSecurity
@@ -20,7 +49,7 @@ Compose example, shown further down on this page.
 - A public hostname pointing to BunkerWeb.
 - Access to the BunkerWeb web UI or service environment variables.
 
-## Setup
+## Install
 
 1. Import `template.json` (Templates → **Create new template** → **Raw**, then upload or paste it).
 2. When the **Missing Custom Configs** dialog appears, upload every file listed in the
@@ -32,7 +61,9 @@ Compose example, shown further down on this page.
 5. Reload BunkerWeb, open the public URL, and test sign-in, an upload, a download and the web
    editor.
 
-## Placeholders
+For both import methods (web UI and plugin), see the repository [installation guide](../../README.md#install).
+
+### Placeholders
 
 The values below are examples. Replace them with your own before using the template:
 
@@ -42,7 +73,9 @@ The values below are examples. Replace them with your own before using the templ
   the port Filestash listens on (8334), or the IP address and port of the server, for example
   `http://10.0.0.5:8334`
 
-## Notes
+## Settings
+
+### Notes
 
 - **Certificates:** the HTTP challenge needs port 80 on BunkerWeb to be reachable from the internet
   for every domain in `SERVER_NAME`.
@@ -85,8 +118,6 @@ The values below are examples. Replace them with your own before using the templ
 - **ModSecurity rule IDs:** the template's rules use IDs 9855101 to 9855103, inside its block
   9855000 to 9855999 of the range BunkerWeb reserves for community templates (see "Rule IDs" in
   [`TEMPLATE_GUIDE.md`](../../TEMPLATE_GUIDE.md)). Rules you add yourself belong in 1 to 99999.
-
-## Settings
 
 ### Web service - Front service
 
@@ -210,9 +241,10 @@ TLS, the WAF and the rate limits. Replace `filestash.example.com` and
 `SERVER_NAME` of the matching BunkerWeb service. Skip the `wopi_server` service if you do not edit
 Office documents.
 
-`bw-services` is an external network. If your BunkerWeb stack does not define it yet, create
-it with `docker network create bw-services` and attach BunkerWeb to it before running
-`docker compose up -d`.
+> [!NOTE]
+> `bw-services` is an external network. If your BunkerWeb stack does not define it yet, create
+> it with `docker network create bw-services` and attach BunkerWeb to it before running
+> `docker compose up -d`.
 
 ```yaml
 services:
@@ -316,3 +348,9 @@ After applying the template:
   returned 200 (peak about 0.7 GiB).
 
 Not tested: a live Filestash server, a real browser upload, the Collabora editor, WebDAV clients.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

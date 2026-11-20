@@ -1,9 +1,42 @@
-# SearXNG Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/searxng.svg" alt="SearXNG logo" width="96" height="96" />
+</p>
+
+<h1 align="center">SearXNG</h1>
+
+<p align="center">Metasearch template with query-aware WAF tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/SearXNG-2026.11.13-248651?labelColor=1d6f93&style=flat" alt="SearXNG 2026.11.13" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-searxng-for-the-proxy">Configure SearXNG</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#things-to-think-about">Things to think about</a>
+</p>
 
 Put an existing [SearXNG](https://docs.searxng.org/) instance behind BunkerWeb with ModSecurity and
 the OWASP CRS on: searches for SQL, shell, markup and path strings, the autocompleter, the image and
 favicon proxies, preferences, the `json`, `csv` and `rss` formats, the address-bar search, and
 SearXNG's own limiter and link token.
+
+## At a glance
+
+| Fact        | Value                                             |
+| ----------- | ------------------------------------------------- |
+| Template id | `searxng`                                         |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, SearXNG 2026.11.13 |
+| Configs     | 1 (modsec-crs)                                    |
+| Rule ids    | `9871000` to `9871999`                            |
+| Upstream    | `http://searxng:8080`                             |
 
 ## Prerequisites
 
@@ -40,7 +73,7 @@ with `X-Forwarded-For: 6.6.6.6` was reported by SearXNG's own "self information"
 `Your IP is: 6.6.6.6`, and 20 searches with 20 different forged values all passed a limiter that
 blocks the 16th request from one address (`evidence/xff-wide-nosetting.txt`).
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and the file under `configs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
@@ -57,10 +90,11 @@ Before enabling blocking on your instance:
    where your traffic requires them.
 4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflows.
 
-False positives return `403` in block mode. The default bad-behavior status list is
-`400 401 403 404 405 429 444`: 10 matching responses in one minute ban the client for one day.
+> [!IMPORTANT]
+> False positives return `403` in block mode. The default bad-behavior status list is
+> `400 401 403 404 405 429 444`: 10 matching responses in one minute ban the client for one day.
 
-## Settings and tradeoffs
+## Settings
 
 Each non-default setting was put back to the BunkerWeb default and the failure below reproduced
 (`evidence/r5-*.txt`, `evidence/xff-*.txt`).
@@ -139,6 +173,48 @@ the image URL, and an XSS blob in the preferences link.
 Not covered, so a payload there is blocked: the `q` argument on `/` (the address bar sends
 `/search?q=`, not `/?q=`), the `preferences` blob, and any plugin you add.
 
+## Validation
+
+Tested on 2026-11-18: SearXNG `2026.11.13-8a53a6aa5` (two mock engines behind a stub, the container's
+other defaults; the full engine set for the preference-size probes), Valkey 8 for the limiter,
+`bunkerity/bunkerweb-all-in-one:1.6.17` (CRS 4.29.0), default paranoia level and anomaly thresholds,
+`SECURITY_MODE=block`, plain HTTP on a local test host and one HTTPS and HTTP/2 run with the
+self-signed certificate.
+
+<details>
+<summary>Evidence behind the claims above</summary>
+
+- **Request matrix** (final run on the shipped files, `evidence/matrix-final2.tsv`): 270 requests
+  that must succeed and 28 controls, one at a time with their ModSecurity lines attributed per
+  request. The same 120 seeds of the first run all pass straight to SearXNG without the WAF; the
+  first two runs without the config got `403` for 49 of 145 requests, every one on the query text
+  of `/search` or `/autocompleter`. With the config all 270 pass and read back (the stub engine
+  received the query unmodified, the page rendered the mock results, the saved preferences came
+  back), and all 28 controls got `403` from the specific rule. The other seeds need no exclusion:
+  the instance pages, the image and favicon proxies, a preferences save and link, cookies, an
+  external bang redirect, the `html`, `json`, `csv` and `rss` formats, and 14 client user agents
+  (curl, `python-requests`, `httpx`, `aiohttp`, `axios`, `node-fetch`, Go, OkHttp, Perplexica, a
+  SearXNG client, LiteLLM, Homepage, Wget, Java; run with the limiter off).
+- **Settings:** each non-default setting was switched back to the BunkerWeb default and the failure
+  above reproduced.
+- **Browser smoke** (Chrome through Playwright, bad behavior on, template as shipped, only
+  `SERVER_NAME` and `REVERSE_PROXY_HOST` set). With the limiter off: searches for `' OR 1=1 --`,
+  `../../etc/passwd`, `<script>alert(1)</script>`, `$(id)` and a 60-character Japanese sentence each
+  rendered 8 results with the text kept in the box, the image category loaded, page 2 loaded, the
+  preferences form saved and the autocompleter answered while typing; 219 responses, all `200`.
+  With the limiter and link token on: the same flow, 232 responses, all `200`. The BunkerWeb log
+  for each run shows no ModSecurity denial, no ban and no `403` or `444`
+  (`evidence/smoke-limiter-off.summary`, `evidence/smoke-limiter-on.summary`).
+- **Web UI import:** raw mode with `template.json` plus the config file imports and is listed
+  (7 steps, 11 settings, 1 config).
+
+</details>
+
+Not verified: real search engines, Open WebUI, Perplexica or any client beyond their user agent
+strings, Let's Encrypt, BunkerWeb behind another proxy or a CDN, a sub-path, many users on real
+networks, Redis instead of Valkey, SearXNG versions other than `2026.11.13`. Validate your own
+clients.
+
 ## Things to think about
 
 - **Limiter, link token and API clients.** With `server.limiter` on, SearXNG allows 15 requests
@@ -185,39 +261,8 @@ Not covered, so a payload there is blocked: the `q` argument on `/` (the address
   own captcha and rate limits that BunkerWeb does not see.
 - **Not supported through the template:** a sub-path deployment (`X-Script-Name`).
 
-## Validation and test history
+---
 
-Tested on 2026-11-18: SearXNG `2026.11.13-8a53a6aa5` (two mock engines behind a stub, the container's
-other defaults; the full engine set for the preference-size probes), Valkey 8 for the limiter,
-`bunkerity/bunkerweb-all-in-one:1.6.17` (CRS 4.29.0), default paranoia level and anomaly thresholds,
-`SECURITY_MODE=block`, plain HTTP on a local test host and one HTTPS and HTTP/2 run with the
-self-signed certificate.
-
-- **Request matrix** (final run on the shipped files, `evidence/matrix-final2.tsv`): 270 requests
-  that must succeed and 28 controls, one at a time with their ModSecurity lines attributed per
-  request. The same 120 seeds of the first run all pass straight to SearXNG without the WAF; the
-  first two runs without the config got `403` for 49 of 145 requests, every one on the query text
-  of `/search` or `/autocompleter`. With the config all 270 pass and read back (the stub engine
-  received the query unmodified, the page rendered the mock results, the saved preferences came
-  back), and all 28 controls got `403` from the specific rule. The other seeds need no exclusion:
-  the instance pages, the image and favicon proxies, a preferences save and link, cookies, an
-  external bang redirect, the `html`, `json`, `csv` and `rss` formats, and 14 client user agents
-  (curl, `python-requests`, `httpx`, `aiohttp`, `axios`, `node-fetch`, Go, OkHttp, Perplexica, a
-  SearXNG client, LiteLLM, Homepage, Wget, Java; run with the limiter off).
-- **Settings:** each non-default setting was switched back to the BunkerWeb default and the failure
-  above reproduced.
-- **Browser smoke** (Chrome through Playwright, bad behavior on, template as shipped, only
-  `SERVER_NAME` and `REVERSE_PROXY_HOST` set). With the limiter off: searches for `' OR 1=1 --`,
-  `../../etc/passwd`, `<script>alert(1)</script>`, `$(id)` and a 60-character Japanese sentence each
-  rendered 8 results with the text kept in the box, the image category loaded, page 2 loaded, the
-  preferences form saved and the autocompleter answered while typing; 219 responses, all `200`.
-  With the limiter and link token on: the same flow, 232 responses, all `200`. The BunkerWeb log
-  for each run shows no ModSecurity denial, no ban and no `403` or `444`
-  (`evidence/smoke-limiter-off.summary`, `evidence/smoke-limiter-on.summary`).
-- **Web UI import:** raw mode with `template.json` plus the config file imports and is listed
-  (7 steps, 11 settings, 1 config).
-
-Not verified: real search engines, Open WebUI, Perplexica or any client beyond their user agent
-strings, Let's Encrypt, BunkerWeb behind another proxy or a CDN, a sub-path, many users on real
-networks, Redis instead of Valkey, SearXNG versions other than `2026.11.13`. Validate your own
-clients.
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

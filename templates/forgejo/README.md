@@ -1,10 +1,40 @@
-# Forgejo Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/forgejo.svg" alt="Forgejo logo" width="96" height="96" />
+</p>
+
+<h1 align="center">Forgejo</h1>
+
+<p align="center">Git forge template with HTTPS, LFS and package API tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Proxy Forgejo at a dedicated hostname, including Git smart HTTP, LFS, generic packages and
 code-bearing issue/file forms. This template extracts a historically tested recipe; it does not
 install Forgejo or configure SSH.
 
-## Prerequisites and import
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `forgejo`                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 2 (modsec-crs)                |
+| Rule ids    | `9856000` to `9856999`        |
+| Upstream    | `http://forgejo:3000`         |
+
+## Prerequisites
 
 1. Run Forgejo on a network reachable by BunkerWeb. The default upstream is
    `http://forgejo:3000`; change its hostname and port for your deployment.
@@ -12,18 +42,22 @@ install Forgejo or configure SSH.
    `https://forgejo.example.com/`, including any public nonstandard port. Generated LFS links
    depend on this URL. See the upstream [configuration reference](https://forgejo.org/docs/latest/admin/config-cheat-sheet/#server-server)
    and [reverse-proxy guide](https://forgejo.org/docs/latest/admin/setup/reverse-proxy/).
-3. Follow the repository [installation guide](../../README.md#install). For Raw
+
+## Install
+
+1. Follow the repository [installation guide](../../README.md#install). For Raw
    import, upload `template.json` and both referenced configs when prompted. For a plugin bundle,
    preserve the guide's template/config layout.
-4. Select `forgejo` for the service (or set `USE_TEMPLATE=forgejo`), change `SERVER_NAME`, review
+2. Select `forgejo` for the service (or set `USE_TEMPLATE=forgejo`), change `SERVER_NAME`, review
    every guided step and reload. Automatic Let's Encrypt requires suitable DNS and HTTP-01
    reachability; otherwise set `AUTO_LETS_ENCRYPT=no` and configure BunkerWeb's `USE_CUSTOM_SSL`
    and certificate settings, or `GENERATE_SELF_SIGNED_SSL` for local testing.
 
-The recipe serves the app at `/`. Subpath hosting and encoded-slash edge cases require separate
-validation against Forgejo's proxy guide; they were not exercised in the source tests.
+> [!NOTE]
+> The recipe serves the app at `/`. Subpath hosting and encoded-slash edge cases require separate
+> validation against Forgejo's proxy guide; they were not exercised in the source tests.
 
-## Settings and limits
+## Settings
 
 - `ALLOWED_METHODS=GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE` supports API edits, LFS and packages.
   It replaces the default list, dropping `QUERY`. Append it if needed; `OPTIONS` was not exercised.
@@ -66,7 +100,7 @@ Those fields skip every rule tagged `attack-rce`, `attack-lfi`, `attack-xss` or
 SQLi rules remain active. Literal `ARGS` targets can also match query parameters with those exact
 names on an allowed write request. These are service-scoped exceptions, not authentication checks.
 
-## Validation and historical evidence
+## Validation
 
 On 2026-11-03, the packaged template was imported through a local test plugin into BunkerWeb
 `:tests` (1.6.18-rc2, libmodsecurity 3.0.17, CRS 4.30.0). Applied defaults matched the JSON and
@@ -85,3 +119,9 @@ Historical negative controls blocked `.git/config`, wrong methods, other paths, 
 fields, wiki content and SQLi in an excluded field. Recheck these after upgrades. Not tested:
 SSH, Actions/runners, webhooks, OAuth/OIDC, non-generic package registries, mirrors/migrations,
 wiki workflows or real client-IP forwarding. Validate the flows you use after importing.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

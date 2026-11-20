@@ -62,17 +62,17 @@
     },
     {
       "title": "Security - Sign-in method cookie",
-      "subtitle": "Kaneo's page reads its last-used sign-in method cookie from JavaScript: keep HttpOnly off for that one cookie.",
+      "subtitle": "Kaneo's page reads its last-used sign-in method cookie from JavaScript, so that one cookie keeps HttpOnly off.",
       "settings": ["COOKIE_FLAGS_1"]
     },
     {
       "title": "HTTP - Large single sign-on cookies",
-      "subtitle": "Accept the big Cookie headers an OpenID Connect provider leaves behind; drop it if you only use passwords.",
+      "subtitle": "Accept the big Cookie headers an OpenID Connect provider leaves behind. Password-only sign-in does not need this.",
       "configs": ["server-http/kaneo_large_cookies.conf"]
     },
     {
       "title": "Security - ChatGPT connector",
-      "subtitle": "Let ChatGPT's MCP connector through the user-agent blacklist; drop it if you never connect ChatGPT.",
+      "subtitle": "Let ChatGPT's MCP connector through the user-agent blacklist. If you never connect ChatGPT, clear the field.",
       "settings": ["BLACKLIST_IGNORE_USER_AGENT"]
     },
     {

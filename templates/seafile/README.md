@@ -1,65 +1,43 @@
-# Seafile Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/seafile.svg" alt="Seafile logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Seafile</h1>
+
+<p align="center">File sharing template with WebDAV-aware proxy defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#docker-compose-example">Docker Compose</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#uploads-webdav-and-notifications">Uploads and WebDAV</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 This template proxies Seafile through BunkerWeb with upload, WebDAV, rate-limit, compression, and
 client-compatibility defaults. The deployment example targets Seafile Community Edition 11.0.x; use
 Seafile's version-specific Compose file when deploying another release.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `seafile`                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 0                             |
+| Upstream    | `http://seafile`              |
 
 ## Prerequisites
 
 - A running Seafile server that BunkerWeb can reach.
 - A public hostname pointing to BunkerWeb.
 - Access to the BunkerWeb web UI or service environment variables.
-
-## Setup
-
-1. Import `template.json` by following the repository's
-   [installation guide](../../README.md#install).
-2. Assign `USE_TEMPLATE=seafile` to the service, or select **Seafile** in the web UI.
-3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT`, and `REVERSE_PROXY_HOST` with values for your
-   deployment. The default upstream, `http://seafile`, assumes both containers share a Docker network.
-4. Configure Seafile's public URL for HTTPS. For a fresh Seafile 11 Docker deployment, set
-   `SEAFILE_SERVER_HOSTNAME` and `FORCE_HTTPS_IN_CONF=true`. For an existing deployment, verify:
-
-   ```python
-   SERVICE_URL = "https://seafile.example.com"
-   FILE_SERVER_ROOT = "https://seafile.example.com/seafhttp"
-   CSRF_TRUSTED_ORIGINS = ["https://seafile.example.com"]
-   SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-   ```
-
-   Put manual overrides in `/opt/seafile-data/seafile/conf/seahub_settings.py`, replace the example
-   hostname, and restart Seafile. Do not add a trailing slash to the trusted origin.
-5. Reload BunkerWeb, sign in through the public URL, and upload and download a test file.
-
-The `COOKIE_FLAGS_4` override deliberately omits `HttpOnly` for Seafile's `sfcsrftoken` cookie. It
-narrows BunkerWeb's wildcard cookie policy so Seahub can read the CSRF token without weakening the
-flags on other cookies.
-
-`REVERSE_PROXY_HEADERS` blanks `X-Forwarded-Protocol`. BunkerWeb sends both `X-Forwarded-Proto` and
-`X-Forwarded-Protocol`, and Seafile's gunicorn answers `400` to every request that carries the pair.
-Seahub only reads `X-Forwarded-Proto`, so removing the duplicate is enough. Keep this header override
-if you add routes of your own that proxy to Seahub.
-
-## Uploads, WebDAV, and notifications
-
-`MAX_CLIENT_SIZE=512m` limits each request, not the total file size used by chunked clients. Raising it
-also raises ModSecurity's in-memory request-body limit, so increase it only for clients that need larger
-single requests.
-
-The template allows WebDAV methods and exempts `/seafdav` from the JavaScript challenge, but SeafDAV is
-disabled by default in Seafile. Enable it in `seafdav.conf`, set `share_name = /seafdav`, and test with a
-WebDAV client. See Seafile's [WebDAV documentation](https://manual.seafile.com/11.0/extension/webdav/).
-
-WebSockets are not enabled on the main `/` upstream. Seafile's optional notification server listens on
-a separate port and needs dedicated `/notification/ping` and `/notification` proxy routes; configure
-those only after enabling the service by following Seafile's
-[notification server documentation](https://manual.seafile.com/11.0/deploy/notification-server/).
-
-The bad-behavior status list excludes `401`, `403`, and `404`. Authentication, permission checks, and
-missing-object probes can legitimately return those codes, so counting them toward an IP ban can lock
-out normal sync or WebDAV clients.
 
 ## Docker Compose example
 
@@ -126,6 +104,57 @@ docker compose config --quiet
 docker compose up -d
 ```
 
+## Install
+
+1. Import `template.json` by following the repository's
+   [installation guide](../../README.md#install).
+2. Assign `USE_TEMPLATE=seafile` to the service, or select **Seafile** in the web UI.
+3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT`, and `REVERSE_PROXY_HOST` with values for your
+   deployment. The default upstream, `http://seafile`, assumes both containers share a Docker network.
+4. Configure Seafile's public URL for HTTPS. For a fresh Seafile 11 Docker deployment, set
+   `SEAFILE_SERVER_HOSTNAME` and `FORCE_HTTPS_IN_CONF=true`. For an existing deployment, verify:
+
+   ```python
+   SERVICE_URL = "https://seafile.example.com"
+   FILE_SERVER_ROOT = "https://seafile.example.com/seafhttp"
+   CSRF_TRUSTED_ORIGINS = ["https://seafile.example.com"]
+   SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+   ```
+
+   Put manual overrides in `/opt/seafile-data/seafile/conf/seahub_settings.py`, replace the example
+   hostname, and restart Seafile. Do not add a trailing slash to the trusted origin.
+5. Reload BunkerWeb, sign in through the public URL, and upload and download a test file.
+
+> [!NOTE]
+> The `COOKIE_FLAGS_4` override deliberately omits `HttpOnly` for Seafile's `sfcsrftoken` cookie. It
+> narrows BunkerWeb's wildcard cookie policy so Seahub can read the CSRF token without weakening the
+> flags on other cookies.
+
+`REVERSE_PROXY_HEADERS` blanks `X-Forwarded-Protocol`. BunkerWeb sends both `X-Forwarded-Proto` and
+`X-Forwarded-Protocol`, and Seafile's gunicorn answers `400` to every request that carries the pair.
+Seahub only reads `X-Forwarded-Proto`, so removing the duplicate is enough. Keep this header override
+if you add routes of your own that proxy to Seahub.
+
+## Uploads, WebDAV, and notifications
+
+> [!WARNING]
+> `MAX_CLIENT_SIZE=512m` limits each request, not the total file size used by chunked clients. Raising it
+> also raises ModSecurity's in-memory request-body limit, so increase it only for clients that need larger
+> single requests.
+
+The template allows WebDAV methods and exempts `/seafdav` from the JavaScript challenge, but SeafDAV is
+disabled by default in Seafile. Enable it in `seafdav.conf`, set `share_name = /seafdav`, and test with a
+WebDAV client. See Seafile's [WebDAV documentation](https://manual.seafile.com/11.0/extension/webdav/).
+
+WebSockets are not enabled on the main `/` upstream. Seafile's optional notification server listens on
+a separate port and needs dedicated `/notification/ping` and `/notification` proxy routes; configure
+those only after enabling the service by following Seafile's
+[notification server documentation](https://manual.seafile.com/11.0/deploy/notification-server/).
+
+The bad-behavior status list excludes `401`, `403`, and `404`. Authentication, permission checks, and
+missing-object probes can legitimately return those codes, so counting them toward an IP ban can lock
+out normal sync or WebDAV clients.
+
 ## Validation
 
 Before importing the template:
@@ -144,3 +173,9 @@ After applying it:
   `https://seafile.example.com/seafdav/` and confirm it is not challenged by Antibot.
 - Check BunkerWeb logs for rate-limit, bad-behavior, and ModSecurity events before changing security
   controls.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

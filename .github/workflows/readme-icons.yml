@@ -1,0 +1,57 @@
+name: README icon check
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+jobs:
+  readme-icons:
+    name: Check README icon URLs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: |
+            README.md
+            templates/*/README.md
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Check that every icon URL answers 200
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Icons are hotlinked from upstream default branches, so a rename or delete breaks them silently.
+          readmes=(README.md templates/*/README.md)
+          mapfile -t urls < <(grep -ohE 'https://raw\.githubusercontent\.com/[^" )>]+' "${readmes[@]}" | sort -u)
+
+          if [ "${#urls[@]}" -eq 0 ]; then
+            echo "::error::No icon URL found in the READMEs, the extractor is broken"
+            exit 1
+          fi
+          echo "Checking ${#urls[@]} icon URLs"
+
+          broken=0
+          for url in "${urls[@]}"; do
+            status=000
+            for attempt in 1 2 3 4; do
+              status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$url" || true)
+              [ "$status" = 200 ] && break
+              sleep $((attempt * 3))
+            done
+            if [ "$status" != 200 ]; then
+              broken=$((broken + 1))
+              echo "::error::HTTP ${status} for ${url}"
+              echo "  used in: $(grep -lF -- "$url" "${readmes[@]}" | tr '\n' ' ')"
+            fi
+          done
+
+          if [ "$broken" -gt 0 ]; then
+            echo "${broken} of ${#urls[@]} icon URLs are broken"
+            exit 1
+          fi
+          echo "All ${#urls[@]} icon URLs answer 200"

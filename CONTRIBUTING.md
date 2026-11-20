@@ -32,7 +32,7 @@ To keep the templates repository tidy and easy to navigate, please align with th
 - **Naming**: Use lowercase-kebab-case for directories (e.g. `wordpress`, `synapse`, `nextcloud-hardening`). Prefer descriptive names that reflect the service or goal.
 - **Folder structure**: Place template assets inside `templates/<template-name>/`. Avoid adding extra environment subdirectories; each template stands alone. At minimum, include a `template.json` that follows the BunkerWeb schema.
 - **Template file**: `template.json` must define a unique template `id`, a user-facing `name`, and any `settings`, `configs`, or `steps` it relies on. Config paths should resolve relative to the template's `configs/` directory.
-- **Documentation**: Add a `README.md` or short `NOTES.md` when additional guidance helps users customize the template. Link to the root [installation guide](README.md#installing-templates) instead of duplicating UI or plugin instructions.
+- **Documentation**: Add a `README.md` or short `NOTES.md` when additional guidance helps users customize the template. Link to the root [installation guide](README.md#install) instead of duplicating UI or plugin instructions. Lay the README out as described in [README layout](TEMPLATE_GUIDE.md#readme-layout).
 - **Examples**: When relevant, include sample configuration fragments under `configs/` and keep them referenced inside `template.json`.
 
 Refer to [TEMPLATE_GUIDE.md](TEMPLATE_GUIDE.md) for detailed expectations and examples.

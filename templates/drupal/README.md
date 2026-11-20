@@ -1,11 +1,39 @@
-# Drupal Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/drupal.svg" alt="Drupal logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Drupal</h1>
+
+<p align="center">Secure template with CMS-aware defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#files">Files</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Generate a Drupal-focused BunkerWeb configuration that keeps TLS automation, sane
 reverse proxy defaults, installer rate limiting, and ModSecurity CRS exclusions
 aligned with the CMS so logins, content editing, and cache management remain
 reliable.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `drupal`                      |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9854000` to `9854999`        |
+| Upstream    | `http://mydrupal`             |
 
 ## Prerequisites
 
@@ -16,14 +44,7 @@ reliable.
 - Updated Drupal `settings.php` so `$settings['reverse_proxy'] = TRUE;` and the
   proxy address is listed in `$settings['reverse_proxy_addresses']`.
 
-## Files
-
-- `template.json` – Template definition with guided steps for TLS, upstream, and
-  hardening options.
-- `configs/modsec-crs/drupal_false_positives.conf` – ModSecurity CRS tuning for the JSON:API
-  content type and file uploads.
-
-## Setup
+## Install
 
 1. **Import the template**
    - Follow the repository's [installation guide](../../README.md#install)
@@ -39,7 +60,7 @@ reliable.
 6. **Reload BunkerWeb** and verify you can browse the Drupal admin dashboard
    through the proxy.
 
-## Customization Tips
+## Settings
 
 - Set `REVERSE_PROXY_HOST` to the internal scheme and port of your Drupal
   service.
@@ -49,7 +70,7 @@ reliable.
 - `MAX_CLIENT_SIZE=100m` lets large image and file uploads through (the BunkerWeb default of
   `10m` answers `413`). Keep it in line with PHP's `upload_max_filesize` and `post_max_size`.
 - `ALLOWED_METHODS` includes `PATCH`, `DELETE`, and `OPTIONS`, which JSON:API clients and CORS
-  preflights need. Drop them if you do not expose JSON:API.
+  preflights need. If you do not expose JSON:API, enter `GET|POST|HEAD|QUERY`, BunkerWeb's default.
 - `modsec-crs/drupal_false_positives.conf` allows the `application/vnd.api+json` content type
   and arms the JSON body parser for it, so request bodies stay inspected. It also lets
   `application/octet-stream` through for `POST /jsonapi/<entity>/<bundle>[/<uuid>]/field_*`,
@@ -59,8 +80,21 @@ reliable.
 - `MODSECURITY_CRS_PLUGINS=drupal-rule-exclusions` keeps Drupal management
   actions functional—change it only if you tune CRS rules manually.
 
+## Files
+
+- `template.json` – Template definition with guided steps for TLS, upstream, and
+  hardening options.
+- `configs/modsec-crs/drupal_false_positives.conf` – ModSecurity CRS tuning for the JSON:API
+  content type and file uploads.
+
 ## Validation
 
 - Run `jq . template.json` to confirm the template definition is valid JSON.
 - Check the Drupal status report and attempt cache clears or content edits to
   ensure rate limits and CRS exclusions do not block normal operations.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

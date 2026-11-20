@@ -30,41 +30,91 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 
 ## Templates
 
-| Template                                        | Summary                                                          |
-| ----------------------------------------------- | ---------------------------------------------------------------- |
-| [Atuin sync server](templates/atuin/)           | Shell history sync server template with API client tuning        |
-| [authentik](templates/authentik/)               | Identity provider template with flow and cookie-aware WAF tuning |
-| [Beszel](templates/beszel/)                     | Monitoring hub template with WebSocket agent connections         |
-| [Directus](templates/directus/)                 | Headless CMS template with REST and GraphQL API defaults         |
-| [DocuSeal](templates/docuseal/)                 | Document signing template with API-aware defaults                |
-| [Drupal](templates/drupal/)                     | Secure template with CMS-aware defaults                          |
-| [Filestash](templates/filestash/)               | File manager template with WebDAV-aware proxy defaults           |
-| [Filestash Office](templates/filestash-office/) | Collabora (WOPI) host template with WebSocket proxy defaults     |
-| [Forgejo](templates/forgejo/)                   | Git forge template with HTTPS, LFS and package API tuning        |
-| [Garage](templates/garage/)                     | S3 object storage template with signed-request WAF tuning        |
-| [Grafana](templates/grafana/)                   | Dashboard template with query and HTML-response WAF tuning       |
-| [Jellyfin](templates/jellyfin/)                 | Media streaming template with reverse proxy tuning               |
-| [Kaneo](templates/kaneo/)                       | Task board template with WebSocket and task-text WAF tuning      |
-| [n8n](templates/n8n/)                           | Workflow automation template with editor and webhook tuning      |
-| [NetBird](templates/netbird/)                   | Self-hosted template with gRPC and websocket routing             |
-| [Nextcloud](templates/nextcloud/)               | Secure template with WebDAV-aware defaults                       |
-| [ntfy](templates/ntfy/)                         | Push notification template with publish and subscribe tuning     |
-| [Open WebUI](templates/open-webui/)             | AI chat template with WebSocket and prompt-aware WAF tuning      |
-| [openGym](templates/opengym/)                   | Passkey PWA template with JSON sync and WebAuthn tuning          |
-| [Outline](templates/outline/)                   | Wiki template with realtime collaboration and MCP support        |
-| [Pi-hole](templates/pi-hole/)                   | Reverse proxy template with admin UI and API tuning              |
-| [Pocket ID](templates/pocket-id/)               | OIDC provider template with passkey and callback WAF tuning      |
-| [ProjectSend](templates/projectsend/)           | File sharing template with chunked-upload-aware defaults         |
-| [Seafile](templates/seafile/)                   | File sharing template with WebDAV-aware proxy defaults           |
-| [SearXNG](templates/searxng/)                   | Metasearch template with query-aware WAF tuning                  |
-| [Synapse](templates/synapse/)                   | Matrix homeserver template with well-known delegation            |
-| [Tomcat](templates/tomcat/)                     | Reverse proxy template with servlet-friendly defaults            |
-| [Tuwunel](templates/tuwunel/)                   | Matrix homeserver reverse proxy with WebSocket and delegation    |
-| [Umami](templates/umami/)                       | Web analytics template with tracker and dashboard tuning         |
-| [Uptime Kuma](templates/uptime-kuma/)           | Monitoring template with Socket.IO polling and WebSockets        |
-| [Vaultwarden](templates/vaultwarden/)           | Password vault template with encrypted-field WAF tuning          |
-| [WordPress](templates/wordpress/)               | Secure template with essential hardening defaults                |
-| [Xen Orchestra](templates/xen-orchestra/)       | Reverse proxy template with WebSocket and rate limiting defaults |
+[Identity and security](#identity-and-security) · [Files and storage](#files-and-storage) ·
+[Productivity and documents](#productivity-and-documents) ·
+[Websites and CMS](#websites-and-cms) ·
+[Developer tools and automation](#developer-tools-and-automation) ·
+[Monitoring and analytics](#monitoring-and-analytics) · [Communication](#communication) ·
+[Network and infrastructure](#network-and-infrastructure) ·
+[Media, search and personal apps](#media-search-and-personal-apps)
+
+### Identity and security
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/authentik.svg" align="absmiddle" alt="" width="24" height="24" /> [authentik](templates/authentik/) | Identity provider template with flow and cookie-aware WAF tuning |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/pocket-id-light.svg"><img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/pocket-id.svg" align="absmiddle" alt="" width="24" height="24" /></picture> [Pocket ID](templates/pocket-id/) | OIDC provider template with passkey and callback WAF tuning |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/vaultwarden-light.svg"><img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/vaultwarden.svg" align="absmiddle" alt="" width="24" height="24" /></picture> [Vaultwarden](templates/vaultwarden/) | Password vault template with encrypted-field WAF tuning |
+
+### Files and storage
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/filestash.svg" align="absmiddle" alt="" width="24" height="24" /> [Filestash](templates/filestash/) | File manager template with WebDAV-aware proxy defaults |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/filestash.svg" align="absmiddle" alt="" width="24" height="24" /> [Filestash Office](templates/filestash-office/) | Collabora (WOPI) host template with WebSocket proxy defaults |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/garage.svg" align="absmiddle" alt="" width="24" height="24" /> [Garage](templates/garage/) | S3 object storage template with signed-request WAF tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/nextcloud.svg" align="absmiddle" alt="" width="24" height="24" /> [Nextcloud](templates/nextcloud/) | Secure template with WebDAV-aware defaults |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/projectsend.svg" align="absmiddle" alt="" width="24" height="24" /> [ProjectSend](templates/projectsend/) | File sharing template with chunked-upload-aware defaults |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/seafile.svg" align="absmiddle" alt="" width="24" height="24" /> [Seafile](templates/seafile/) | File sharing template with WebDAV-aware proxy defaults |
+
+### Productivity and documents
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/docusealco/docuseal/master/public/logo.svg" align="absmiddle" alt="" width="24" height="24" /> [DocuSeal](templates/docuseal/) | Document signing template with API-aware defaults |
+| <img src="https://raw.githubusercontent.com/usekaneo/kaneo/main/apps/web/public/favicon.svg" align="absmiddle" alt="" width="24" height="24" /> [Kaneo](templates/kaneo/) | Task board template with WebSocket and task-text WAF tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/outline.svg" align="absmiddle" alt="" width="24" height="24" /> [Outline](templates/outline/) | Wiki template with realtime collaboration and MCP support |
+
+### Websites and CMS
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/directus.svg" align="absmiddle" alt="" width="24" height="24" /> [Directus](templates/directus/) | Headless CMS template with REST and GraphQL API defaults |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/drupal.svg" align="absmiddle" alt="" width="24" height="24" /> [Drupal](templates/drupal/) | Secure template with CMS-aware defaults |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/apache-tomcat.svg" align="absmiddle" alt="" width="24" height="24" /> [Tomcat](templates/tomcat/) | Reverse proxy template with servlet-friendly defaults |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/wordpress.svg" align="absmiddle" alt="" width="24" height="24" /> [WordPress](templates/wordpress/) | Secure template with essential hardening defaults |
+
+### Developer tools and automation
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/atuin.svg" align="absmiddle" alt="" width="24" height="24" /> [Atuin sync server](templates/atuin/) | Shell history sync server template with API client tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/forgejo.svg" align="absmiddle" alt="" width="24" height="24" /> [Forgejo](templates/forgejo/) | Git forge template with HTTPS, LFS and package API tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/n8n.svg" align="absmiddle" alt="" width="24" height="24" /> [n8n](templates/n8n/) | Workflow automation template with editor and webhook tuning |
+
+### Monitoring and analytics
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/beszel.svg" align="absmiddle" alt="" width="24" height="24" /> [Beszel](templates/beszel/) | Monitoring hub template with WebSocket agent connections |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/grafana.svg" align="absmiddle" alt="" width="24" height="24" /> [Grafana](templates/grafana/) | Dashboard template with query and HTML-response WAF tuning |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/umami-light.svg"><img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/umami.svg" align="absmiddle" alt="" width="24" height="24" /></picture> [Umami](templates/umami/) | Web analytics template with tracker and dashboard tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/uptime-kuma.svg" align="absmiddle" alt="" width="24" height="24" /> [Uptime Kuma](templates/uptime-kuma/) | Monitoring template with Socket.IO polling and WebSockets |
+
+### Communication
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/ntfy.svg" align="absmiddle" alt="" width="24" height="24" /> [ntfy](templates/ntfy/) | Push notification template with publish and subscribe tuning |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/synapse-light.svg"><img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/synapse.svg" align="absmiddle" alt="" width="24" height="24" /></picture> [Synapse](templates/synapse/) | Matrix homeserver template with well-known delegation |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/matrix-light.svg"><img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/matrix.svg" align="absmiddle" alt="" width="24" height="24" /></picture> [Tuwunel](templates/tuwunel/) | Matrix homeserver reverse proxy with WebSocket and delegation |
+
+### Network and infrastructure
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/netbird.svg" align="absmiddle" alt="" width="24" height="24" /> [NetBird](templates/netbird/) | Self-hosted template with gRPC and websocket routing |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/pi-hole.svg" align="absmiddle" alt="" width="24" height="24" /> [Pi-hole](templates/pi-hole/) | Reverse proxy template with admin UI and API tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/xen-orchestra.svg" align="absmiddle" alt="" width="24" height="24" /> [Xen Orchestra](templates/xen-orchestra/) | Reverse proxy template with WebSocket and rate limiting defaults |
+
+### Media, search and personal apps
+
+| Template | Summary |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/jellyfin.svg" align="absmiddle" alt="" width="24" height="24" /> [Jellyfin](templates/jellyfin/) | Media streaming template with reverse proxy tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/opengym.svg" align="absmiddle" alt="" width="24" height="24" /> [openGym](templates/opengym/) | Passkey PWA template with JSON sync and WebAuthn tuning |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/open-webui-light.svg"><img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/open-webui.svg" align="absmiddle" alt="" width="24" height="24" /></picture> [Open WebUI](templates/open-webui/) | AI chat template with WebSocket and prompt-aware WAF tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/searxng.svg" align="absmiddle" alt="" width="24" height="24" /> [SearXNG](templates/searxng/) | Metasearch template with query-aware WAF tuning |
 
 ## Install
 
@@ -222,7 +272,7 @@ docker exec <container> sh -c \
 | authentik                | `authentik_false_positives`   | `9851100` |
 | forgejo                  | `forgejo_false_positives`     | `9856103` |
 | forgejo (second file)    | `forgejo_protocol`            | `9856100` |
-| grafana                  | `grafana_false_positives`     | `9858100` |
+| grafana                  | `grafana_false_positives`     | `9858501` |
 | netbird                  | `netbird_false_positives`     | `9862100` |
 | opengym                  | `opengym_false_positives`     | `9866100` |
 | vaultwarden              | `vaultwarden_false_positives` | `9877100` |
@@ -388,3 +438,5 @@ Before you push, install the repository's pre-commit hooks with `pre-commit inst
 [GNU General Public License v3.0](LICENSE), in line with the main BunkerWeb project. The license
 covers this repository, including all templates and documentation. By contributing, you agree that
 your contributions will be released under the same license.
+
+Product names and logos are trademarks of their owners.

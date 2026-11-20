@@ -1,4 +1,27 @@
-# Atuin Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/atuin.svg" alt="Atuin logo" width="96" height="96" />
+</p>
+
+<h1 align="center">Atuin sync server</h1>
+
+<p align="center">Shell history sync server template with API client tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/Atuin-18.24.8-248651?labelColor=1d6f93&style=flat" alt="Atuin 18.24.8" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-atuin-for-the-proxy">Configure Atuin</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings-and-tradeoffs">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#things-to-think-about">Things to think about</a>
+</p>
 
 Put an existing [Atuin](https://atuin.sh) sync server behind BunkerWeb with ModSecurity and the
 OWASP CRS on: registration and sign-in, end-to-end encrypted history upload and download for
@@ -6,6 +29,16 @@ several machines, the key-value store, password change, store and account deleti
 
 Atuin has no web interface. Its clients (the `atuin` CLI and its daemon) talk to a JSON API, so
 this template is tuned for those clients and was tested with the real `atuin` binary.
+
+## At a glance
+
+| Fact        | Value                                        |
+| ----------- | -------------------------------------------- |
+| Template id | `atuin`                                      |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Atuin 18.24.8 |
+| Configs     | 1 (modsec-crs)                               |
+| Rule ids    | `9850000` to `9850999`                       |
+| Upstream    | `http://atuin:8888`                          |
 
 ## Prerequisites
 
@@ -23,8 +56,9 @@ this template is tuned for those clients and was tested with the real `atuin` bi
   (BunkerWeb's default is TLS 1.2 and 1.3): the macOS client cannot negotiate TLS 1.3
   ([atuin#4584](https://github.com/atuinsh/atuin/issues/4584)). The client speaks HTTP/1.1 over TLS.
 
-**CRS 4 required.** The exclusions in `configs/modsec-crs/atuin_false_positives.conf` select rules by CRS 4 tag. CRS 3.3.x
-names its tags differently, so on it they match fewer rules or none.
+> [!IMPORTANT]
+> **CRS 4 required.** The exclusions in `configs/modsec-crs/atuin_false_positives.conf` select rules by CRS 4 tag. CRS 3.3.x
+> names its tags differently, so on it they match fewer rules or none.
 
 ## Configure Atuin for the proxy
 
@@ -43,7 +77,7 @@ Security: keep `ATUIN_TRUSTED_PROXIES` to BunkerWeb's address. With a wide range
 logs. `ATUIN_TRUSTED_PROXY_HEADER` (default `X-Forwarded-For`) can name `X-Real-IP` instead; BunkerWeb
 sends both.
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and the file under `configs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. In the web UI the
@@ -90,8 +124,9 @@ signing in at the same second got `429` on 4 of 6 attempts). The limits are per 
 machines behind one NAT share them. The headroom: the measured single-client peaks are 162 requests
 per second (download) and 3 per second (upload); the template allows 600 and 20.
 
-Both body allowances apply service-wide and raise buffering. They match Atuin's own ceiling, so
-lowering them below 2 MiB makes large upload pages fail.
+> [!NOTE]
+> Both body allowances apply service-wide and raise buffering. They match Atuin's own ceiling, so
+> lowering them below 2 MiB makes large upload pages fail.
 
 ### Only Atuin clients (optional)
 
@@ -177,6 +212,35 @@ Known residual: the record exclusion lists only `930120`, the one id that appear
 page the same way; the symptom is `403` on `POST /api/v0/record` with that rule id in the log. Add a
 `ctl:ruleRemoveTargetById` line for that id to rule `9850101`.
 
+## Validation
+
+Run on 2026-11-18 against `ghcr.io/atuinsh/atuin:18.24.8` (SQLite) and `bunkerity/bunkerweb-all-in-one:1.6.17`
+(CRS 4.29.0, libmodsecurity 3.0.17, default paranoia level and thresholds, `SECURITY_MODE=block`), with the real
+`atuin` 18.24.8 binary from the GitHub release.
+
+<details>
+<summary>Test results</summary>
+
+| Check | Result |
+| --- | --- |
+| Request matrix, 145 rows (130 requests the real client sent or that the account calls need, 15 attack controls) | With the template: 145 of 145 as expected. With the CRS config removed: 13 of the 130 requests got `403`; the controls (the same text in `username`, in the query string, on another path or method, at record index 100) stay `403` with the named rule id in both runs. |
+| Upload volume through the template | 1,106 upload pages (about 110,000 records) from five generated histories: all `200`. Without the config 8 of the first 442 pages got `403`. |
+| Password volume through the template | 40,000 generated passwords on `POST /login` (13 generator shapes, fixed seed): 1 got `403`, a password that contains the text `%00` (rule `920270`, not covered). Without the config 210 got `403`. An earlier run: 20,000 random 20 to 32 character strings, none got `403`; without the config 260 of 8,000 did. |
+| One probe per rule id | 92 of the 114 paranoia-level-1 ids of the families trip on a password field with a payload taken from the CRS 4.29.0 regression tests. Each passes on all five password fields (`/login`, `/register`, `current_password`, `new_password`, `DELETE /account`) with the template and gets `403` without it. 16 ids read headers, file names, argument names or the query string and cannot fire on a JSON password field. The 6 that read `REQUEST_BODY` stay `403` (see above). |
+| Attack table, 206 requests | Seven payload families (SQLi, XSS, RCE, LFI, PHP, RFI, Java) on the password fields of the four routes, their neighbours (other fields, paths, methods, content types, name variants, nested, array and urlencoded passwords, duplicate keys, path tricks and method override headers): `403` in every row where the paragraphs above say so, and a pass in the rows they call a gap (those got `403` in a run without the exception). |
+| Each setting against the BunkerWeb default | See "Settings and tradeoffs": every row was reproduced with the real client with and without the setting. |
+| Full smoke with bad behavior on | Register, import 50,000 history lines, sync, second machine logs in with the key and pulls (55,244 items on both, 7 seconds), key-value store with SQL, shell and HTML text, search, five more commands, password change, third machine signs in with the new password: 0 ModSecurity lines, no `403` or `444`, no ban. |
+| Same smoke with `USE_GREYLIST=yes` and `GREYLIST_USER_AGENT=^atuin/` (3,000 lines) | Same result. |
+| Same smoke again on the final configuration (the ten tags), bad behavior on, the template's limits on, 20,000 lines | Both machines 22,043 items (upload 1 min 26 s, download 3.4 s), five new commands on the second machine, key-value reads returned the stored SQL and HTML text, password change `200`, third machine signed in and synced: 0 ModSecurity lines, no `403` or `444`, no ban. Peak 164 requests per second on `GET /api/v0/record/next`. |
+| Web UI import | `template.json` uploaded in Raw mode, the configuration uploaded in the Missing Custom Configs dialog, saved (`Template ... created successfully`); the service wizard lists the eight steps and the configuration in the last one. |
+| `pre-commit` and the repository's template checker | Pass; the checker's warnings on `LIMIT_REQ_*` and `LIMIT_CONN_*` are answered by the table above. |
+
+</details>
+
+Not tested: the Let's Encrypt request (the tests ran on `*.localhost`), PostgreSQL and MySQL
+backends, HTTP/2 and HTTP/3 clients, a server `path` prefix, Atuin Desktop, the scripts store, and
+more than six machines at once.
+
 ## Things to think about
 
 - **Large first sync.** Importing 22,000 history lines is 220 upload pages and took 83 to 124
@@ -206,26 +270,8 @@ page the same way; the symptom is `403` on `POST /api/v0/record` with that rule 
 - **Monitoring.** `GET /healthz` answers without authentication. Use it for health checks. With the
   optional user-agent step on, a `curl` check gets `403`: set an `atuin/` user agent on it.
 
-## Validation and test history
+---
 
-Run on 2026-11-18 against `ghcr.io/atuinsh/atuin:18.24.8` (SQLite) and `bunkerity/bunkerweb-all-in-one:1.6.17`
-(CRS 4.29.0, libmodsecurity 3.0.17, default paranoia level and thresholds, `SECURITY_MODE=block`), with the real
-`atuin` 18.24.8 binary from the GitHub release.
-
-| Check | Result |
-| --- | --- |
-| Request matrix, 145 rows (130 requests the real client sent or that the account calls need, 15 attack controls) | With the template: 145 of 145 as expected. With the CRS config removed: 13 of the 130 requests got `403`; the controls (the same text in `username`, in the query string, on another path or method, at record index 100) stay `403` with the named rule id in both runs. |
-| Upload volume through the template | 1,106 upload pages (about 110,000 records) from five generated histories: all `200`. Without the config 8 of the first 442 pages got `403`. |
-| Password volume through the template | 40,000 generated passwords on `POST /login` (13 generator shapes, fixed seed): 1 got `403`, a password that contains the text `%00` (rule `920270`, not covered). Without the config 210 got `403`. An earlier run: 20,000 random 20 to 32 character strings, none got `403`; without the config 260 of 8,000 did. |
-| One probe per rule id | 92 of the 114 paranoia-level-1 ids of the families trip on a password field with a payload taken from the CRS 4.29.0 regression tests. Each passes on all five password fields (`/login`, `/register`, `current_password`, `new_password`, `DELETE /account`) with the template and gets `403` without it. 16 ids read headers, file names, argument names or the query string and cannot fire on a JSON password field. The 6 that read `REQUEST_BODY` stay `403` (see above). |
-| Attack table, 206 requests | Seven payload families (SQLi, XSS, RCE, LFI, PHP, RFI, Java) on the password fields of the four routes, their neighbours (other fields, paths, methods, content types, name variants, nested, array and urlencoded passwords, duplicate keys, path tricks and method override headers): `403` in every row where the paragraphs above say so, and a pass in the rows they call a gap (those got `403` in a run without the exception). |
-| Each setting against the BunkerWeb default | See "Settings and tradeoffs": every row was reproduced with the real client with and without the setting. |
-| Full smoke with bad behavior on | Register, import 50,000 history lines, sync, second machine logs in with the key and pulls (55,244 items on both, 7 seconds), key-value store with SQL, shell and HTML text, search, five more commands, password change, third machine signs in with the new password: 0 ModSecurity lines, no `403` or `444`, no ban. |
-| Same smoke with `USE_GREYLIST=yes` and `GREYLIST_USER_AGENT=^atuin/` (3,000 lines) | Same result. |
-| Same smoke again on the final configuration (the ten tags), bad behavior on, the template's limits on, 20,000 lines | Both machines 22,043 items (upload 1 min 26 s, download 3.4 s), five new commands on the second machine, key-value reads returned the stored SQL and HTML text, password change `200`, third machine signed in and synced: 0 ModSecurity lines, no `403` or `444`, no ban. Peak 164 requests per second on `GET /api/v0/record/next`. |
-| Web UI import | `template.json` uploaded in Raw mode, the configuration uploaded in the Missing Custom Configs dialog, saved (`Template ... created successfully`); the service wizard lists the eight steps and the configuration in the last one. |
-| `pre-commit` and the repository's template checker | Pass; the checker's warnings on `LIMIT_REQ_*` and `LIMIT_CONN_*` are answered by the table above. |
-
-Not tested: the Let's Encrypt request (the tests ran on `*.localhost`), PostgreSQL and MySQL
-backends, HTTP/2 and HTTP/3 clients, a server `path` prefix, Atuin Desktop, the scripts store, and
-more than six machines at once.
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

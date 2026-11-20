@@ -1,9 +1,42 @@
-# ntfy Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/ntfy.svg" alt="ntfy logo" width="96" height="96" />
+</p>
+
+<h1 align="center">ntfy</h1>
+
+<p align="center">Push notification template with publish and subscribe tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/ntfy-v2.37.2-248651?labelColor=1d6f93&style=flat" alt="ntfy v2.37.2" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-ntfy-for-the-proxy">Configure ntfy</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#things-to-think-about">Things to think about</a>
+</p>
 
 Expose an existing [ntfy](https://ntfy.sh) server through BunkerWeb: the web app (sign-in, account,
 access tokens, web push), publishing (plain text, headers, JSON, message templates, attachments,
 UnifiedPush, the Matrix gateway, webhooks from Grafana, Alertmanager, GitHub, Gitea, Uptime Kuma and
 Home Assistant), subscriptions over SSE, WebSocket and long-poll, and the account and admin API.
+
+## At a glance
+
+| Fact        | Value                                       |
+| ----------- | ------------------------------------------- |
+| Template id | `ntfy`                                      |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, ntfy v2.37.2 |
+| Configs     | 1 (modsec-crs)                              |
+| Rule ids    | `9864000` to `9864999`                      |
+| Upstream    | `http://ntfy:80`                            |
 
 ## Prerequisites
 
@@ -49,7 +82,7 @@ service (keep `USE_REAL_IP=no` otherwise). In the test, with `REAL_IP_FROM` cove
 network, `X-Forwarded-For: 5.5.5.5` and `6.6.6.6, 5.5.5.5` both reached ntfy as `5.5.5.5`
 ([issue 905](https://github.com/binwiederhier/ntfy/issues/905) is this setup).
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and `configs/modsec-crs/ntfy_false_positives.conf` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
@@ -71,7 +104,7 @@ ntfy that means a publisher (a cron job, a router, a sensor) whose messages are 
 its alerts stop without any visible error, and 13 wrong-password logins from one address were enough
 to ban it. This is why the detect run matters.
 
-## Settings and tradeoffs
+## Settings
 
 | Setting | Purpose and proof |
 | --- | --- |
@@ -81,7 +114,7 @@ to ban it. This is why the detect run matters.
 | `LIMIT_REQ_URL=/`, `LIMIT_REQ_RATE=100r/s` | BunkerWeb allows 2 requests per second by default (`2r/s`, a sliding one-second window), counted per client address **and exact path** (read from `core/limit/limit.lua`). Publishers that post to one topic, a monitor that polls one URL and a Matrix homeserver hit it; page loads and polls of different topics do not. At the default, 40 publishes to one topic gave 3×`200` and 37×`429`, and 150 gave 6×`200` and 144×`429`; 150 publishes to 150 different topics all gave `200`. 30 parallel pushes to the Matrix gateway gave 2×`200` and 28×`429` at the default and 30×`200` with this template. ntfy's own burst allowance is 60 requests (`config.go:106`), so `100r/s` lets ntfy decide. With `100r/s` all 190 same-topic requests passed. Not measured above 100 requests per second. |
 | `LIMIT_CONN_MAX_HTTP1=40` | BunkerWeb allows 10 held connections per address by default, and a held stream or WebSocket counts for each. The web app opens one WebSocket per subscribed topic (`web/src/app/ConnectionManager.js`). With 12 held SSE streams, 9 to 10 got `200` and 2 to 3 got `429` at the default; all 12 got `200` with `40`. In the browser, reloading the web app with 12 subscribed topics showed BunkerWeb's `429` page at the default, and with `40` all 12 topics received a live message. Past 30 streams from one address ntfy answers `429` itself (`visitor-subscription-limit`, `config.go:105`; 45 streams gave 29 to 30×`200`). Over HTTPS a browser speaks HTTP/2 and `LIMIT_CONN_MAX_HTTP2` applies instead; the lab ran plain HTTP, so that value was not measured. |
 | `REVERSE_PROXY_INTERCEPT_ERRORS=no` | BunkerWeb swaps every upstream `400`, `401`, `404`, `429` and `5xx` for its own HTML page. ntfy's apps read its JSON error (`{"code":40026,...}`) and the CLI prints it. With the setting, curl got `{"code":40007,...}`, `{"code":40101,...}` and `{"code":40401,...}`, and `ntfy publish` printed `invalid delay parameter`; without it the CLI printed a whole HTML page. In the web app's change-password dialog a wrong current password shows `Unexpected response 400` without the setting and `Password incorrect` with it. A WAF `403` and a stopped upstream (`502`) still show BunkerWeb's page. |
-| `BLACKLIST_URI=^/metrics$` | Keeps Prometheus metrics off the public name when ntfy serves them on the main port: `/metrics` answered `200` direct and `403` through BunkerWeb, while a topic named `metrics2` still got `200`. Drop it if you scrape through BunkerWeb. |
+| `BLACKLIST_URI=^/metrics$` | Keeps Prometheus metrics off the public name when ntfy serves them on the main port: `/metrics` answered `200` direct and `403` through BunkerWeb, while a topic named `metrics2` still got `200`. Clear the field if you scrape through BunkerWeb. |
 | `AUTO_LETS_ENCRYPT=yes` | Convenience for a public hostname. Not exercised in the lab (needs public DNS). |
 
 Measured and deliberately **not** set:
@@ -101,57 +134,6 @@ Measured and deliberately **not** set:
   cookies, and the web app logged no Content-Security-Policy violation.
 - The request-rate and connection limits are per client address. People behind one NAT or one VPN
   exit share them.
-
-## Things to think about
-
-- **Web app.** Sign-in, account, change password, access tokens, settings, synced subscriptions, topic
-  reservation, sign-up, web push and the publish dialog all worked with `SECURITY_MODE=block`, the limiter
-  and bad behavior on. The app sends its JSON as `text/plain;charset=UTF-8` (`9864170`), opens one WebSocket
-  per subscribed topic (see `LIMIT_CONN_MAX_HTTP1`), and sends the message and title in the query of
-  `PUT /<topic>` when you attach a file, because the body is the file (`9864131` covers `message`; shell
-  text in the title, or SQL text in the message, is still blocked with `403`). It requests
-  `/static/langs/en-GB.json`, which ntfy answers `404`; that counts toward bad behavior (3 of 10 in the
-  smoke, back to 0 within a minute). Notifications need HTTPS.
-- **Android app.** It publishes with `PUT /<topic>?priority=...&title=...` (`ApiService.kt` publish),
-  polls one `GET /<topic>/json?poll=1&since=...` per subscription and holds a streaming `GET
-  /<topics>/json` with a 77 s read timeout. Its user agent is `ntfy/<version> (<flavor>; Android
-  <release>; SDK <n>)` (`HttpUtil.kt:19`); with that user agent and the F-Droid one, publish and poll
-  both answered `200`. A real phone was not tested.
-- **iOS app.** It relies on `upstream-base-url` (see the table). Not tested.
-- **ntfy CLI.** The official image's `ntfy publish` and `ntfy subscribe` worked through BunkerWeb;
-  a subscription received a published message live. With `REVERSE_PROXY_INTERCEPT_ERRORS=no` the CLI
-  prints ntfy's JSON error (`invalid delay parameter`); with BunkerWeb's default it printed a whole
-  HTML page. `curl -T file` sends `Expect: 100-continue` above 1 MiB, which `9864100` allows.
-- **Webhook senders.** Grafana, Alertmanager and GitHub post JSON to `/<topic>?template=grafana`,
-  `alertmanager` or `github`; Gitea, Uptime Kuma (webhook and native ntfy provider) and Home Assistant
-  post JSON to a topic or to `/`. Their text is shell, SQL, paths and cron lines, which the CRS reads as
-  attacks. The exclusions `9864160` and `9864180` cover payloads built from the senders' documented
-  shapes (see the CRS section). Shell or SQL text in a `title`, or in a GitHub field other than
-  an issue or pull request title or body or a comment body, is still blocked with `403`.
-- **Access tokens and basic auth.** `Authorization: Bearer tk_...`, basic auth and the `?auth=`
-  query parameter all worked. `?auth=` puts the credential in the URL, and BunkerWeb's access log
-  records the whole request line, so the credential is in the log: prefer the header.
-- **Email and phone.** ntfy sends them from its own SMTP and Twilio settings, outbound. The `Email` and
-  `Call` publish headers pass the WAF (ntfy answered `400` because the lab has neither configured).
-  Publishing by e-mail (`smtp-server-listen`) is a plain TCP port that BunkerWeb does not carry.
-- **Attachments.** Uploads up to 15 MiB pass, and a message links to `/file/<id>`. ntfy deletes the file
-  after `attachment-expiry-duration` (3 h by default) and the link then fails; the expiry itself was
-  not waited out. ntfy's own JSON `404` reaches the client with the template (tested on an unknown path). `Range` requests are answered `200` with the full file by ntfy itself.
-- **UnifiedPush and the Matrix gateway.** `POST /up<id>?up=1` and `/_matrix/push/v1/notify` pass.
-  A Matrix homeserver sends all its pushes from one address to one path, so it exceeds BunkerWeb's
-  default `2r/s` at once (28 of 30 parallel pushes got `429`); with `LIMIT_REQ_RATE=100r/s` all 30
-  passed. ntfy.sh whitelists such senders for the same reason
-  ([issue 144](https://github.com/binwiederhier/ntfy/issues/144)).
-- **Scheduled and cached messages.** `Delay`, `At`, `Cache: no` and `Firebase: no` headers passed.
-- **Metrics and statistics.** `/metrics` is blocked by the template. `/v1/stats` (message counters)
-  and `/v1/health` stay public by ntfy's design; add `/v1/stats` to `BLACKLIST_URI` if you want it
-  private (no ntfy client calls it).
-- **Embedding.** BunkerWeb adds `X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`, which ntfy
-  does not set, so other sites cannot frame the web app. Not tested in a page that embeds it.
-- **Web push.** `POST` and `DELETE /v1/webpush` and `/manifest.webmanifest` passed with test keys; the
-  service worker `/sw.js` registered. The browser permission prompt and a delivered push were not
-  tested (headless Chrome, no push service).
-- **Not supported.** Hosting at a sub-path (see `base-url`).
 
 ## CRS exception scope and cost
 
@@ -220,7 +202,7 @@ consumers): keep ntfy's web app and consumers escaping output. A `title` or a to
 contains shell text is still blocked with `403`, as is a subscribe filter with shell-like text; that is
 a limit of this template, not a bug.
 
-## Validation and test history
+## Validation
 
 Tested on 2026-11-17 and 2026-11-18 with **ntfy v2.37.2** behind **BunkerWeb 1.6.17** all-in-one
 (nginx 1.30.6, libmodsecurity 3.0.17, OWASP CRS 4.29.0), default paranoia level and anomaly thresholds,
@@ -268,3 +250,60 @@ e-mail and phone delivery, web push delivery and the browser permission prompt, 
 the `upstream-base-url` forwarding to ntfy.sh, authentication through an upstream SSO, TLS and HTTP/2
 (the lab uses plain HTTP), and request rates other than the cases above. Real clients and deployments
 need their own detect run.
+
+## Things to think about
+
+- **Web app.** Sign-in, account, change password, access tokens, settings, synced subscriptions, topic
+  reservation, sign-up, web push and the publish dialog all worked with `SECURITY_MODE=block`, the limiter
+  and bad behavior on. The app sends its JSON as `text/plain;charset=UTF-8` (`9864170`), opens one WebSocket
+  per subscribed topic (see `LIMIT_CONN_MAX_HTTP1`), and sends the message and title in the query of
+  `PUT /<topic>` when you attach a file, because the body is the file (`9864131` covers `message`; shell
+  text in the title, or SQL text in the message, is still blocked with `403`). It requests
+  `/static/langs/en-GB.json`, which ntfy answers `404`; that counts toward bad behavior (3 of 10 in the
+  smoke, back to 0 within a minute). Notifications need HTTPS.
+- **Android app.** It publishes with `PUT /<topic>?priority=...&title=...` (`ApiService.kt` publish),
+  polls one `GET /<topic>/json?poll=1&since=...` per subscription and holds a streaming `GET
+  /<topics>/json` with a 77 s read timeout. Its user agent is `ntfy/<version> (<flavor>; Android
+  <release>; SDK <n>)` (`HttpUtil.kt:19`); with that user agent and the F-Droid one, publish and poll
+  both answered `200`. A real phone was not tested.
+- **iOS app.** It relies on `upstream-base-url` (see the table). Not tested.
+- **ntfy CLI.** The official image's `ntfy publish` and `ntfy subscribe` worked through BunkerWeb;
+  a subscription received a published message live. With `REVERSE_PROXY_INTERCEPT_ERRORS=no` the CLI
+  prints ntfy's JSON error (`invalid delay parameter`); with BunkerWeb's default it printed a whole
+  HTML page. `curl -T file` sends `Expect: 100-continue` above 1 MiB, which `9864100` allows.
+- **Webhook senders.** Grafana, Alertmanager and GitHub post JSON to `/<topic>?template=grafana`,
+  `alertmanager` or `github`; Gitea, Uptime Kuma (webhook and native ntfy provider) and Home Assistant
+  post JSON to a topic or to `/`. Their text is shell, SQL, paths and cron lines, which the CRS reads as
+  attacks. The exclusions `9864160` and `9864180` cover payloads built from the senders' documented
+  shapes (see the CRS section). Shell or SQL text in a `title`, or in a GitHub field other than
+  an issue or pull request title or body or a comment body, is still blocked with `403`.
+- **Access tokens and basic auth.** `Authorization: Bearer tk_...`, basic auth and the `?auth=`
+  query parameter all worked. `?auth=` puts the credential in the URL, and BunkerWeb's access log
+  records the whole request line, so the credential is in the log: prefer the header.
+- **Email and phone.** ntfy sends them from its own SMTP and Twilio settings, outbound. The `Email` and
+  `Call` publish headers pass the WAF (ntfy answered `400` because the lab has neither configured).
+  Publishing by e-mail (`smtp-server-listen`) is a plain TCP port that BunkerWeb does not carry.
+- **Attachments.** Uploads up to 15 MiB pass, and a message links to `/file/<id>`. ntfy deletes the file
+  after `attachment-expiry-duration` (3 h by default) and the link then fails; the expiry itself was
+  not waited out. ntfy's own JSON `404` reaches the client with the template (tested on an unknown path). `Range` requests are answered `200` with the full file by ntfy itself.
+- **UnifiedPush and the Matrix gateway.** `POST /up<id>?up=1` and `/_matrix/push/v1/notify` pass.
+  A Matrix homeserver sends all its pushes from one address to one path, so it exceeds BunkerWeb's
+  default `2r/s` at once (28 of 30 parallel pushes got `429`); with `LIMIT_REQ_RATE=100r/s` all 30
+  passed. ntfy.sh whitelists such senders for the same reason
+  ([issue 144](https://github.com/binwiederhier/ntfy/issues/144)).
+- **Scheduled and cached messages.** `Delay`, `At`, `Cache: no` and `Firebase: no` headers passed.
+- **Metrics and statistics.** `/metrics` is blocked by the template. `/v1/stats` (message counters)
+  and `/v1/health` stay public by ntfy's design; add `/v1/stats` to `BLACKLIST_URI` if you want it
+  private (no ntfy client calls it).
+- **Embedding.** BunkerWeb adds `X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`, which ntfy
+  does not set, so other sites cannot frame the web app. Not tested in a page that embeds it.
+- **Web push.** `POST` and `DELETE /v1/webpush` and `/manifest.webmanifest` passed with test keys; the
+  service worker `/sw.js` registered. The browser permission prompt and a delivered push were not
+  tested (headless Chrome, no push service).
+- **Not supported.** Hosting at a sub-path (see `base-url`).
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

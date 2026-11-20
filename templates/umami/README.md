@@ -1,9 +1,45 @@
-# Umami Template
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/umami-light.svg">
+    <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/umami.svg" alt="Umami logo" width="96" height="96" />
+  </picture>
+</p>
+
+<h1 align="center">Umami</h1>
+
+<p align="center">Web analytics template with tracker and dashboard tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/Umami-3.4.1-248651?labelColor=1d6f93&style=flat" alt="Umami 3.4.1" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-umami-for-the-proxy">Configure Umami</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#things-to-think-about">Things to think about</a>
+</p>
 
 Put an existing [Umami](https://umami.is/) analytics server behind BunkerWeb with ModSecurity and the
 OWASP CRS on. One service serves both halves of Umami: the dashboard for its owner, and the tracker
 script (`/script.js`) plus the collect endpoint (`POST /api/send`) that visitors' browsers call from
 other sites.
+
+## At a glance
+
+| Fact        | Value                                      |
+| ----------- | ------------------------------------------ |
+| Template id | `umami`                                    |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Umami 3.4.1 |
+| Configs     | 1 (modsec-crs)                             |
+| Rule ids    | `9875000` to `9875999`                     |
+| Upstream    | `http://umami:3000`                        |
 
 ## Prerequisites
 
@@ -33,14 +69,36 @@ other sites.
   nothing for headless browsers (tested) and other bot user agents. Test with a normal browser, or set
   `DISABLE_BOT_CHECK=1` on a test instance only.
 
-Not covered: session replay and heatmaps (`/recorder.js`, `POST /api/record`). A replay body is a DOM
-snapshot, and a probe request got `403` from CRS `934100`, `934190`, `941180`, `941390` and `942100`.
-The template does not exclude them; leave those features off, or write your own narrow exclusion.
+> [!NOTE]
+> Not covered: session replay and heatmaps (`/recorder.js`, `POST /api/record`). A replay body is a DOM
+> snapshot, and a probe request got `403` from CRS `934100`, `934190`, `941180`, `941390` and `942100`.
+> The template does not exclude them; leave those features off, or write your own narrow exclusion.
 
 Set the Umami variables in [Configure Umami for the proxy](#configure-umami-for-the-proxy) before you
 point visitors at the service.
 
-## Import and initial detect run
+## Configure Umami for the proxy
+
+Set these in Umami's environment. All of them were tested through BunkerWeb 1.6.17 unless the last
+column says otherwise.
+
+| Umami variable                                | Value                           | What breaks without it                                                                                                                                                                                                                                                                                                                       |
+| --------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLIENT_IP_HEADER`                            | `X-Real-IP`                     | Umami uses the first of `True-Client-IP`, `CF-Connecting-IP`, `Fastly-Client-IP`, `X-NF-Client-Connection-IP`, `DO-Connecting-IP`, `X-Real-IP`, ... that is present. BunkerWeb passes a client's own `True-Client-IP`, `CF-Connecting-IP`, `Fastly-Client-IP` and `DO-Connecting-IP` through, and each one changed the stored visitor. BunkerWeb overwrites `X-Real-IP` with the client address. With `CLIENT_IP_HEADER=X-Real-IP` none of the forged headers changed the stored visitor. |
+| `SKIP_LOCATION_HEADERS`                       | `1`                             | Umami reads country and city from request headers before its own database. A client's `CF-IPCountry: JP` and `CF-IPCity: Tokyo` were stored as `JP` and `Tokyo`. With the variable set (and `CLIENT_IP_HEADER=X-Real-IP`), the same headers stored no location.                                                  |
+| `ALLOWED_FRAME_URLS`                          | the origin that embeds a share page | A page on another origin that embeds `/share/<slug>` in an iframe stays blank (Chrome showed an error page). With the origin set the share page rendered, although BunkerWeb adds `X-Frame-Options: SAMEORIGIN`: Umami's `Content-Security-Policy` `frame-ancestors` then lists the origin and Chrome applied it. Other browsers were not tested. The Umami docs call this variable build-time; as a container variable it took effect. |
+| `MCP_ENABLED`                                 | `1`, only if you use `/mcp`     | The route answers `404` unless it is `1` (`src/app/mcp/route.ts:41-43`). With it, a client with an API key sent as `Authorization: Bearer <key>` got `200` for `initialize`, `tools/list` and `tools/call` through the service, and the same `POST` without a key got `401`.                                                                                                                      |
+| `TRACKER_SCRIPT_NAME`, `COLLECT_API_ENDPOINT` | only for renamed paths          | See Prerequisites. A collect path at the root (`/collect`) answered the preflight and the `POST` with Umami's `Access-Control-Allow-Origin: *` through BunkerWeb.                                                                                                                                                                             |
+| `BASE_PATH`                                   | leave empty                     | It is a build argument (`Dockerfile` lines 36-38 at `v3.4.1`), so the official image cannot run under a sub-path. Umami's issue 4064 says the same. Use a hostname of its own. Running it under a sub-path was not verified.                                                                                                                                      |
+
+Security: `CLIENT_IP_HEADER=X-Real-IP` trusts whatever sets that header. Only BunkerWeb may reach
+Umami's port. A request sent straight to Umami with `X-Real-IP: 8.8.8.8` and one with `9.9.9.9` got two
+different visitor ids, so a client that reaches the port picks its own identity. Umami 3.4.1 has no
+trusted-proxy list (`TRUSTED_PROXIES` appears nowhere in its source). BunkerWeb's `X-Forwarded-For`
+appends the client address to a client-supplied value (`6.6.6.6, 172.21.0.1`); Umami checks that
+header after `X-Real-IP`, and a forged value did not change the stored visitor in the test.
+
+## Install
 
 Import `template.json` and the file under `configs/modsec-crs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
@@ -64,7 +122,7 @@ False positives return `403` in block mode. The template sets the bad-behavior s
 the client for one day.
 The `401` Umami answers before sign-in counts as one hit and decays after about a minute.
 
-## Settings and tradeoffs
+## Settings
 
 | Setting                                         | Purpose                                                                                                                                                                         |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -90,75 +148,6 @@ Left at their defaults on purpose:
   `USE_ANTIBOT` on this service, exempt `/script.js` and the collect path (`/api/send`, or your
   renamed one) with `ANTIBOT_IGNORE_URI`. That combination was not tested.
 - `MAX_CLIENT_SIZE` stays at `10m`: no request in the matrix was larger than a few KB.
-
-## Configure Umami for the proxy
-
-Set these in Umami's environment. All of them were tested through BunkerWeb 1.6.17 unless the last
-column says otherwise.
-
-| Umami variable                                | Value                           | What breaks without it                                                                                                                                                                                                                                                                                                                       |
-| --------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CLIENT_IP_HEADER`                            | `X-Real-IP`                     | Umami uses the first of `True-Client-IP`, `CF-Connecting-IP`, `Fastly-Client-IP`, `X-NF-Client-Connection-IP`, `DO-Connecting-IP`, `X-Real-IP`, ... that is present. BunkerWeb passes a client's own `True-Client-IP`, `CF-Connecting-IP`, `Fastly-Client-IP` and `DO-Connecting-IP` through, and each one changed the stored visitor. BunkerWeb overwrites `X-Real-IP` with the client address. With `CLIENT_IP_HEADER=X-Real-IP` none of the forged headers changed the stored visitor. |
-| `SKIP_LOCATION_HEADERS`                       | `1`                             | Umami reads country and city from request headers before its own database. A client's `CF-IPCountry: JP` and `CF-IPCity: Tokyo` were stored as `JP` and `Tokyo`. With the variable set (and `CLIENT_IP_HEADER=X-Real-IP`), the same headers stored no location.                                                  |
-| `ALLOWED_FRAME_URLS`                          | the origin that embeds a share page | A page on another origin that embeds `/share/<slug>` in an iframe stays blank (Chrome showed an error page). With the origin set the share page rendered, although BunkerWeb adds `X-Frame-Options: SAMEORIGIN`: Umami's `Content-Security-Policy` `frame-ancestors` then lists the origin and Chrome applied it. Other browsers were not tested. The Umami docs call this variable build-time; as a container variable it took effect. |
-| `MCP_ENABLED`                                 | `1`, only if you use `/mcp`     | The route answers `404` unless it is `1` (`src/app/mcp/route.ts:41-43`). With it, a client with an API key sent as `Authorization: Bearer <key>` got `200` for `initialize`, `tools/list` and `tools/call` through the service, and the same `POST` without a key got `401`.                                                                                                                      |
-| `TRACKER_SCRIPT_NAME`, `COLLECT_API_ENDPOINT` | only for renamed paths          | See Prerequisites. A collect path at the root (`/collect`) answered the preflight and the `POST` with Umami's `Access-Control-Allow-Origin: *` through BunkerWeb.                                                                                                                                                                             |
-| `BASE_PATH`                                   | leave empty                     | It is a build argument (`Dockerfile` lines 36-38 at `v3.4.1`), so the official image cannot run under a sub-path. Umami's issue 4064 says the same. Use a hostname of its own. Running it under a sub-path was not verified.                                                                                                                                      |
-
-Security: `CLIENT_IP_HEADER=X-Real-IP` trusts whatever sets that header. Only BunkerWeb may reach
-Umami's port. A request sent straight to Umami with `X-Real-IP: 8.8.8.8` and one with `9.9.9.9` got two
-different visitor ids, so a client that reaches the port picks its own identity. Umami 3.4.1 has no
-trusted-proxy list (`TRUSTED_PROXIES` appears nowhere in its source). BunkerWeb's `X-Forwarded-For`
-appends the client address to a client-supplied value (`6.6.6.6, 172.21.0.1`); Umami checks that
-header after `X-Real-IP`, and a forged value did not change the stored visitor in the test.
-
-## Things to think about
-
-- **Visitors who share one IP (office, school, mobile carrier).** The limits count per client IP.
-  600 tracker `POST` requests from one IP in one HTTP/2 burst (100 streams in parallel) got 200
-  `200` and 400 `429` at `LIMIT_REQ_RATE=100r/s`, and all 600 `200` at `1000r/s`. Over plain HTTP/1.1, 50
-  parallel connections got 455 `429` out of 600 from the connection limit
-  (`LIMIT_CONN_MAX_HTTP1=10`, log line `limiting connections by zone v1ips`). `429` is in the default
-  bad-behavior list. For a site with that much traffic from one address, raise `LIMIT_REQ_RATE`;
-  raising `LIMIT_CONN_MAX_HTTP1` was not tested.
-- **Stale or mistyped website id in a tracker snippet.** Umami answers `400`, and with the default
-  bad-behavior list ten of them ban the visitor from the whole service for a day, dashboard
-  included. The template drops `400` from the list (`BAD_BEHAVIOR_STATUS_CODES`). Fix the snippet
-  anyway: those visits are not recorded.
-- **Bad behavior reacts a few seconds late.** The counters were logged about five seconds after the
-  responses, so 14 wrong logins in a row all got an answer, and the right password worked right
-  after. The login limit above answers at once; keep it.
-- **`IGNORE_IP` in Umami.** Umami answers `403` to tracker requests from an ignored IP. 14 of them
-  from one address got `403` and ten seconds later `GET /login` got `403` too (banned). With that
-  address in `WHITELIST_IP` on the service, `GET /login` got `200`. Whitelist the address in
-  BunkerWeb, or do not use `IGNORE_IP`.
-- **IP and user agent in the request body.** A `payload.ip` field in the JSON `POST /api/send`
-  overrides every header (the stored visitor changed with `CLIENT_IP_HEADER` set). No BunkerWeb
-  setting stops it, and the website id is public in each page's source. Treat unique-visitor and
-  location counts as untrusted against deliberate abuse.
-- **Uptime monitors and API clients.** `GET /api/heartbeat` returned `200` without a sign-in for
-  `curl`, Uptime-Kuma, UptimeRobot, Prometheus, `node`, `axios`, `undici`, `python-requests`,
-  `Go-http-client`, `okhttp`, Googlebot, a mobile Safari agent and an empty agent. Only `sqlmap/1.7.2`
-  got `403` (BunkerWeb's user-agent blacklist). Umami accepted an API key as
-  `Authorization: Bearer <key>` (`200`) and answered `401` to an `x-umami-api-key` header, so an
-  client that sends the second form fails.
-- **Browsers behind BunkerWeb's headers.** BunkerWeb adds `X-Frame-Options: SAMEORIGIN` and, over
-  HTTPS, `Strict-Transport-Security` (`max-age=63072000; includeSubDomains; preload`). Umami's own
-  `Content-Security-Policy` arrives once. Tested over HTTPS with a self-signed certificate; a
-  Let's Encrypt certificate was not part of the run.
-- **Ad blockers.** The renamed-path example exists for them. It was tested only against a headless
-  browser that has no blocker, so whether a given blocker list lets the renamed script through is
-  not verified.
-- **Tracking pages served from `localhost`.** A tracker `POST` whose page URL or referrer holds
-  `localhost/` (`http://localhost/`, `http://x.localhost/`) is blocked by CRS `934190` (SSRF,
-  scheme-less localhost) unless that id is skipped; rule `9875100` now skips it, so those pageviews, a
-  `http://localhost/` referrer and event data holding that URL are stored. Other places that carry a
-  URL you type stay blocked on purpose, with `403` from `934190`: a short-link target
-  `http://localhost/`, a website domain typed as the URL `http://localhost/`, and a dashboard
-  filter typed as `http://localhost/` (the dashboard itself sends the bare domain,
-  `referrer=eq.x.localhost`, which got `200`). A website domain of `localhost` or `x.localhost` got
-  `200` without any exclusion.
-- **Session replay, heatmaps.** Not supported through this template: see Prerequisites.
 
 ## CRS exception scope and cost
 
@@ -214,11 +203,14 @@ password or a report is not stopped by the WAF. Umami has to handle that content
 smoke test the dashboard showed a website named `<b>1=1</b>` as plain text. Everything else
 (other arguments, paths, methods, headers, cookies and every other CRS rule) stays active.
 
-## Validation and test history
+## Validation
 
 Tested on 2026-11-17: Umami `3.4.1` (PostgreSQL 16), `bunkerity/bunkerweb-all-in-one:1.6.17`
 (CRS 4.29.0), default paranoia level and anomaly thresholds,
 `SECURITY_MODE=block`, plain HTTP on a local test host.
+
+<details>
+<summary>Evidence behind the claims above</summary>
 
 - **Request matrix:** 219 requests that must succeed and 37 controls, one at a time, with ModSecurity
   lines attributed per request. Without the config 174 of the first 210 got `403` with the ids above;
@@ -256,6 +248,8 @@ Tested on 2026-11-17: Umami `3.4.1` (PostgreSQL 16), `bunkerity/bunkerweb-all-in
   login and stale-tracker bans, `IGNORE_IP`, a share page in an iframe, `/mcp` and a root-level
   collect path were each measured through the service; the numbers are in the sections above.
 
+</details>
+
 Not verified: Let's Encrypt issuance (HTTPS ran on a self-signed certificate), BunkerWeb behind
 another proxy or CDN (`USE_REAL_IP` and the real client address), embedding a share page in Firefox
 or Safari, running under a sub-path, `data-host-url`, renamed paths against real ad-blocker lists,
@@ -263,3 +257,57 @@ Redis or ClickHouse backends, a PostgreSQL server whose default time zone is not
 non-UTC cluster stored events an hour or two early for the maintainers), SSO and two-factor sign-in,
 link and pixel URLs (`/q/<slug>`, `/p/<slug>`) with attack-like query strings (they are plain GETs and
 stay inspected), and Umami versions other than `3.4.1`. Validate your own tracked sites.
+
+## Things to think about
+
+- **Visitors who share one IP (office, school, mobile carrier).** The limits count per client IP.
+  600 tracker `POST` requests from one IP in one HTTP/2 burst (100 streams in parallel) got 200
+  `200` and 400 `429` at `LIMIT_REQ_RATE=100r/s`, and all 600 `200` at `1000r/s`. Over plain HTTP/1.1, 50
+  parallel connections got 455 `429` out of 600 from the connection limit
+  (`LIMIT_CONN_MAX_HTTP1=10`, log line `limiting connections by zone v1ips`). `429` is in the default
+  bad-behavior list. For a site with that much traffic from one address, raise `LIMIT_REQ_RATE`;
+  raising `LIMIT_CONN_MAX_HTTP1` was not tested.
+- **Stale or mistyped website id in a tracker snippet.** Umami answers `400`, and with the default
+  bad-behavior list ten of them ban the visitor from the whole service for a day, dashboard
+  included. The template drops `400` from the list (`BAD_BEHAVIOR_STATUS_CODES`). Fix the snippet
+  anyway: those visits are not recorded.
+- **Bad behavior reacts a few seconds late.** The counters were logged about five seconds after the
+  responses, so 14 wrong logins in a row all got an answer, and the right password worked right
+  after. The login limit above answers at once; keep it.
+- **`IGNORE_IP` in Umami.** Umami answers `403` to tracker requests from an ignored IP. 14 of them
+  from one address got `403` and ten seconds later `GET /login` got `403` too (banned). With that
+  address in `WHITELIST_IP` on the service, `GET /login` got `200`. Whitelist the address in
+  BunkerWeb, or do not use `IGNORE_IP`.
+- **IP and user agent in the request body.** A `payload.ip` field in the JSON `POST /api/send`
+  overrides every header (the stored visitor changed with `CLIENT_IP_HEADER` set). No BunkerWeb
+  setting stops it, and the website id is public in each page's source. Treat unique-visitor and
+  location counts as untrusted against deliberate abuse.
+- **Uptime monitors and API clients.** `GET /api/heartbeat` returned `200` without a sign-in for
+  `curl`, Uptime-Kuma, UptimeRobot, Prometheus, `node`, `axios`, `undici`, `python-requests`,
+  `Go-http-client`, `okhttp`, Googlebot, a mobile Safari agent and an empty agent. Only `sqlmap/1.7.2`
+  got `403` (BunkerWeb's user-agent blacklist). Umami accepted an API key as
+  `Authorization: Bearer <key>` (`200`) and answered `401` to an `x-umami-api-key` header, so an
+  client that sends the second form fails.
+- **Browsers behind BunkerWeb's headers.** BunkerWeb adds `X-Frame-Options: SAMEORIGIN` and, over
+  HTTPS, `Strict-Transport-Security` (`max-age=63072000; includeSubDomains; preload`). Umami's own
+  `Content-Security-Policy` arrives once. Tested over HTTPS with a self-signed certificate; a
+  Let's Encrypt certificate was not part of the run.
+- **Ad blockers.** The renamed-path example exists for them. It was tested only against a headless
+  browser that has no blocker, so whether a given blocker list lets the renamed script through is
+  not verified.
+- **Tracking pages served from `localhost`.** A tracker `POST` whose page URL or referrer holds
+  `localhost/` (`http://localhost/`, `http://x.localhost/`) is blocked by CRS `934190` (SSRF,
+  scheme-less localhost) unless that id is skipped; rule `9875100` now skips it, so those pageviews, a
+  `http://localhost/` referrer and event data holding that URL are stored. Other places that carry a
+  URL you type stay blocked on purpose, with `403` from `934190`: a short-link target
+  `http://localhost/`, a website domain typed as the URL `http://localhost/`, and a dashboard
+  filter typed as `http://localhost/` (the dashboard itself sends the bare domain,
+  `referrer=eq.x.localhost`, which got `200`). A website domain of `localhost` or `x.localhost` got
+  `200` without any exclusion.
+- **Session replay, heatmaps.** Not supported through this template: see Prerequisites.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

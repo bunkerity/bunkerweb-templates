@@ -1,10 +1,38 @@
-# Tomcat Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/apache-tomcat.svg" alt="Apache Tomcat logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Tomcat</h1>
+
+<p align="center">Reverse proxy template with servlet-friendly defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#files">Files</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 Generate a servlet-friendly reverse proxy configuration for Apache Tomcat that
 handles TLS automation, upstream routing, compression, caching, and HTTP method
 allow lists tuned for typical Java web applications.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `tomcat`                      |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9873000` to `9873999`        |
+| Upstream    | `http://mytomcat:8080`        |
 
 ## Prerequisites
 
@@ -15,14 +43,7 @@ allow lists tuned for typical Java web applications.
 - Ensure Tomcat recognises the proxy headers (`proxyName`, `proxyPort`, and
   `scheme`) if you terminate TLS at BunkerWeb.
 
-## Files
-
-- `template.json` – Template definition that guides TLS, reverse proxy, and
-  servlet tuning configuration.
-- `configs/modsec-crs/tomcat_false_positives.conf` – ModSecurity CRS exclusion for the
-  Manager WAR deployment.
-
-## Setup
+## Install
 
 1. **Import the template**
    - Follow the repository's [installation guide](../../README.md#install)
@@ -37,7 +58,7 @@ allow lists tuned for typical Java web applications.
 6. **Reload BunkerWeb** and verify you can reach your Tomcat application over
    HTTPS through the proxy.
 
-## Customization Tips
+## Settings
 
 - Increase `MAX_CLIENT_SIZE` if your application handles large uploads (such as
   multi-gigabyte WAR deployments).
@@ -54,8 +75,21 @@ allow lists tuned for typical Java web applications.
 - Keep `USE_GZIP=yes` for HTML, CSS, and JSON responses; disable it only if the
   upstream handles compression itself.
 
+## Files
+
+- `template.json` – Template definition that guides TLS, reverse proxy, and
+  servlet tuning configuration.
+- `configs/modsec-crs/tomcat_false_positives.conf` – ModSecurity CRS exclusion for the
+  Manager WAR deployment.
+
 ## Validation
 
 - Run `jq . template.json` to check for JSON syntax errors before importing.
 - Exercise a login flow and any file upload endpoints through BunkerWeb to
   ensure body size limits and method restrictions align with your application.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

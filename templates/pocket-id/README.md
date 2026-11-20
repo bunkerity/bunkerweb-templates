@@ -1,10 +1,46 @@
-# Pocket ID Template
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/pocket-id-light.svg">
+    <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/pocket-id.svg" alt="Pocket ID logo" width="96" height="96" />
+  </picture>
+</p>
+
+<h1 align="center">Pocket ID</h1>
+
+<p align="center">OIDC provider template with passkey and callback WAF tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/Pocket_ID-v2.19.3-248651?labelColor=1d6f93&style=flat" alt="Pocket ID v2.19.3" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-pocket-id-for-the-proxy">Configure Pocket ID</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#things-to-think-about">Things to think about</a>
+</p>
 
 Put an existing [Pocket ID](https://pocket-id.org/) server behind BunkerWeb with ModSecurity and the
 OWASP CRS on: passkey sign-in, the admin interface and API, OpenID Connect clients (authorization
 code with PKCE, PAR, device flow, client credentials, refresh tokens, logout), single sign-on
 through a relying party such as oauth2-proxy, and clients whose callback is a LAN, loopback or
 IPv6 address.
+
+## At a glance
+
+| Fact        | Value                                              |
+| ----------- | -------------------------------------------------- |
+| Template id | `pocket-id`                                        |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Pocket ID v2.19.3   |
+| Configs     | 1 (modsec-crs)                                     |
+| Rule ids    | `9869000` to `9869999`                             |
+| Upstream    | `http://pocket-id:1411`                            |
 
 ## Prerequisites
 
@@ -42,9 +78,11 @@ Pocket ID documentation and source at `v2.19.3` say where marked (docs / source)
 New OIDC clients are group-restricted by default (source): check the client's allowed groups
 before you test a sign-in.
 
-Security: `TRUST_PROXY` must name only BunkerWeb, never `0.0.0.0/0`. With a wide value, anyone who
-reaches the Pocket ID port directly chooses the client address shown in its audit log and used by
-its rate limiter. Measured with a forged `X-Forwarded-For: 6.6.6.6` sent through BunkerWeb:
+
+> [!WARNING]
+> Security: `TRUST_PROXY` must name only BunkerWeb, never `0.0.0.0/0`. With a wide value, anyone who
+> reaches the Pocket ID port directly chooses the client address shown in its audit log and used by
+> its rate limiter. Measured with a forged `X-Forwarded-For: 6.6.6.6` sent through BunkerWeb:
 
 | `TRUST_PROXY`           | BunkerWeb default `X-Forwarded-For` | With this template                       |
 | ----------------------- | ----------------------------------- | ---------------------------------------- |
@@ -55,7 +93,7 @@ The template's `REVERSE_PROXY_HEADERS=X-Forwarded-For $remote_addr` makes the he
 address BunkerWeb saw (`xff.txt`). It protects a request that goes through BunkerWeb; a client that
 reaches the app's port directly can still send anything, so keep that port private.
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and the files under `configs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
@@ -72,10 +110,11 @@ Before enabling blocking on your instance:
    where your traffic requires them.
 4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflow.
 
-False positives return `403` in block mode. `BAD_BEHAVIOR_THRESHOLD` matching responses in 60
-seconds ban the client for one day, so the detect run matters.
+> [!IMPORTANT]
+> False positives return `403` in block mode. `BAD_BEHAVIOR_THRESHOLD` matching responses in 60
+> seconds ban the client for one day, so the detect run matters.
 
-## Settings and tradeoffs
+## Settings
 
 Each setting was put back to the BunkerWeb default (or removed) and the failure below reproduced,
 on the real image, through BunkerWeb with a certificate trusted by the test client.
@@ -100,8 +139,10 @@ offline (the test host used a custom certificate).
 
 `LIMIT_REQ_*` is set only for the reason in the table above.
 
-curl and some scripts send `Expect: 100-continue` on bodies above 1 MB, which CRS rule `920450`
-blocks. Browsers and relying-party libraries do not send it.
+
+> [!NOTE]
+> curl and some scripts send `Expect: 100-continue` on bodies above 1 MB, which CRS rule `920450`
+> blocks. Browsers and relying-party libraries do not send it.
 
 ## CRS exception scope and cost
 
@@ -194,55 +235,7 @@ Controls: the same payload in another argument, another path, another method, a 
 of the argument, a value that is not a plain URL (`;id`, a line break, a cloud metadata address) or
 an index past the list still gets `403` from the rule the exclusion removes (`C01` to `C25`).
 
-## Things to think about
-
-- **Server-to-server endpoints.** Relying parties call the token, userinfo, JWKS and discovery
-  endpoints from a server, not a browser. Keep antibot, a country list and similar browser
-  challenges off these paths: an antibot page cannot be solved by `oauth2-proxy`. The template
-  turns none of them on. 31 client user agents (curl, Go, Python, Node, Java, Ruby, `okhttp`,
-  Postman and others, and an empty one) got `200` or the app's own `401`, never `403`, on
-  discovery, JWKS, the token endpoint, userinfo and `/`.
-- **Cross-origin browser clients.** Pocket ID answers `CORS: *` on the token, userinfo,
-  end-session, introspection and well-known documents. The preflight (`OPTIONS /api/oidc/token`)
-  passes (`204`) because `OPTIONS` is allowed. The rest of the API is not cross-origin: the app
-  checks `Origin` and `Sec-Fetch-Site` itself, with `APP_URL` as the trusted origin.
-- **No WebSocket or server-sent events** are used, so `REVERSE_PROXY_WS` stays off.
-- **Silent token renewal in a hidden iframe** (`prompt=none`) does not work with Pocket ID: its own
-  `frame-ancestors 'none'` header refuses the frame, with or without BunkerWeb (source). Use
-  refresh tokens.
-- **Device flow.** A device polls every 5 seconds for up to 15 minutes. The default bad-behavior
-  list bans it (table above), so keep `BAD_BEHAVIOR_STATUS_CODES` as set here.
-- **Many users behind one address.** Pocket ID's own limiter (100 per second, burst 300) and
-  BunkerWeb's `LIMIT_REQ_RATE` are both per address. Raise `LIMIT_REQ_RATE` for an office or school;
-  a `429` also feeds the bad-behavior ban.
-- **BunkerWeb behind another proxy.** Set `USE_REAL_IP=yes` and the trusted networks first;
-  otherwise `$remote_addr` is the outer proxy and every client looks the same to Pocket ID and to
-  the limiters.
-- **The admin interface and the API share one path space.** `/settings/...` and `/api/...` serve
-  administrators and users alike, so BunkerWeb cannot expose the sign-in and OIDC endpoints while
-  hiding the admin pages by path (upstream issues 1875 and 1527 plan separation for the next major
-  version). Restrict the admin pages by network on another layer if you need to.
-- **Backups.** Back up the data directory together with `ENCRYPTION_KEY`. Pocket ID takes an
-  instance lock on its data volume: after a quick restart wait for the old process to exit before
-  starting a new one, or the new one stops.
-- **Outbound features.** LDAP sync, SMTP, the GeoLite database download and SCIM provisioning leave
-  the Pocket ID container directly; BunkerWeb does not see them.
-- **Upload size.** Client logos stop at 2 MiB and other uploads at 10 MiB, both answered by the app.
-  `MAX_CLIENT_SIZE=11m` keeps the app's JSON error visible.
-
-- **Paranoia level 2 and above.** The password exclusions list the ids that fire at paranoia level 1.
-  At level 2, 517 of 840 generated passwords (letters, digits and symbols) tripped at least one more
-  rule (for example `920230`, `932200`, `932240`, `942131`, `942430`), and the config does not cover
-  them. Use passwords of letters and digits with a few symbols for the SMTP and LDAP accounts, or add
-  the ids your detect run shows.
-- **Pocket ID v3.** The next major version (not released: `v2.19.3` is the latest release,
-  `main` is v3) moves the admin endpoints under `/api/admin/`
-  ([issue 1527](https://github.com/pocket-id/pocket-id/issues/1527)). The paths in this config are
-  the v2 paths and need updating when you upgrade.
-
-Not verified: see the end of the next section.
-
-## Validation and test history
+## Validation
 
 Tested on 2026-11-18: Pocket ID `v2.19.3` (`ghcr.io/pocket-id/pocket-id`, digest
 `sha256:189e03bb73bb86d7108fe81cbe2237c408cff2176b14cd7a39cc12a2ee8b2762`),
@@ -255,6 +248,9 @@ and the passwords were run again on the final file, byte for byte the one in thi
 fresh data volume. The browser smoke ran on the previous revision of the file, which differs only by
 the `fd20:ce:` alternative of the IPv6 host rule. The settings check and the two items marked
 "earlier run" were not repeated.
+
+<details>
+<summary>Evidence behind the claims above</summary>
 
 - **Request matrix**, 158 requests, one at a time, each with a `bwt=<name>` tag so its ModSecurity
   lines are attributed per request: 61 seeds (admin requests that must succeed and read back from the
@@ -306,6 +302,8 @@ the `fd20:ce:` alternative of the IPv6 host rule. The settings check and the two
   (`id` and `name` changed, because the original id is already loaded as a plugin) plus the config
   file imports and is listed with 9 steps, 12 settings and 1 config next to the plugin copy.
 
+</details>
+
 Not verified: SMTP and LDAP (outbound mail, sync) and the e-mail sign-in and one-time-token
 flows that depend on them, the GeoLite download, SCIM provisioning to a live target, back-channel
 logout delivery to a live relying party, the mobile apps, CIMD client ids (the client metadata
@@ -314,3 +312,58 @@ document is fetched by the app), a client logo loaded from a URL, federated clie
 `AUTO_LETS_ENCRYPT` (the test host used a custom certificate), BunkerWeb behind another reverse
 proxy, many browsers behind one address, paranoia level 2 and above, and Pocket ID versions other
 than `v2.19.3`. Validate your own clients.
+
+## Things to think about
+
+- **Server-to-server endpoints.** Relying parties call the token, userinfo, JWKS and discovery
+  endpoints from a server, not a browser. Keep antibot, a country list and similar browser
+  challenges off these paths: an antibot page cannot be solved by `oauth2-proxy`. The template
+  turns none of them on. 31 client user agents (curl, Go, Python, Node, Java, Ruby, `okhttp`,
+  Postman and others, and an empty one) got `200` or the app's own `401`, never `403`, on
+  discovery, JWKS, the token endpoint, userinfo and `/`.
+- **Cross-origin browser clients.** Pocket ID answers `CORS: *` on the token, userinfo,
+  end-session, introspection and well-known documents. The preflight (`OPTIONS /api/oidc/token`)
+  passes (`204`) because `OPTIONS` is allowed. The rest of the API is not cross-origin: the app
+  checks `Origin` and `Sec-Fetch-Site` itself, with `APP_URL` as the trusted origin.
+- **No WebSocket or server-sent events** are used, so `REVERSE_PROXY_WS` stays off.
+- **Silent token renewal in a hidden iframe** (`prompt=none`) does not work with Pocket ID: its own
+  `frame-ancestors 'none'` header refuses the frame, with or without BunkerWeb (source). Use
+  refresh tokens.
+- **Device flow.** A device polls every 5 seconds for up to 15 minutes. The default bad-behavior
+  list bans it (table above), so keep `BAD_BEHAVIOR_STATUS_CODES` as set here.
+- **Many users behind one address.** Pocket ID's own limiter (100 per second, burst 300) and
+  BunkerWeb's `LIMIT_REQ_RATE` are both per address. Raise `LIMIT_REQ_RATE` for an office or school;
+  a `429` also feeds the bad-behavior ban.
+- **BunkerWeb behind another proxy.** Set `USE_REAL_IP=yes` and the trusted networks first;
+  otherwise `$remote_addr` is the outer proxy and every client looks the same to Pocket ID and to
+  the limiters.
+- **The admin interface and the API share one path space.** `/settings/...` and `/api/...` serve
+  administrators and users alike, so BunkerWeb cannot expose the sign-in and OIDC endpoints while
+  hiding the admin pages by path (upstream issues 1875 and 1527 plan separation for the next major
+  version). Restrict the admin pages by network on another layer if you need to.
+- **Backups.** Back up the data directory together with `ENCRYPTION_KEY`. Pocket ID takes an
+  instance lock on its data volume: after a quick restart wait for the old process to exit before
+  starting a new one, or the new one stops.
+- **Outbound features.** LDAP sync, SMTP, the GeoLite database download and SCIM provisioning leave
+  the Pocket ID container directly; BunkerWeb does not see them.
+- **Upload size.** Client logos stop at 2 MiB and other uploads at 10 MiB, both answered by the app.
+  `MAX_CLIENT_SIZE=11m` keeps the app's JSON error visible.
+
+- **Paranoia level 2 and above.** The password exclusions list the ids that fire at paranoia level 1.
+  At level 2, 517 of 840 generated passwords (letters, digits and symbols) tripped at least one more
+  rule (for example `920230`, `932200`, `932240`, `942131`, `942430`), and the config does not cover
+  them. Use passwords of letters and digits with a few symbols for the SMTP and LDAP accounts, or add
+  the ids your detect run shows.
+- **Pocket ID v3.** The next major version (not released: `v2.19.3` is the latest release,
+  `main` is v3) moves the admin endpoints under `/api/admin/`
+  ([issue 1527](https://github.com/pocket-id/pocket-id/issues/1527)). The paths in this config are
+  the v2 paths and need updating when you upgrade.
+
+
+Not verified: see the end of [Validation](#validation).
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

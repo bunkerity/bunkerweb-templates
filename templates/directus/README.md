@@ -1,6 +1,24 @@
-# Directus Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/directus.svg" alt="Directus logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">Directus</h1>
+
+<p align="center">Headless CMS template with REST and GraphQL API defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#raw-config">Raw Config</a>
+</p>
 
 Provision a BunkerWeb configuration for [Directus](https://directus.io/), the headless CMS that
 turns an existing SQL database into a REST and GraphQL API plus an admin app. The admin dashboard
@@ -14,6 +32,16 @@ Validated against Directus 11 and BunkerWeb 1.6.14 with OWASP CRS 4.29: the admi
 and field creation, item reads and writes, Directus `filter` syntax, GraphQL, multipart uploads
 and anonymous access were all exercised through the proxy.
 
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `directus`                    |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9853000` to `9853999`        |
+| Upstream    | `http://directus:8055`        |
+
 ## Prerequisites
 
 - A reachable Directus instance (container, VM, or bare metal) that trusts the BunkerWeb proxy IP.
@@ -25,7 +53,7 @@ and anonymous access were all exercised through the proxy.
   proxy allows. Verified by sending the same 2 MB body straight to Directus with BunkerWeb out
   of the path: identical `400`.
 
-## Setup
+## Install
 
 1. **Import the template**
    - Follow the repository's [installation guide](../../README.md#install) for the web
@@ -37,14 +65,16 @@ and anonymous access were all exercised through the proxy.
 4. **Reload BunkerWeb** and verify you can sign in to the admin app and call the API through the
    proxy.
 
-## Antibot is not usable here
+## Settings
+
+### Antibot is not usable here
 
 Directus serves the admin dashboard and the API from the same hostname, so any antibot challenge
 placed in front of the site also lands in front of `/items`, `/auth` and `/graphql`, where API
 clients cannot solve it. Leave `USE_ANTIBOT` at `no` and rely on Directus authentication plus the
 rate limits below.
 
-## Bad behavior counts API status codes
+### Bad behavior counts API status codes
 
 Directus answers `401` on every unauthenticated call (the admin app polls `/auth/refresh` and
 `/users/me` before sign-in), `403` whenever the public role lacks a permission, and `404` for any
@@ -61,7 +91,7 @@ This template counts only the codes Directus does not emit during normal use:
 "BAD_BEHAVIOR_STATUS_CODES": "400 405 444"
 ```
 
-## The two body limits move together
+### The two body limits move together
 
 nginx enforces `MAX_CLIENT_SIZE`, but ModSecurity enforces `MODSECURITY_REQ_BODY_NO_FILES_LIMIT`
 first and rejects anything above it, so a generous upload size alone still fails at 128 KB on a
@@ -79,11 +109,12 @@ Measured on `POST /items/<collection>` with a JSON body, changing nothing but th
 | 500 KB    | `400`                                                  | `200`                       |
 | 900 KB    | `400`                                                  | `200`                       |
 
-The rejection is a `400`, not a `413`: ModSecurity truncates the body at the limit and rule
-200002 then fails to parse it. Nothing in the error mentions a size, which is what makes this
-one expensive to diagnose from the Directus side.
+> [!NOTE]
+> The rejection is a `400`, not a `413`: ModSecurity truncates the body at the limit and rule
+> 200002 then fails to parse it. Nothing in the error mentions a size, which is what makes this
+> one expensive to diagnose from the Directus side.
 
-## The Expect header, and the CRS exclusion that ships with this template
+### The Expect header, and the CRS exclusion that ships with this template
 
 CRS 4 lists `/expect/` among its always-forbidden headers, so rule 920450 answers `403` to any
 request carrying `Expect: 100-continue`. curl adds that header by itself once a body passes 1 KB,
@@ -105,7 +136,7 @@ still refused:
 | `X-HTTP-Method-Override: DELETE`              | `403`  |
 | `Lock-Token`, `Content-Range`                 | `403`  |
 
-## Rich text and code samples will trip the CRS
+### Rich text and code samples will trip the CRS
 
 Directus stores whatever your editors type, and a CMS field holding HTML or a code sample reads
 exactly like an attack payload. Measured on `POST /items/<collection>`:
@@ -144,20 +175,22 @@ SecRule REQUEST_FILENAME "@rx \A/items/articles(?:/|\z)" \
         nolog"
 ```
 
-Remove targets, never whole rules, and confirm the same payload is still refused on another
-field, another path and another method before you keep it.
+> [!IMPORTANT]
+> Remove targets, never whole rules, and confirm the same payload is still refused on another
+> field, another path and another method before you keep it.
 
-## CORS is off-origin only
+### CORS is off-origin only
 
 `USE_CORS` matters only when a decoupled front end on another origin calls the API. The template
 ships `CORS_ALLOW_ORIGIN=self`, which is same-origin and effectively a no-op; replace it with your
 front end's origin (a PCRE regex is accepted).
 
-`CORS_ALLOW_CREDENTIALS` is `yes` because Directus session auth relies on cookies. Never combine
-that with `CORS_ALLOW_ORIGIN=*` — browsers reject the pair, and any origin that slipped through
-would carry the user's session. If no separate front end exists, set `USE_CORS=no`.
+> [!WARNING]
+> `CORS_ALLOW_CREDENTIALS` is `yes` because Directus session auth relies on cookies. Never combine
+> that with `CORS_ALLOW_ORIGIN=*` — browsers reject the pair, and any origin that slipped through
+> would carry the user's session. If no separate front end exists, set `USE_CORS=no`.
 
-## Customization Tips
+### Customization Tips
 
 - Review the rate limits: `LIMIT_REQ_RATE=25r/s` covers an admin app that fans out many parallel
   requests per page view, but a busy public API may need more.
@@ -220,3 +253,9 @@ GZIP_PROXIED=expired no-cache no-store private auth
 
 We are not the Directus support team; for questions about Directus itself, use their official
 channels.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

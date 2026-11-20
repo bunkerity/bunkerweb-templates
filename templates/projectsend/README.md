@@ -1,12 +1,41 @@
-# ProjectSend Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/projectsend.svg" alt="ProjectSend logo" width="96" height="96" />
+</p>
 
-## Overview
+<h1 align="center">ProjectSend</h1>
+
+<p align="center">File sharing template with chunked-upload-aware defaults</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#docker-compose-example">Docker Compose</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#custom-configs">Custom configs</a> ·
+  <a href="#validation">Validation</a>
+</p>
 
 This template puts [ProjectSend](https://www.projectsend.org/) v2 behind BunkerWeb with automatic
 Let's Encrypt certificates, a reverse proxy tuned for streamed uploads and downloads, and a
 ModSecurity exclusion for the chunked upload endpoint. ProjectSend v2 uploads files in resumable
 20 MiB parts, so the request size limit is `MAX_CLIENT_SIZE=100m`, the same value ProjectSend's own
 nginx uses.
+
+## At a glance
+
+| Fact        | Value                         |
+| ----------- | ----------------------------- |
+| Template id | `projectsend`                 |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Configs     | 1 (modsec-crs)                |
+| Rule ids    | `9870000` to `9870999`        |
+| Upstream    | `http://projectsend:80`       |
 
 ## Prerequisites
 
@@ -15,7 +44,113 @@ nginx uses.
 - A public hostname pointing to BunkerWeb.
 - Access to the BunkerWeb web UI or service environment variables.
 
-## Setup
+## Docker Compose example
+
+Based on the official `docker/production/compose.example.yaml` of ProjectSend. The application
+publishes no port: BunkerWeb reaches it over the `bw-services` network. Unlike upstream's
+`TRUSTED_PROXIES: "*"` (safe there because the port is bound to loopback), this example trusts only
+the `bw-services` subnet, since the application also sits on the project's default network. The
+queue worker and the scheduler run inside the app container. Passwords come from a `.env` file, see
+below.
+
+```yaml
+name: projectsend
+
+services:
+  app:
+    image: projectsend/projectsend:2
+    restart: unless-stopped
+    environment:
+      # Must be the public URL, the same host as SERVER_NAME in the template.
+      APP_URL: "https://projectsend.example.com"
+      APP_ENV: production
+      APP_DEBUG: "false"
+
+      # Trust X-Forwarded-For only from BunkerWeb. "*" is unsafe here: the app is reachable from
+      # bw-services (which can hold other services) and from this project's default network.
+      # Use the subnet of bw-services, or BunkerWeb's own IP if other containers share it.
+      TRUSTED_PROXIES: "10.20.31.0/24"
+
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: projectsend
+      DB_USERNAME: projectsend
+      DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD}"
+
+      REDIS_HOST: redis
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+    volumes:
+      # Holds every uploaded file and the generated APP_KEY: back this volume up.
+      - storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      default:
+      bw-services:
+        aliases:
+          - projectsend
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: projectsend
+      MYSQL_USER: projectsend
+      MYSQL_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+volumes:
+  storage:
+  db-data:
+  redis-data:
+
+networks:
+  bw-services:
+    external: true
+```
+
+Put the subnet of the existing `bw-services` network in `TRUSTED_PROXIES`. Read it with:
+
+```bash
+docker network inspect bw-services --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+```
+
+If you do not have `bw-services` yet, create it first and attach BunkerWeb to it. Pick a subnet
+that does not overlap `10.20.30.0/24`, which the BunkerWeb documentation uses for `bw-universe`:
+
+```bash
+docker network create --subnet 10.20.31.0/24 bw-services
+```
+
+> [!IMPORTANT]
+> Generate the database passwords once, next to `docker-compose.yml`. Compose reads them from
+> `.env`. Keep this file: MySQL stores the first credentials in the `db-data` volume and rejects
+> new ones.
+
+```bash
+[ -f .env ] || printf 'DB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\n' "$(openssl rand -hex 24)" "$(openssl rand -hex 24)" > .env
+docker compose config --quiet
+docker compose up -d
+```
+
+## Install
 
 1. Import `template.json` (Templates, **Create new template**, **Raw**, then upload or paste it).
 2. When the **Missing Custom Configs** dialog appears, upload every file listed in the
@@ -26,7 +161,9 @@ nginx uses.
 5. Reload BunkerWeb, open the public URL, then test sign-in, a small upload, a file larger than
    20 MiB (it is sent in several parts) and a public share link.
 
-## Placeholders
+For both import methods (web UI and plugin), see the repository [installation guide](../../README.md#install).
+
+### Placeholders
 
 The values below are examples. Replace them with your own before using the template:
 
@@ -38,7 +175,9 @@ The values below are examples. Replace them with your own before using the templ
   generate, for example with `openssl rand -hex 24`.
 - `10.20.31.0/24` (Compose example) is the subnet of your `bw-services` network.
 
-## Notes
+## Settings
+
+### Notes
 
 - **Certificates:** the HTTP challenge needs port 80 on BunkerWeb to be reachable from the
   internet for every domain in `SERVER_NAME`.
@@ -70,7 +209,7 @@ The values below are examples. Replace them with your own before using the templ
 - **Cookies:** `COOKIE_FLAGS_2` sets `SameSite=Lax` on `projectsend_xsrf`, the CSRF cookie the web
   app reads.
 
-## ModSecurity exclusion
+### ModSecurity exclusion
 
 The browser uploader (Uppy) sends each part as a raw `PUT` body with no `Content-Type` header, and
 the signed URL carries no header either. CRS 4 therefore scores rules `920340` and `920640`
@@ -81,8 +220,6 @@ the part trigger `920420` (Content-Type not allowed by policy) instead.
 method is `PUT` and the path matches `\A/(?:api/v1/)?uploads/[^/]+/parts/[0-9]+\z`, after
 `t:normalizePath`. Every other request, including `GET .../parts/{part}/sign`, keeps the full rule
 set.
-
-## Settings
 
 ### Web service - Front door
 
@@ -184,111 +321,6 @@ config type.
 | ------------ | ---------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------ |
 | `modsec-crs` | `templates/projectsend/configs/modsec-crs/projectsend_false_positives.conf` | `modsec-crs/projectsend_false_positives.conf` | Remove CRS rules `920340`, `920640` and `920420` for the upload part `PUT`. |
 
-## Docker Compose example
-
-Based on the official `docker/production/compose.example.yaml` of ProjectSend. The application
-publishes no port: BunkerWeb reaches it over the `bw-services` network. Unlike upstream's
-`TRUSTED_PROXIES: "*"` (safe there because the port is bound to loopback), this example trusts only
-the `bw-services` subnet, since the application also sits on the project's default network. The
-queue worker and the scheduler run inside the app container. Passwords come from a `.env` file, see
-below.
-
-```yaml
-name: projectsend
-
-services:
-  app:
-    image: projectsend/projectsend:2
-    restart: unless-stopped
-    environment:
-      # Must be the public URL, the same host as SERVER_NAME in the template.
-      APP_URL: "https://projectsend.example.com"
-      APP_ENV: production
-      APP_DEBUG: "false"
-
-      # Trust X-Forwarded-For only from BunkerWeb. "*" is unsafe here: the app is reachable from
-      # bw-services (which can hold other services) and from this project's default network.
-      # Use the subnet of bw-services, or BunkerWeb's own IP if other containers share it.
-      TRUSTED_PROXIES: "10.20.31.0/24"
-
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: "3306"
-      DB_DATABASE: projectsend
-      DB_USERNAME: projectsend
-      DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD}"
-
-      REDIS_HOST: redis
-      CACHE_STORE: redis
-      SESSION_DRIVER: redis
-      QUEUE_CONNECTION: redis
-    volumes:
-      # Holds every uploaded file and the generated APP_KEY: back this volume up.
-      - storage:/var/www/html/storage
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      default:
-      bw-services:
-        aliases:
-          - projectsend
-
-  db:
-    image: mysql:8.4
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: projectsend
-      MYSQL_USER: projectsend
-      MYSQL_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD}"
-      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}"
-    volumes:
-      - db-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - redis-data:/data
-
-volumes:
-  storage:
-  db-data:
-  redis-data:
-
-networks:
-  bw-services:
-    external: true
-```
-
-Put the subnet of the existing `bw-services` network in `TRUSTED_PROXIES`. Read it with:
-
-```bash
-docker network inspect bw-services --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
-```
-
-If you do not have `bw-services` yet, create it first and attach BunkerWeb to it. Pick a subnet
-that does not overlap `10.20.30.0/24`, which the BunkerWeb documentation uses for `bw-universe`:
-
-```bash
-docker network create --subnet 10.20.31.0/24 bw-services
-```
-
-Generate the database passwords once, next to `docker-compose.yml`. Compose reads them from
-`.env`. Keep this file: MySQL stores the first credentials in the `db-data` volume and rejects
-new ones.
-
-```bash
-[ -f .env ] || printf 'DB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\n' "$(openssl rand -hex 24)" "$(openssl rand -hex 24)" > .env
-docker compose config --quiet
-docker compose up -d
-```
-
 ## Validation
 
 Before importing the template:
@@ -312,3 +344,9 @@ After applying it:
   (`/s/{token}`) from a private window.
 - Check BunkerWeb logs for rate-limit, bad-behavior, and ModSecurity events before changing
   security controls.
+
+---
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

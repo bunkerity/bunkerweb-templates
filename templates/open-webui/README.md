@@ -1,9 +1,45 @@
-# Open WebUI Template
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/open-webui-light.svg">
+    <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/open-webui.svg" alt="Open WebUI logo" width="96" height="96" />
+  </picture>
+</p>
+
+<h1 align="center">Open WebUI</h1>
+
+<p align="center">AI chat template with WebSocket and prompt-aware WAF tuning</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/Open_WebUI-v0.13.3-248651?labelColor=1d6f93&style=flat" alt="Open WebUI v0.13.3" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-open-webui-for-the-proxy">Configure Open WebUI</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#things-to-think-about">Things to think about</a>
+</p>
 
 Put an existing [Open WebUI](https://openwebui.com/) server behind BunkerWeb with ModSecurity and the
 OWASP CRS on: chats with SQL, shell, HTML and code in the prompt, streamed replies, the Socket.IO
 connection, voice and camera, file uploads, notes, prompts, model settings, admin code editing,
 OpenAI-compatible API clients and single sign-on.
+
+## At a glance
+
+| Fact        | Value                                             |
+| ----------- | ------------------------------------------------- |
+| Template id | `open-webui`                                      |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Open WebUI v0.13.3 |
+| Configs     | 2 (modsec-crs, server-http)                       |
+| Rule ids    | `9865000` to `9865999`                            |
+| Upstream    | `http://open-webui:8080`                          |
 
 ## Prerequisites
 
@@ -46,7 +82,7 @@ its per-address limiters
 (`routers/sessions.py:86`, `routers/auths.py:1623`). Open WebUI's sign-in limiter is keyed by
 e-mail address (`routers/auths.py:99`), not by address.
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and the files under `configs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
@@ -64,11 +100,12 @@ Before enabling blocking on your instance:
    where your traffic requires them.
 4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflows.
 
-False positives return `403` in block mode. The default bad-behavior status list includes
-`400 401 403 404 405 429 444`: `BAD_BEHAVIOR_THRESHOLD` matching responses in 60 seconds ban the
-client for one day (the template sets 30, the BunkerWeb default is 10), so the detect run matters.
+> [!IMPORTANT]
+> False positives return `403` in block mode. The default bad-behavior status list includes
+> `400 401 403 404 405 429 444`: `BAD_BEHAVIOR_THRESHOLD` matching responses in 60 seconds ban the
+> client for one day (the template sets 30, the BunkerWeb default is 10), so the detect run matters.
 
-## Settings and tradeoffs
+## Settings
 
 Each setting was put back to the BunkerWeb default and the failure below reproduced. The settings
 added in the second pass were reverted together; `REVERSE_PROXY_READ_TIMEOUT` and
@@ -98,8 +135,9 @@ Measured and dropped because they made no difference on `v0.13.3`: `REVERSE_PROX
 (a streamed reply arrives chunk by chunk with buffering on or off), `REVERSE_PROXY_CONNECT_TIMEOUT`,
 `REVERSE_PROXY_SEND_TIMEOUT` and `SERVE_FILES`. The rest of `COOKIE_FLAGS` stays at its default.
 
-curl and some scripts send `Expect: 100-continue` on bodies above 1 MB, which CRS rule `920450`
-blocks. Browsers do not send it. Add `-H 'Expect:'` to API calls with large bodies.
+> [!NOTE]
+> curl and some scripts send `Expect: 100-continue` on bodies above 1 MB, which CRS rule `920450`
+> blocks. Browsers do not send it. Add `-H 'Expect:'` to API calls with large bodies.
 
 `OPTIONS` is not allowed. A cross-origin preflight (`POST` with `Authorization`) from a web page on
 another origin got `405` from BunkerWeb. With `OPTIONS` added to `ALLOWED_METHODS` the same preflight got `200` from Open WebUI. Add it only for a browser client on another origin, and set `CORS_ALLOW_ORIGIN` to that origin first.
@@ -167,11 +205,44 @@ workspace model and prompt lists), channel messages, admin prompt suggestions wi
 (`C23a`: `403`), tool valves, and every endpoint the matrix did not exercise. Add one exclusion per
 argument your logs name.
 
+## Validation
+
+Tested on 2026-11-17: Open WebUI `v0.13.3` (SQLite, offline mode, a stub OpenAI-compatible backend
+that streams a fixed reply), `bunkerity/bunkerweb-all-in-one:1.6.17` (libmodsecurity 3.0.17, CRS
+4.29.0), default paranoia level and anomaly thresholds, `SECURITY_MODE=block`, plain HTTP on a
+local test host.
+
+- **Request matrix** (final run on the shipped files): 135 requests that must succeed and 72 controls, one at a time with
+  their ModSecurity lines attributed per request. Without the config 38 of the first 68 and 31 of the 67 added in the second
+  pass got `403` with the rule ids in the file; with it all 135 pass and read back (accounts, chats, completions that reach the
+  model with the prompt unmodified, an image in a chat, tool calls, uploads, notes, prompts, models, memories, functions, admin
+  settings pages), and all 72 controls (the same payload in another argument, path, method, a path suffix, a non-UUID id or a
+  `..%2f` traversal) still got `403` from the specific rule the exclusion removes. The other seeds need no exclusion: the page and
+  its discovery files, sign-in and sign-up with a punctuation-heavy password, uploads, `PATCH` and `DELETE`, twelve client user
+  agents, the OIDC callback and back-channel logout shapes, the shared-chat page.
+- **Settings:** each non-default setting was switched back to the BunkerWeb default and the failure above reproduced.
+- **Realtime:** a WebSocket handshake gets `101` on `/ws/socket.io` and on `/api/v1/audio/realtime`. The browser smoke kept the
+  chat open for 125 seconds without input and the next reply still arrived.
+- **Browser smoke** (bad behavior on, template as shipped, only `SERVER_NAME` and `REVERSE_PROXY_HOST` set): the first
+  administrator signs up through BunkerWeb (the avatar goes out as a `data:` URI), a prompt with a SQL statement, a shell pipeline,
+  a `<script>` tag and a URL gets its streamed reply, the chat idles for 125 seconds and a second prompt still gets its reply, a
+  temporary chat streams its reply over plain HTTP, a text file attached to a chat uploads and is processed, a page opened from
+  `/?q=<SQL statement>` loads with the text in the prompt box, and seven admin and workspace pages open. The BunkerWeb log for the
+  623 requests of the run shows 548 `200`, 46 `304`, 10 `101`, 7 `302`, 1 `206`, 1 `499` and ten `403`, all ten
+  `GET /api/v1/channels/` answered by Open WebUI itself (`Channels is disabled`, no ModSecurity line). No ModSecurity line, no ban.
+- **Web UI import:** raw mode with `template.json` plus both config files imports and is listed next to the plugin copy.
+
+Not verified: HTTPS and HTTP/2, a real OpenID Connect or LDAP provider, a real model backend
+(Ollama, a hosted API), the notes editor in a browser (its text travels over Socket.IO), knowledge
+base indexing with a real embedding model, web search and image generation engines, a live
+voice call, channels, API key creation, mobile apps, several browsers behind one address, Open WebUI
+versions other than `v0.13.3`. Validate your own clients.
+
 ## Things to think about
 
 - **Single sign-on.** After an OpenID Connect sign-in the app's `/auth` page must read the `token`
   cookie from JavaScript; that is the `COOKIE_FLAGS_1` row above, and with plain passwords you can
-  drop that step. Set `WEBUI_URL` to the public HTTPS address first, or the callback is built from
+  clear that field. Set `WEBUI_URL` to the public HTTPS address first, or the callback is built from
   the proxy's own scheme. The callback
   request itself (`code`, `state`, `iss` URL, `session_state`) passes the CRS (`U06b`). The IdP's
   back-channel logout `POST /oauth/backchannel-logout` also passes. No identity provider was run.
@@ -208,35 +279,8 @@ argument your logs name.
 - **`ENABLE_API_KEYS`.** API keys use the same `Authorization: Bearer` header; the bearer path was
   tested with a session token. Key creation itself was not.
 
-## Validation and test history
+---
 
-Tested on 2026-11-17: Open WebUI `v0.13.3` (SQLite, offline mode, a stub OpenAI-compatible backend
-that streams a fixed reply), `bunkerity/bunkerweb-all-in-one:1.6.17` (libmodsecurity 3.0.17, CRS
-4.29.0), default paranoia level and anomaly thresholds, `SECURITY_MODE=block`, plain HTTP on a
-local test host.
-
-- **Request matrix** (final run on the shipped files): 135 requests that must succeed and 72 controls, one at a time with
-  their ModSecurity lines attributed per request. Without the config 38 of the first 68 and 31 of the 67 added in the second
-  pass got `403` with the rule ids in the file; with it all 135 pass and read back (accounts, chats, completions that reach the
-  model with the prompt unmodified, an image in a chat, tool calls, uploads, notes, prompts, models, memories, functions, admin
-  settings pages), and all 72 controls (the same payload in another argument, path, method, a path suffix, a non-UUID id or a
-  `..%2f` traversal) still got `403` from the specific rule the exclusion removes. The other seeds need no exclusion: the page and
-  its discovery files, sign-in and sign-up with a punctuation-heavy password, uploads, `PATCH` and `DELETE`, twelve client user
-  agents, the OIDC callback and back-channel logout shapes, the shared-chat page.
-- **Settings:** each non-default setting was switched back to the BunkerWeb default and the failure above reproduced.
-- **Realtime:** a WebSocket handshake gets `101` on `/ws/socket.io` and on `/api/v1/audio/realtime`. The browser smoke kept the
-  chat open for 125 seconds without input and the next reply still arrived.
-- **Browser smoke** (bad behavior on, template as shipped, only `SERVER_NAME` and `REVERSE_PROXY_HOST` set): the first
-  administrator signs up through BunkerWeb (the avatar goes out as a `data:` URI), a prompt with a SQL statement, a shell pipeline,
-  a `<script>` tag and a URL gets its streamed reply, the chat idles for 125 seconds and a second prompt still gets its reply, a
-  temporary chat streams its reply over plain HTTP, a text file attached to a chat uploads and is processed, a page opened from
-  `/?q=<SQL statement>` loads with the text in the prompt box, and seven admin and workspace pages open. The BunkerWeb log for the
-  623 requests of the run shows 548 `200`, 46 `304`, 10 `101`, 7 `302`, 1 `206`, 1 `499` and ten `403`, all ten
-  `GET /api/v1/channels/` answered by Open WebUI itself (`Channels is disabled`, no ModSecurity line). No ModSecurity line, no ban.
-- **Web UI import:** raw mode with `template.json` plus both config files imports and is listed next to the plugin copy.
-
-Not verified: HTTPS and HTTP/2, a real OpenID Connect or LDAP provider, a real model backend
-(Ollama, a hosted API), the notes editor in a browser (its text travels over Socket.IO), knowledge
-base indexing with a real embedding model, web search and image generation engines, a live
-voice call, channels, API key creation, mobile apps, several browsers behind one address, Open WebUI
-versions other than `v0.13.3`. Validate your own clients.
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

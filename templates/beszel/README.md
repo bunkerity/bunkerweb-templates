@@ -1,7 +1,40 @@
-# Beszel Template
+<p align="center">
+  <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/beszel.svg" alt="Beszel logo" width="96" height="96" />
+</p>
+
+<h1 align="center">Beszel</h1>
+
+<p align="center">Monitoring hub template with WebSocket agent connections</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BunkerWeb-1.6.17-0b5577?labelColor=1d6f93&style=flat" alt="BunkerWeb 1.6.17" />
+  <img src="https://img.shields.io/badge/OWASP_CRS-4-0b5577?labelColor=1d6f93&style=flat" alt="OWASP CRS 4" />
+  <img src="https://img.shields.io/badge/Beszel-0.21.2-248651?labelColor=1d6f93&style=flat" alt="Beszel 0.21.2" />
+</p>
+
+<p align="center">
+  <a href="../../README.md#templates">All templates</a> ·
+  <a href="#prerequisites">Prerequisites</a> ·
+  <a href="#configure-beszel-for-the-proxy">Configure Beszel</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="#crs-exception-scope-and-cost">CRS exceptions</a> ·
+  <a href="#validation">Validation</a> ·
+  <a href="#things-to-think-about">Things to think about</a>
+</p>
 
 Expose an existing Beszel hub through BunkerWeb: the dashboard and its live charts, the
 PocketBase API and superuser UI under it, and agents that connect to the hub over WebSocket.
+
+## At a glance
+
+| Fact        | Value                                        |
+| ----------- | -------------------------------------------- |
+| Template id | `beszel`                                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Beszel 0.21.2 |
+| Configs     | 1 (modsec-crs)                               |
+| Rule ids    | `9852000` to `9852999`                       |
+| Upstream    | `http://beszel:8090`                         |
 
 ## Prerequisites
 
@@ -37,7 +70,7 @@ takes the address of an agent that registers with a universal token from `CF-Con
 `X-Real-IP`, then the first `X-Forwarded-For` entry (`internal/hub/agent_connect.go:314-337`);
 see the header setting below.
 
-## Import and initial detect run
+## Install
 
 Import `template.json` and `configs/modsec-crs/beszel_false_positives.conf` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
@@ -58,7 +91,7 @@ In block mode a false positive returns `403`, and the default bad-behavior list
 Beszel itself answers a few `404` and `400` in normal use: a new system page asks for
 `system_details` (one `404` in the smoke) and a wrong password is a `400`.
 
-## Settings and tradeoffs
+## Settings
 
 Every row was measured with the setting and with BunkerWeb's value (`evidence/r5-*.log` in the
 lane folder; hub and agent `0.21.2`, BunkerWeb `1.6.17`, plain HTTP on loopback unless stated).
@@ -72,7 +105,7 @@ lane folder; hub and agent `0.21.2`, BunkerWeb `1.6.17`, plain HTTP on loopback 
 | `LIMIT_REQ_RATE=50r/s` | A page load is a burst of small requests. | A cold sign-in and system page is 42 requests with 22 in one second (`coldload-signin.log`); the sign-in page alone is 11. At `50r/s` a burst of 160 requests over 16 connections gets 50 `200` and 110 `429`, and at BunkerWeb's `2r/s` it gets 2 `200` and 158 `429`. The value is about 2.3 times the observed peak. Several tabs loading at once behind one address were not measured. |
 | `REVERSE_PROXY_READ_TIMEOUT=360s` | The upstream nginx and Caddy examples use `360s`. | The live-update stream (`/api/realtime`) sends nothing while idle. With `360s` it stayed open for the 130 second probe; at the default `60s` the proxy closed it at 60.19 seconds. The browser then reconnects by itself and the update still arrived (2 stream requests and 5 subscribe requests in 140 seconds, `r5-T60.log`), so this setting saves a reconnect each minute and covers a slow agent collection, it is not what makes the dashboard work. The real agent stayed connected for 600 seconds at both values. |
 | `REVERSE_PROXY_HEADERS=X-Forwarded-For $remote_addr;CF-Connecting-IP $remote_addr` | The hub reads `CF-Connecting-IP` first. | Against an echo backend a client that sends `X-Forwarded-For: 6.6.6.6` and `CF-Connecting-IP: 7.7.7.7` gets `xff 172.22.0.1` and `cf 172.22.0.1`; with BunkerWeb's value the upstream receives `6.6.6.6, 172.22.0.1` and `7.7.7.7` (`r5-EF.log`, `r5-EW.log`). A second real agent that registered itself with a universal token and sent those headers was stored with host `7.7.7.7` without the setting and `172.22.0.6` (its real address) with it (`r5-W.log`, `r5-F.log`). `X-Real-IP` is overwritten by BunkerWeb in both. |
-| `MAX_CLIENT_SIZE=20m` | The superuser UI uploads a backup ZIP to `/api/backups/upload`. | The hub itself rejects a body above 16 MiB with `400` (reproduced against the hub directly). 9, 11 and 16 MiB uploads returned `204`, 17 MiB `400` from the hub, 21 MiB `413` from BunkerWeb. At BunkerWeb's `10m`, 11 MiB and above get `413`. Drop it if you never upload a backup. |
+| `MAX_CLIENT_SIZE=20m` | The superuser UI uploads a backup ZIP to `/api/backups/upload`. | The hub itself rejects a body above 16 MiB with `400` (reproduced against the hub directly). 9, 11 and 16 MiB uploads returned `204`, 17 MiB `400` from the hub, 21 MiB `413` from BunkerWeb. At BunkerWeb's `10m`, 11 MiB and above get `413`. Enter `10m`, BunkerWeb's default, if you never upload a backup; an empty field keeps `20m`. |
 
 Not set by the template, with the numbers to know:
 
@@ -117,8 +150,9 @@ can be pinned there.
 | `9852105` | `PATCH /api/collections/user_settings/records/<15 characters>`, `json.settings.webhooks.array_0` to `array_9` | `931100`, `932130`, `934110` | A notification target on a LAN address (`http://192.168.1.10:8080/notify`) reads as remote file inclusion, an IPv6 address as SSRF and shell syntax. |
 | `9852106` | `POST /api/beszel/test-notification`, `json.url` | `931100`, `932130`, `934110` | The Test button posts the same kind of URL. |
 
-**Cost.** The listed rule ids stop looking at the listed argument on that method and path, and
-nothing else changes. `949110` is never excluded and every other rule keeps scoring the argument.
+> [!WARNING]
+> **Cost.** The listed rule ids stop looking at the listed argument on that method and path, and
+> nothing else changes. `949110` is never excluded and every other rule keeps scoring the argument.
 
 For the three dashboard `filter` rules the exception reaches only the exact shape above. Measured
 against the final files (the first 365 requests of `evidence/logs/matrix-final3.tsv` in the lane
@@ -193,6 +227,54 @@ Old Komodo labels (March 2026) removed `942100`, `934110`, `931100` and `942550`
 The first three reproduce and are replaced by the argument-level rules above; `942550` did not
 fire on any request of the matrix.
 
+## Validation
+
+Tested on 2026-11-17 and 2026-11-18 with the Beszel hub and agent `0.21.2` (images
+`ghcr.io/henrygd/beszel/beszel:0.21.2` and `ghcr.io/henrygd/beszel/beszel-agent:0.21.2`), PocketBase
+`0.42.2`, and `bunkerity/bunkerweb-all-in-one:1.6.17` with CRS `4.29.0`, `SECURITY_MODE=block`,
+default paranoia level.
+
+<details>
+<summary>Test evidence</summary>
+
+- **Request matrix.** The final matrix has 526 requests (`evidence/logs/matrix-final3.tsv`): 176
+  seeds (each with a status and a state check), 29 controls, 256 attack requests, 10 hand-written
+  filters or other requests whose status is recorded, 46 path and encoding probes whose status is
+  recorded, and 9 requests for the gaps above. Without the config file the dashboard's chart,
+  monitor chart and compare requests all got `403` from `942100`, and the container, S.M.A.R.T.,
+  systemd and ZFS lists passed. With the config on the final files: pass `526`, fail `0`. Every
+  control (other collection, argument, method or path suffix, `..%2f` traversal, one position past
+  the listed range, plain SQL injection and XSS) is `403` from the specific rule.
+- **Browser smoke** (headless Chrome, bad behavior on, only `SERVER_NAME` and the upstream address
+  changed, final files): sign-in, the system page in every chart range, the container and monitor
+  pages, a monitor dialog compared with another monitor in every range, notification settings
+  saved with a LAN webhook and its Test button, 125 seconds idle and then a rename made through
+  the API showed up in the open page, the superuser UI signed in and its logs page opened. The
+  real agent stayed connected through BunkerWeb. Every filter the dashboard sent on the way (22
+  distinct shapes, `evidence/verify/ui-green-filters.txt`) got `200`. The BunkerWeb log slice of 215 requests had
+  `200` 178 times, `204` 31 times, `101` once and `499` twice (the page left while a
+  `POST /api/realtime` was open). The 22 ModSecurity lines in that slice all belonged to the logs
+  page before the rules `9852103` and `9852109` were changed. No ban. The first admin and the Add
+  System dialog were exercised in the earlier smoke of 2026-11-18 on the previous rule version;
+  the filter rules do not touch those requests.
+- **Logs page in a browser** (headless Chrome, bad behavior on, final files, superuser UI):
+  signed in, opened `/_/#/logs` and typed five filters in its search box:
+  `data.status>=400 && data.method="GET"`, `login`, `data.method="POST"`, `data.method="HEAD"` and
+  `data.status=400 && message~"jndi"`. The page sent 12 requests (the untyped list and chart, then the chart and the
+  list for each of the five filters), and all 12 got `200`. The list showed the hub's own error
+  entries. The browser had no console error, and the BunkerWeb log slice has no ModSecurity line,
+  no ban and 10 of those 12 requests (the last two were not in the relay yet). Evidence
+  `ui-logs-requests.txt`, `ui-logs-page-typed.png` and `browser-bw-all.log` in
+  `evidence/logs/`.
+- **Web UI import.** The template with its config file was imported through BunkerWeb's web UI
+  (Templates, Raw mode) and is listed with 7 steps, 12 settings and 1 config.
+
+</details>
+
+> [!NOTE]
+> Check JSON with `jq . templates/beszel/template.json`. JSON parsing does not prove runtime
+> behavior; repeat your own workflows before enabling block mode.
+
 ## Things to think about
 
 - **Agents behind one address.** WebSocket agents are not counted by the connection limit and
@@ -228,44 +310,8 @@ fire on any request of the matrix.
   a browser (HTTP/2 was measured only for the stream limit), and several browsers loading the
   dashboard at once.
 
-## Validation and test history
+---
 
-Tested on 2026-11-17 and 2026-11-18 with the Beszel hub and agent `0.21.2` (images
-`ghcr.io/henrygd/beszel/beszel:0.21.2` and `ghcr.io/henrygd/beszel/beszel-agent:0.21.2`), PocketBase
-`0.42.2`, and `bunkerity/bunkerweb-all-in-one:1.6.17` with CRS `4.29.0`, `SECURITY_MODE=block`,
-default paranoia level.
-
-- **Request matrix.** The final matrix has 526 requests (`evidence/logs/matrix-final3.tsv`): 176
-  seeds (each with a status and a state check), 29 controls, 256 attack requests, 10 hand-written
-  filters or other requests whose status is recorded, 46 path and encoding probes whose status is
-  recorded, and 9 requests for the gaps above. Without the config file the dashboard's chart,
-  monitor chart and compare requests all got `403` from `942100`, and the container, S.M.A.R.T.,
-  systemd and ZFS lists passed. With the config on the final files: pass `526`, fail `0`. Every
-  control (other collection, argument, method or path suffix, `..%2f` traversal, one position past
-  the listed range, plain SQL injection and XSS) is `403` from the specific rule.
-- **Browser smoke** (headless Chrome, bad behavior on, only `SERVER_NAME` and the upstream address
-  changed, final files): sign-in, the system page in every chart range, the container and monitor
-  pages, a monitor dialog compared with another monitor in every range, notification settings
-  saved with a LAN webhook and its Test button, 125 seconds idle and then a rename made through
-  the API showed up in the open page, the superuser UI signed in and its logs page opened. The
-  real agent stayed connected through BunkerWeb. Every filter the dashboard sent on the way (22
-  distinct shapes, `evidence/verify/ui-green-filters.txt`) got `200`. The BunkerWeb log slice of 215 requests had
-  `200` 178 times, `204` 31 times, `101` once and `499` twice (the page left while a
-  `POST /api/realtime` was open). The 22 ModSecurity lines in that slice all belonged to the logs
-  page before the rules `9852103` and `9852109` were changed. No ban. The first admin and the Add
-  System dialog were exercised in the earlier smoke of 2026-11-18 on the previous rule version;
-  the filter rules do not touch those requests.
-- **Logs page in a browser** (headless Chrome, bad behavior on, final files, superuser UI):
-  signed in, opened `/_/#/logs` and typed five filters in its search box:
-  `data.status>=400 && data.method="GET"`, `login`, `data.method="POST"`, `data.method="HEAD"` and
-  `data.status=400 && message~"jndi"`. The page sent 12 requests (the untyped list and chart, then the chart and the
-  list for each of the five filters), and all 12 got `200`. The list showed the hub's own error
-  entries. The browser had no console error, and the BunkerWeb log slice has no ModSecurity line,
-  no ban and 10 of those 12 requests (the last two were not in the relay yet). Evidence
-  `ui-logs-requests.txt`, `ui-logs-page-typed.png` and `browser-bw-all.log` in
-  `evidence/logs/`.
-- **Web UI import.** The template with its config file was imported through BunkerWeb's web UI
-  (Templates, Raw mode) and is listed with 7 steps, 12 settings and 1 config.
-
-Check JSON with `jq . templates/beszel/template.json`. JSON parsing does not prove runtime
-behavior; repeat your own workflows before enabling block mode.
+<p align="center">
+  <a href="../../README.md#templates">All templates</a>
+</p>

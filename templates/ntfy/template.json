@@ -50,7 +50,7 @@
     },
     {
       "title": "Security - Metrics endpoint",
-      "subtitle": "Keep Prometheus /metrics private; drop this if you scrape it through BunkerWeb.",
+      "subtitle": "Keep Prometheus /metrics private. If you scrape it through BunkerWeb, clear the field.",
       "settings": ["BLACKLIST_URI"]
     },
     {
