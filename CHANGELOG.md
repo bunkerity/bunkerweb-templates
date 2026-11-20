@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Fix the Xen Orchestra template for XO 6: let the host list through CRS `932235` on the `fields` parameter of `GET /rest/v0/` (rule `9879101`), raise `LIMIT_REQ_RATE` to `10r/s` for the nine live-update subscriptions of each page load, correct the CSP and `X-Frame-Options` advice, and name the tested XO build.
 - [@TheophileDiot] Make SQL data sources work through the Grafana template: skip the SQL injection and expression rules on `rawSql` fields in the new `modsec/grafana_sql_fields.conf` (panels, Explore and dashboard saves from the Grafana 13 web UI, which replaces rule `9858101`), skip them on the Explore `panes` parameter with rule `9858103`, raise `LIMIT_CONN_MAX_HTTP2` to `400` so Connections, Add new connection loads without a ban, drop the `Accept` condition of rule `9858500` so curl and uptime monitors get complete pages, and document the `root_url` ban, the certificate settings and the dashboard size limit.
 - [@TheophileDiot] Show the template count, latest release, downloads and tested BunkerWeb and CRS versions as README badges, and drop the issue, PR and last-update badges.
 - [@TheophileDiot] Reword the step subtitles of beszel, kaneo, n8n, ntfy, open-webui, outline and umami that the web UI's own CRS blocked on import (`; drop it` fired `942350`), and tell users to enter BunkerWeb's default instead of clearing a field, which keeps the template value.

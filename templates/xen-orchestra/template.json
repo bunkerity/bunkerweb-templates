@@ -31,7 +31,7 @@
     "USE_MODSECURITY": "yes",
     "USE_MODSECURITY_CRS": "yes",
     "SECURITY_MODE": "block",
-    "LIMIT_REQ_RATE": "6r/s",
+    "LIMIT_REQ_RATE": "10r/s",
     "LIMIT_CONN_MAX_HTTP1": "50",
     "LIMIT_CONN_MAX_HTTP2": "200",
     "LIMIT_CONN_MAX_HTTP3": "200",
@@ -45,7 +45,7 @@
   "steps": [
     {
       "title": "Front service",
-      "subtitle": "Configure the public-facing hostname and TLS settings for Xen Orchestra",
+      "subtitle": "Set the hostname you expose. For a name that is not public, turn Automatic Let's Encrypt off and tick Activate self-signed certificate",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -81,7 +81,7 @@
     },
     {
       "title": "Rate limiting",
-      "subtitle": "Configure connection and request limits for Xen Orchestra traffic",
+      "subtitle": "Request and connection limits. XO 6 sends nine requests to one URL within a second at every page load, so keep the rate at 10r/s or more",
       "settings": [
         "LIMIT_REQ_RATE",
         "LIMIT_CONN_MAX_HTTP1",
