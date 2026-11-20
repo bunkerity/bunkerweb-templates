@@ -30,6 +30,7 @@
     "BAD_BEHAVIOR_STATUS_CODES": "400 401 403 405 444",
     "BAD_BEHAVIOR_THRESHOLD": "40",
     "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy X-Frame-Options",
+    "CONTENT_SECURITY_POLICY": "object-src 'none'; form-action 'self' https://filestash-office.example.com; frame-ancestors 'self';",
     "INTERCEPTED_ERROR_CODES": "404 405 413 429 500 501 502 503 504",
     "USE_ROBOTSTXT": "yes",
     "USE_GZIP": "yes",
@@ -39,7 +40,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your Filestash hostname.",
+      "subtitle": "Point the template at your Filestash hostname and your own e-mail. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {
@@ -61,7 +62,7 @@
     },
     {
       "title": "HTTP - Filestash specific settings",
-      "subtitle": "Allow the WebDAV verbs and large uploads, and let Filestash serve its own files.",
+      "subtitle": "Allow the verbs Filestash uses for WebDAV on shared links, large uploads, and let Filestash serve its own files.",
       "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE", "SERVE_FILES"]
     },
     {
@@ -88,9 +89,10 @@
     },
     {
       "title": "Security - Headers and exposure",
-      "subtitle": "Keep the security headers Filestash sets itself on served files and pages.",
+      "subtitle": "Keep the headers Filestash sets itself, and let the editor form reach your Collabora host.",
       "settings": [
         "KEEP_UPSTREAM_HEADERS",
+        "CONTENT_SECURITY_POLICY",
         "INTERCEPTED_ERROR_CODES",
         "USE_ROBOTSTXT"
       ]
@@ -102,7 +104,7 @@
     },
     {
       "title": "Security - WAF tuning",
-      "subtitle": "Allow the editor save and the uploads that the CRS content type check rejects, one request at a time.",
+      "subtitle": "Let uploads, the editor save, sign-in and folder paths through the checks that reject them, one request at a time.",
       "settings": [],
       "configs": ["modsec-crs/filestash_false_positives.conf"]
     }
