@@ -12,6 +12,7 @@
     "USE_LIMIT_REQ": "yes",
     "LIMIT_REQ_URL": "/",
     "LIMIT_REQ_RATE": "100r/s",
+    "LIMIT_CONN_MAX_HTTP2": "400",
     "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
     "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "32m",
     "REVERSE_PROXY_URL_1": "/api/live/",
@@ -21,7 +22,10 @@
     "REVERSE_PROXY_HOST_2": "http://grafana:3000",
     "REVERSE_PROXY_MAX_CLIENT_SIZE_2": "64m"
   },
-  "configs": ["modsec-crs/grafana_false_positives.conf"],
+  "configs": [
+    "modsec-crs/grafana_false_positives.conf",
+    "modsec/grafana_sql_fields.conf"
+  ],
   "steps": [
     {
       "title": "Domains and TLS",
@@ -40,12 +44,13 @@
     },
     {
       "title": "API and dashboard limits",
-      "subtitle": "Preserve JSON errors and allow dashboard saves and query bursts.",
+      "subtitle": "Preserve JSON errors and allow dashboard saves, query bursts and pages that load many files.",
       "settings": [
         "ALLOWED_METHODS",
         "USE_LIMIT_REQ",
         "LIMIT_REQ_URL",
         "LIMIT_REQ_RATE",
+        "LIMIT_CONN_MAX_HTTP2",
         "REVERSE_PROXY_INTERCEPT_ERRORS",
         "MODSECURITY_REQ_BODY_NO_FILES_LIMIT"
       ]
@@ -60,8 +65,8 @@
       ]
     },
     {
-      "title": "Dashboard uploads",
-      "subtitle": "Keep this upstream synchronized and review the dashboard body limit.",
+      "title": "Dashboard API save size",
+      "subtitle": "Keep this upstream the same as the main one and review the size limit for saving dashboards through the API.",
       "settings": [
         "REVERSE_PROXY_URL_2",
         "REVERSE_PROXY_HOST_2",
@@ -71,7 +76,10 @@
     {
       "title": "CRS exclusions",
       "subtitle": "Review the documented exception scopes before enabling the service.",
-      "configs": ["modsec-crs/grafana_false_positives.conf"]
+      "configs": [
+        "modsec-crs/grafana_false_positives.conf",
+        "modsec/grafana_sql_fields.conf"
+      ]
     }
   ]
 }

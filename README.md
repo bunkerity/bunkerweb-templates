@@ -277,7 +277,7 @@ docker exec <container> sh -c \
 | authentik                | `authentik_false_positives`   | `9851100` |
 | forgejo                  | `forgejo_false_positives`     | `9856103` |
 | forgejo (second file)    | `forgejo_protocol`            | `9856100` |
-| grafana                  | `grafana_false_positives`     | `9858501` |
+| grafana                  | `grafana_false_positives`     | `9858103` |
 | netbird                  | `netbird_false_positives`     | `9862100` |
 | opengym                  | `opengym_false_positives`     | `9866100` |
 | vaultwarden              | `vaultwarden_false_positives` | `9877100` |
