@@ -201,8 +201,10 @@ belong to another project.
   never a commit SHA or another branch. Icons follow upstream, so a redrawn icon shows
   up without a change here: raw.githubusercontent.com caches for 5 minutes and GitHub's image proxy
   follows it. The cost is that a renamed or deleted upstream file shows as a broken image until a
-  README is fixed, so re-check the icons before a release. Do not use the jsDelivr form of this URL:
-  it answered `403` for some files of a large icon repository.
+  README is fixed. The weekly `README icon check` workflow (`.github/workflows/readme-icons.yml`)
+  fails when an icon URL stops answering HTTP 200; run it from the Actions tab before a release.
+  Do not use the jsDelivr form of this URL: it answered `403` for some files of a large icon
+  repository.
 - No credit line: the icons are only linked, nothing is copied into this repository, so no licence
   notice is due. The root README License section keeps one sentence about trademarks. Do not copy
   SVG files into the repository: a copy makes the Apache-2.0 notice due.

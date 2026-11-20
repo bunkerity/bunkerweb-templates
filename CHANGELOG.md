@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Add a weekly `README icon check` workflow that fails when a hotlinked README icon URL stops answering HTTP 200.
 - [@TheophileDiot] Redesign the README and every template README: Dashboard Icons, templates grouped by category, a shared header, an At a glance table and one section order
 
 ## Templates release v0.9 - 2026-11-19
