@@ -1,0 +1,44 @@
+templates/grafana/configs/modsec-crs/grafana_false_positives.conf
+  s_70ec699187c4ca::t_41910b4372f836 30-53
+  s_70ec699187c4ca::t_7c2d55de14af7e 57-59,68,70-71
+  s_70ec699187c4ca::t_710aa322918f27 3,5-10
+README.md
+  s_70ec699187c4ca::t_f6e7b00ef8e291 280
+CHANGELOG.md
+  s_70ec699187c4ca::t_49809549bb23b3 8
+templates/grafana/README.md
+  s_7f7f6f212e5aac::t_744431d67f34b1 157-176,178-187
+  s_70ec699187c4ca::t_d1fc1e9fc30aea 23-26,34,41-47,54-55,61-62,78-82,86-88
+  s_70ec699187c4ca::t_3a152ec0e7f935 177,204-209
+  s_70ec699187c4ca::t_de5abe09fb65f9 96-134,137-143
+templates/grafana/template.json
+  s_70ec699187c4ca::t_d3c0bcc29e53fa 68-69
+  s_70ec699187c4ca::t_a907dcb311f5a0 15,25-26,28,47,53,79-80,82
+  s_70ec699187c4ca::t_f6e7b00ef8e291 27,81
+templates/grafana/configs/modsec/grafana_sql_fields.conf
+  s_70ec699187c4ca::t_8c8eb4b252402e 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4f295e5192c941ab3911a27e2ac9ef74481bbe8b",
+  "prompts": {},
+  "sessions": {
+    "s_70ec699187c4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "568add67-fe41-480b-9144-1b2abc54a14c",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_7f7f6f212e5aac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b247623c-48ea-43ab-b696-5a9e39b5a8c0",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
