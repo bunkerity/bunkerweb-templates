@@ -1,0 +1,175 @@
+templates/xen-orchestra/configs/modsec-crs/xen-orchestra_false_positives.conf
+  s_ab4430e360ff20::t_defad42cc420bd 1-2,4-7
+templates/n8n/configs/modsec-crs/n8n_forms_false_positives.conf
+  s_ab4430e360ff20::t_2c85946c22eacb 6
+  s_370c2284af86c7::t_108f7b5889c6ad 1,7,9-13,15-26
+  s_ab4430e360ff20::t_52e5b27826dd76 8,28-31
+templates/beszel/configs/modsec-crs/beszel_false_positives.conf
+  s_ab4430e360ff20::t_c7ebaa397ed4f7 1-2,4-7,12-13,37,60-61,86-87,123-125,145-146,166-167,234
+  s_2565fa760f3b77::t_0a3b5f89db2db9 3,10-11,36,59,84-85,116-122,144,164-165,187,233
+  s_ab4430e360ff20::t_641a66bd2252eb 188
+  s_ab4430e360ff20::t_86b0df339b81f7 189-190
+templates/kaneo/configs/server-http/kaneo_large_cookies.conf
+  s_ab4430e360ff20::t_81a29d92087004 3-6
+  s_2565fa760f3b77::t_c751715e6e7868 1-2
+templates/uptime-kuma/configs/modsec-crs/uptime-kuma_false_positives.conf
+  s_ab4430e360ff20::t_defad42cc420bd 1-6
+templates/searxng/configs/modsec-crs/searxng_false_positives.conf
+  s_ab4430e360ff20::t_641a66bd2252eb 1-2
+  s_ab4430e360ff20::t_1f0f90eb661f85 3-4,7-9,11-18
+  s_2565fa760f3b77::t_5f1eb6143f9511 74-77
+  s_2565fa760f3b77::t_6c3ad7b3b7ac8d 6,20-23,93-94
+templates/projectsend/configs/modsec-crs/projectsend_false_positives.conf
+  s_ab4430e360ff20::t_e7af89383ae3d1 1-12
+templates/netbird/configs/modsec-crs/netbird_false_positives.conf
+  s_ab4430e360ff20::t_e7af89383ae3d1 1-10,25-26
+templates/synapse/configs/modsec-crs/synapse_false_positives.conf
+  s_ab4430e360ff20::t_e7af89383ae3d1 1-3,6-8,21-22,34,36-37
+templates/n8n/configs/modsec-crs/n8n_api_false_positives.conf
+  s_ab4430e360ff20::t_55d3122c066df2 9-11
+  s_ab4430e360ff20::t_641a66bd2252eb 16
+  s_370c2284af86c7::t_108f7b5889c6ad 1,3-8,13,17-21,23,125,227
+templates/pi-hole/configs/modsec-crs/pihole_false_positives.conf
+  s_ab4430e360ff20::t_e7af89383ae3d1 1-2,4-10,12-14,23-25,34-35,44-45,54-56
+templates/umami/configs/modsec-crs/umami_false_positives.conf
+  s_ab4430e360ff20::t_641a66bd2252eb 74-76,589,607
+  s_ab4430e360ff20::t_56cc2341297ebe 96
+  s_ab4430e360ff20::t_a0863a53c13c0f 1-8,10-14
+  s_ab4430e360ff20::t_86b0df339b81f7 590-592,608-611
+  s_ab4430e360ff20::t_8232fbb25e0c7d 15-17,52-54,97-99,119-122,150-154,612,633-636,668-669
+templates/jellyfin/configs/modsec-crs/jellyfin_false_positives.conf
+  s_ab4430e360ff20::t_81a29d92087004 1-5
+templates/n8n/configs/modsec-crs/n8n_clients_false_positives.conf
+  s_370c2284af86c7::t_108f7b5889c6ad 1,3-11,17,32
+  s_ab4430e360ff20::t_55d3122c066df2 12-15
+templates/vaultwarden/configs/modsec-crs/vaultwarden_false_positives.conf
+  s_ab4430e360ff20::t_defad42cc420bd 1-7,9,28-29
+  s_2565fa760f3b77::t_6c3ad7b3b7ac8d 8,27
+TEMPLATE_GUIDE.md
+  s_ab4430e360ff20::t_ecf189091222d6 330-332
+  s_2565fa760f3b77::t_b5c10df5ce4bc8 325-329,333
+templates/nextcloud/configs/modsec-crs/nextcloud_false_positives.conf
+  s_ab4430e360ff20::t_e7af89383ae3d1 1-2,4-7,16-17,21-24,26-28
+templates/tomcat/configs/modsec-crs/tomcat_false_positives.conf
+  s_ab4430e360ff20::t_e7af89383ae3d1 1-2,6-7
+CHANGELOG.md
+  s_2565fa760f3b77::t_e194c8a44bafb4 8
+templates/wordpress/configs/modsec-crs/wordpress_crs_tuning.conf
+  s_ab4430e360ff20::t_defad42cc420bd 1-2,4-6,8-13,22-24,34-37,52
+templates/n8n/configs/modsec-crs/n8n_editor_false_positives.conf
+  s_ab4430e360ff20::t_c62842bac69bbd 16-22,25-26,29-31
+  s_ab4430e360ff20::t_52e5b27826dd76 4,237,443
+  s_370c2284af86c7::t_108f7b5889c6ad 1,5-7,9,339-340,442,444-445
+templates/wordpress/configs/modsec-crs/wordpress_false_positives.conf
+  s_ab4430e360ff20::t_defad42cc420bd 1-4,6-8,18-19,30-33
+templates/n8n/configs/modsec-crs/n8n_webhook_false_positives.conf
+  s_370c2284af86c7::t_108f7b5889c6ad 1,6-8,10-13,18,38-39,60-63
+  s_ab4430e360ff20::t_52e5b27826dd76 9,14-17,64-65
+  s_ab4430e360ff20::t_2c85946c22eacb 19-20,40-41,66
+  s_ab4430e360ff20::t_55d3122c066df2 3-4
+templates/open-webui/configs/modsec-crs/open-webui_false_positives.conf
+  s_ab4430e360ff20::t_50f88a433d3ee4 1-13,15-16,18,99-101,161,225-228,397,831-833,1036-1037,1220
+  s_2565fa760f3b77::t_c751715e6e7868 14,224,1035
+templates/forgejo/configs/modsec-crs/forgejo_false_positives.conf
+  s_ab4430e360ff20::t_fa3fdfafaebb20 3-9
+  s_ab4430e360ff20::t_641a66bd2252eb 1-2
+  s_ab4430e360ff20::t_c0de943b8b3565 11-12,42
+templates/atuin/configs/modsec-crs/atuin_false_positives.conf
+  s_ab4430e360ff20::t_f26e081b6cb266 1-3,13-16,238-243
+  s_ab4430e360ff20::t_641a66bd2252eb 5-9,18,22-23
+  s_ab4430e360ff20::t_86b0df339b81f7 19-21
+  s_2565fa760f3b77::t_3dc92b075095f3 4,10-12,236-237,266,299
+templates/drupal/configs/modsec-crs/drupal_false_positives.conf
+  s_ab4430e360ff20::t_fa3fdfafaebb20 1-3,6-9,18-20,32
+  s_2565fa760f3b77::t_60d74f65dfb68a 5,29-31
+templates/kaneo/configs/modsec-crs/kaneo_false_positives.conf
+  s_2565fa760f3b77::t_c751715e6e7868 15-16,835-836,1402,1434-1435,1564,1627-1628,1640-1641,1654
+  s_ab4430e360ff20::t_990f986479b032 1-14,17-20,431-434,1436-1438
+templates/forgejo/configs/modsec-crs/forgejo_protocol.conf
+  s_ab4430e360ff20::t_81a29d92087004 23-24,38-40
+  s_ab4430e360ff20::t_fa3fdfafaebb20 1-8
+  s_ab4430e360ff20::t_16bbe0dcced925 22
+templates/directus/configs/modsec-crs/directus_crs_tuning.conf
+  s_2565fa760f3b77::t_60d74f65dfb68a 3-7
+  s_ab4430e360ff20::t_fdc7915a7f046f 1,9-11,13-16
+templates/pocket-id/configs/modsec-crs/pocket-id_false_positives.conf
+  s_2565fa760f3b77::t_5f1eb6143f9511 934
+  s_2565fa760f3b77::t_6c3ad7b3b7ac8d 12-15
+  s_ab4430e360ff20::t_a0863a53c13c0f 1-11,16-17,860-861,897-898,935-937
+templates/authentik/configs/modsec-crs/authentik_false_positives.conf
+  s_ab4430e360ff20::t_fdc7915a7f046f 1,3-8,11-12,32-33,52
+  s_2565fa760f3b77::t_3b8dc39d41c697 2,9-10,31,50-51
+templates/ntfy/configs/modsec-crs/ntfy_false_positives.conf
+  s_2565fa760f3b77::t_a6357d41adb48a 96-101,128-130,172-175,236,238-241,245
+  s_ab4430e360ff20::t_52e5b27826dd76 237,242-243
+  s_2565fa760f3b77::t_5f1eb6143f9511 203-210,264-268
+  s_ab4430e360ff20::t_5525b6f2293760 1-5,11-12,36-37
+templates/filestash/configs/modsec-crs/filestash_false_positives.conf
+  s_ab4430e360ff20::t_fa3fdfafaebb20 1,3-5,7-11,13-14,27-31
+  s_ab4430e360ff20::t_69ce44d7822136 46-47
+templates/opengym/configs/modsec-crs/opengym_false_positives.conf
+  s_ab4430e360ff20::t_0f90fad57b0d28 1,3-7,9-10,15-20,64-67,103-108
+  s_ab4430e360ff20::t_370a795bf8cb54 133-135,138-143,164-165,167-168
+  s_2565fa760f3b77::t_a6357d41adb48a 136
+templates/outline/configs/modsec-crs/outline_false_positives.conf
+  s_ab4430e360ff20::t_a98d7039f5c579 1-9,86,136,322
+  s_43ed2494ceef67::t_b2e63bfe6cfcbc 11-12,26-28,64-65,87,110,135,137-138,172-174,210-211,251-252,267-268,283-284,305-307,321,323-325
+  s_ab4430e360ff20::t_86b0df339b81f7 227-230
+templates/tuwunel/configs/modsec-crs/tuwunel_false_positives.conf
+  s_ab4430e360ff20::t_e7af89383ae3d1 1-3,6-8,21-22,34,36-37
+templates/garage/configs/modsec-crs/garage_false_positives.conf
+  s_ab4430e360ff20::t_19b979c2eb0626 1-5,9-12,14-19
+  s_cb1f7c330385bf::t_9990de1dd5a45c 37,56-59,76-79,98-105
+  s_ab4430e360ff20::t_c695d568813ad2 35-36
+templates/open-webui/configs/server-http/open-webui_large_cookies.conf
+  s_ab4430e360ff20::t_81a29d92087004 5-6
+  s_2565fa760f3b77::t_c751715e6e7868 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bf991b2394f62c2df7f862e0b002f137cee2ba8a",
+  "prompts": {},
+  "sessions": {
+    "s_2565fa760f3b77": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e444170-a5a8-4945-9d8c-314b1bc54203",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_370c2284af86c7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f048008e-8f54-422b-aacc-6b7658070fc7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_43ed2494ceef67": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f38324f-1f88-4127-8606-d16aaba14ee7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_ab4430e360ff20": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbd7be16-2d9c-4361-b84b-375d6d550171",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_cb1f7c330385bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d013da27-77ec-44fa-9ad1-b3cd2d4a8405",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
