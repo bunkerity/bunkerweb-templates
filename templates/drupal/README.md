@@ -70,7 +70,7 @@ reliable.
 - `MAX_CLIENT_SIZE=100m` lets large image and file uploads through (the BunkerWeb default of
   `10m` answers `413`). Keep it in line with PHP's `upload_max_filesize` and `post_max_size`.
 - `ALLOWED_METHODS` includes `PATCH`, `DELETE`, and `OPTIONS`, which JSON:API clients and CORS
-  preflights need. Drop them if you do not expose JSON:API.
+  preflights need. If you do not expose JSON:API, enter `GET|POST|HEAD|QUERY`, BunkerWeb's default.
 - `modsec-crs/drupal_false_positives.conf` allows the `application/vnd.api+json` content type
   and arms the JSON body parser for it, so request bodies stay inspected. It also lets
   `application/octet-stream` through for `POST /jsonapi/<entity>/<bundle>[/<uuid>]/field_*`,

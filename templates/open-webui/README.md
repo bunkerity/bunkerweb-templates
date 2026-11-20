@@ -242,7 +242,7 @@ versions other than `v0.13.3`. Validate your own clients.
 
 - **Single sign-on.** After an OpenID Connect sign-in the app's `/auth` page must read the `token`
   cookie from JavaScript; that is the `COOKIE_FLAGS_1` row above, and with plain passwords you can
-  drop that step. Set `WEBUI_URL` to the public HTTPS address first, or the callback is built from
+  clear that field. Set `WEBUI_URL` to the public HTTPS address first, or the callback is built from
   the proxy's own scheme. The callback
   request itself (`code`, `state`, `iss` URL, `session_state`) passes the CRS (`U06b`). The IdP's
   back-channel logout `POST /oauth/backchannel-logout` also passes. No identity provider was run.

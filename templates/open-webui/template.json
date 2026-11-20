@@ -67,17 +67,17 @@
     },
     {
       "title": "HTTP - Voice, camera and location",
-      "subtitle": "Let Open WebUI use the microphone, camera, screen share, location, speaker choice and fullscreen; drop it if you disable those features.",
+      "subtitle": "Let Open WebUI use the microphone, camera, screen share, location, speaker choice and fullscreen. To turn one off, set it back to (), for example camera=().",
       "settings": ["PERMISSIONS_POLICY"]
     },
     {
       "title": "Security - Single sign-on cookie",
-      "subtitle": "Open WebUI's SSO sign-in reads its token cookie from JavaScript: keep HttpOnly off for that one cookie, or drop this if you use passwords only.",
+      "subtitle": "Open WebUI's SSO sign-in reads its token cookie from JavaScript, so that one cookie keeps HttpOnly off. If you use passwords only, clear the field.",
       "settings": ["COOKIE_FLAGS_1"]
     },
     {
       "title": "HTTP - Large single sign-on cookies",
-      "subtitle": "Accept and forward the big token cookies that OpenID Connect sign-in leaves behind; drop it if you only use passwords.",
+      "subtitle": "Accept and forward the big token cookies that OpenID Connect sign-in leaves behind. Password-only sign-in does not need this.",
       "settings": [
         "PROXY_BUFFER_SIZE",
         "PROXY_BUFFERS",

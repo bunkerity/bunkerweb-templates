@@ -245,7 +245,7 @@ Validate your own clients.
   `openai-connectors-oauth/1.0` for the token exchange
   ([OpenAI forum](https://community.openai.com/t/mcp-connector-creation-times-out-despite-successful-initialize-tools-list-openai-mcp-1-0-0/1369456),
   [openai/codex#47513](https://github.com/openai/codex/issues/47513)). The template lets those two
-  through the blacklist; drop `BLACKLIST_IGNORE_USER_AGENT` if you do not use ChatGPT. Claude.ai's
+  through the blacklist; clear `BLACKLIST_IGNORE_USER_AGENT` if you do not use ChatGPT. Claude.ai's
   connector reportedly sends `Claude-User` or `python-httpx`
   ([write-up](https://www.brendanlong.com/debugging-claude-ai-mcp-connectors.html)); both and `node`
   passed. Clients must send `Accept: application/json, text/event-stream`, or Outline

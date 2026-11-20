@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Reword the step subtitles of beszel, kaneo, n8n, ntfy, open-webui, outline and umami that the web UI's own CRS blocked on import (`; drop it` fired `942350`), and tell users to enter BunkerWeb's default instead of clearing a field, which keeps the template value.
 - [@TheophileDiot] Narrow the Grafana `953100` exclusion (now rule `9858500`, was `9858100`) to GET responses that are `text/html`, and add rule `9858501`, which lets the plugin list (`GET /api/plugins`, Administration > Plugins and the data source pages) load by skipping CRS `951220` on that path only.
 - [@TheophileDiot] Rewrite the comments of every template config for the admin who reads them in the web UI editor.
 - [@TheophileDiot] Add a weekly `README icon check` workflow that fails when a hotlinked README icon URL stops answering HTTP 200.

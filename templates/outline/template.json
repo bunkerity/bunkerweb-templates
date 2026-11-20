@@ -63,7 +63,7 @@
     },
     {
       "title": "Security - ChatGPT MCP connector",
-      "subtitle": "Let ChatGPT's connector past the user-agent blacklist; drop it if you do not use ChatGPT.",
+      "subtitle": "Let ChatGPT's connector past the user-agent blacklist. If you do not use ChatGPT, clear the field.",
       "settings": ["BLACKLIST_IGNORE_USER_AGENT"]
     },
     {

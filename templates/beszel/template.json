@@ -50,7 +50,7 @@
     },
     {
       "title": "HTTP - Backup upload",
-      "subtitle": "Accept a PocketBase backup ZIP between 10 and 16 MiB when you restore from the superuser UI; drop it if you never upload a backup.",
+      "subtitle": "Accept a PocketBase backup ZIP between 10 and 16 MiB when you restore from the superuser UI. If you never upload a backup, enter 10m, BunkerWeb's default.",
       "settings": ["MAX_CLIENT_SIZE"]
     },
     {

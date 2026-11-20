@@ -70,7 +70,7 @@
     },
     {
       "title": "HTTP - Public API and MCP clients",
-      "subtitle": "API loops and MCP client start-up burst past 2r/s per URL; drop if you expose neither.",
+      "subtitle": "API loops and MCP client start-up burst past 2r/s per URL. If you expose neither, enter 2r/s, BunkerWeb's default rate.",
       "settings": ["LIMIT_REQ_URL_2", "LIMIT_REQ_RATE_2"]
     },
     {

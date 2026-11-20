@@ -38,7 +38,7 @@
     },
     {
       "title": "Security - Login attempts",
-      "subtitle": "Five login tries per minute per IP; drop both settings if many admins share one IP.",
+      "subtitle": "Five login tries per minute per IP. If many admins share one IP, enter 2r/s in the rate field, BunkerWeb's default.",
       "settings": ["LIMIT_REQ_URL_1", "LIMIT_REQ_RATE_1"]
     },
     {
