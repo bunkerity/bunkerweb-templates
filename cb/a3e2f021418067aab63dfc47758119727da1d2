@@ -1,0 +1,25 @@
+templates/xen-orchestra/README.md
+  s_06d161d6ff8a68::t_4df67d63fc926e 12,20,32-38,43-47,56-65,69-73,79-85,89-96,99-120,126-131,135-161
+CHANGELOG.md
+  s_06d161d6ff8a68::t_4df67d63fc926e 8
+templates/xen-orchestra/template.json
+  s_06d161d6ff8a68::t_4df67d63fc926e 34,48,84
+templates/xen-orchestra/configs/modsec-crs/xen-orchestra_false_positives.conf
+  s_06d161d6ff8a68::t_4df67d63fc926e 1-4,7,9,20-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cba3e2f021418067aab63dfc47758119727da1d2",
+  "prompts": {},
+  "sessions": {
+    "s_06d161d6ff8a68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc014455-ad2c-4f84-b60c-76c1e90b77a9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
