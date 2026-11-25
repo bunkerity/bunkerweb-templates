@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Let Directus Flows "Run Script" code (rule `9853100`) and passwords with symbols (rule `9853110`) through the CRS on their own field only, allow `SEARCH` queries, and document the sign-in page's `400` and the bad-behavior ban, what CORS `self` allows (and why it blocks the admin app with Let's Encrypt off), the rich-text recipe click path and GraphQL HTML writes.
 - [@TheophileDiot] Keep authentik uploads across container recreation with a `/media` volume (a named volume at `/data` loses them), give the two-save path that keeps Let's Encrypt off, point to Advanced mode for detect mode and custom certificates, and say which script text the CRS exceptions still block.
 - [@TheophileDiot] Warn that BunkerWeb 1.6.17's web UI also answers `403` when you create a Pocket ID service, not only on import, give the command that prints the Docker subnet for `TRUST_PROXY`, name the OIDC client **Access** tab that opens a new client to all users, add a `.localhost` lab setup and shorten the step titles.
 - [@TheophileDiot] Make the ntfy web app offer sign-in by documenting `enable-login: true` next to `auth-default-access: deny-all`, let alert text that names a path such as `/etc/passwd` through the CRS in every publish form (`932160` on the message fields only), shorten the step titles, and give web UI paths for Security mode and Let's Encrypt.

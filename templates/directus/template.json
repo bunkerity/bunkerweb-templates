@@ -14,7 +14,7 @@
     "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
     "REVERSE_PROXY_READ_TIMEOUT": "3600s",
     "REVERSE_PROXY_SEND_TIMEOUT": "3600s",
-    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS",
+    "ALLOWED_METHODS": "GET|POST|HEAD|PUT|DELETE|PATCH|OPTIONS|SEARCH",
     "MAX_CLIENT_SIZE": "1024m",
     "MODSECURITY_REQ_BODY_NO_FILES_LIMIT": "10485760",
     "USE_MODSECURITY": "yes",
@@ -22,7 +22,7 @@
     "SERVE_FILES": "no",
     "USE_CORS": "yes",
     "CORS_ALLOW_ORIGIN": "self",
-    "CORS_ALLOW_METHODS": "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
+    "CORS_ALLOW_METHODS": "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS, SEARCH",
     "CORS_ALLOW_HEADERS": "Content-Type,Authorization,X-Requested-With,Accept,Origin,Cache-Control",
     "CORS_ALLOW_CREDENTIALS": "yes",
     "USE_LIMIT_REQ": "yes",
@@ -40,11 +40,15 @@
     "USE_GZIP": "yes",
     "GZIP_PROXIED": "expired no-cache no-store private auth"
   },
-  "configs": ["modsec-crs/directus_crs_tuning.conf"],
+  "configs": [
+    "modsec-crs/directus_crs_tuning.conf",
+    "modsec-crs/directus_flows_script.conf",
+    "modsec-crs/directus_passwords.conf"
+  ],
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your Directus hostname(s).",
+      "subtitle": "Point the template at your Directus hostname(s) and replace the example e-mail with a real one. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {
@@ -64,7 +68,7 @@
     },
     {
       "title": "HTTP - Directus API constraints",
-      "subtitle": "Allow the REST verbs Directus uses and keep both body limits above your largest payload. MAX_CLIENT_SIZE also drives ModSecurity's SecRequestBodyLimit.",
+      "subtitle": "Allow the REST verbs Directus uses, including SEARCH for queries sent in a body, and keep both body limits above your largest payload. MAX_CLIENT_SIZE also drives ModSecurity's SecRequestBodyLimit.",
       "settings": [
         "ALLOWED_METHODS",
         "MAX_CLIENT_SIZE",
@@ -74,7 +78,7 @@
     },
     {
       "title": "HTTP - Cross-origin access",
-      "subtitle": "Only needed for a decoupled front end. Replace the origin with your app's own; never pair a wildcard with credentials.",
+      "subtitle": "Only needed for a decoupled front end. The default, self, admits only this service's own address. Replace it with your app's origin, and never pair a wildcard with credentials.",
       "settings": [
         "USE_CORS",
         "CORS_ALLOW_ORIGIN",
@@ -97,7 +101,7 @@
     },
     {
       "title": "Security - Bad behavior",
-      "subtitle": "401, 403 and 404 are dropped from the counted codes: Directus returns them on every anonymous or permission-denied API call.",
+      "subtitle": "401, 403 and 404 are dropped from the counted codes: Directus returns them on every anonymous or permission-denied API call. 400 stays counted and the admin app sends one before sign-in, so raise the threshold when many people share one address.",
       "settings": ["BAD_BEHAVIOR_STATUS_CODES", "BAD_BEHAVIOR_THRESHOLD"]
     },
     {
@@ -117,9 +121,13 @@
     },
     {
       "title": "Security - WAF tuning",
-      "subtitle": "CRS 4 forbids the Expect header, which curl sends by itself on bodies over 1 KB; this exclusion drops that one entry and keeps the rest.",
+      "subtitle": "CRS 4 forbids the Expect header, which curl sends by itself on bodies over 1 KB; the first exclusion drops that one entry and keeps the rest. The second lets Flows Run Script code through on that one field, the third lets passwords with symbols through on the password field.",
       "settings": ["USE_MODSECURITY", "MODSECURITY_SEC_RULE_ENGINE"],
-      "configs": ["modsec-crs/directus_crs_tuning.conf"]
+      "configs": [
+        "modsec-crs/directus_crs_tuning.conf",
+        "modsec-crs/directus_flows_script.conf",
+        "modsec-crs/directus_passwords.conf"
+      ]
     }
   ]
 }
