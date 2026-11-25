@@ -1,0 +1,42 @@
+templates/pocket-id/README.md
+  s_7913ac1ab14f3d::t_eab8e94e2ff947 101-105
+  s_7913ac1ab14f3d::t_4fe8d1f93e0b0f 52-62
+  s_7913ac1ab14f3d::t_bd3b1d9f26ba21 114-128,132-134,139
+  s_7913ac1ab14f3d::t_36209a84962cd8 330-343
+  s_7913ac1ab14f3d::t_605dd8f9f2c06c 86-89
+  s_7913ac1ab14f3d::t_c9afdecf6a5c53 79
+  s_7913ac1ab14f3d::t_adf562e28d1c44 235-236
+  s_7913ac1ab14f3d::t_f46e7aa7aa7102 106
+templates/pocket-id/template.json
+  s_7913ac1ab14f3d::t_6b9ba29dc349e7 21-22,26-27,35-36,40-41,45,50,55,60-61,65
+templates/pocket-id/configs/modsec-crs/pocket-id_false_positives.conf
+  s_7913ac1ab14f3d::t_4ae25d1ef55740 861-862
+  s_7913ac1ab14f3d::t_83b09944a97308 899-900
+  s_7913ac1ab14f3d::t_9c5c43aef2d529 940-941
+CHANGELOG.md
+  s_c5321ce2f106d2::t_c22ab68de00ed9 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "5639819f497a190d4acf0c9f1598f89bb5cd2b36",
+  "prompts": {},
+  "sessions": {
+    "s_7913ac1ab14f3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4d22c099-5414-48f7-9ab8-e2aff9b53ba0",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_c5321ce2f106d2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cfc58afd-b145-437a-8222-f85cff9e5262",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
