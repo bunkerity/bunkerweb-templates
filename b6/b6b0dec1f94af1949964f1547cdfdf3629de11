@@ -1,0 +1,31 @@
+templates/beszel/README.md
+  s_f5fd92b59f3bd6::t_053c63df743d25 50-54,64,78-85,89-90,95,114,192
+templates/beszel/template.json
+  s_f5fd92b59f3bd6::t_053c63df743d25 22,43
+CHANGELOG.md
+  s_86270a7f00681f::t_aefe343d9dcd17 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "b6b6b0dec1f94af1949964f1547cdfdf3629de11",
+  "prompts": {},
+  "sessions": {
+    "s_86270a7f00681f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bfec1477-1e22-4e74-84d3-1e61c253fc8e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_f5fd92b59f3bd6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1732ee18-8b89-4e4a-b7a9-10be7708b6db",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
