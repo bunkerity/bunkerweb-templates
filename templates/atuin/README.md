@@ -46,11 +46,38 @@ this template is tuned for those clients and was tested with the real `atuin` bi
   release. BunkerWeb must reach `http://atuin:8888` on a private network; do not expose that port.
   The optional metrics listener (`[metrics]`, `127.0.0.1:9001`) is a separate port and is not proxied.
 - The server needs a database (`ATUIN_DB_URI`): PostgreSQL, MySQL or SQLite. The template does not
-  touch it; the tests used SQLite.
+  touch it; the tests used SQLite. A Compose file for the server with SQLite (run on `18.24.8`):
+
+  ```yaml
+  services:
+    atuin:
+      image: ghcr.io/atuinsh/atuin:18.24.8
+      command: start
+      environment:
+        ATUIN_HOST: 0.0.0.0
+        ATUIN_DB_URI: sqlite:///config/atuin.db
+        ATUIN_OPEN_REGISTRATION: "true" # back to "false" once your accounts exist
+      volumes:
+        - atuin-data:/config
+      restart: unless-stopped
+
+  volumes:
+    atuin-data:
+  ```
+
+  The image runs as the user `atuin` (uid 1000), and `/config` is the directory it can write to:
+  keep the database file and the volume there. With `sqlite:///data/atuin.db` and a volume on
+  `/data` the server stops at start with `unable to open database file`. The service name is the
+  host name in `http://atuin:8888`, so put BunkerWeb on the same Compose network.
 - Serve Atuin at the root of the hostname. A sub-path (Atuin's `path` setting) was not tested.
 - Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its
   certificate (the default HTTP challenge needs inbound port 80). For existing certificate files,
-  use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+  use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`. The
+  easy-mode steps have no certificate fields: open the service in **Advanced** mode, **Custom SSL
+  certificate**, switch on `USE_CUSTOM_SSL` and enter the two file paths, then switch
+  `AUTO_LETS_ENCRYPT` off in **Let's Encrypt** in the same save (BunkerWeb 1.6.17 drops that switch
+  when you turn it off while creating the service). For a name that is not public, turn Let's
+  Encrypt off in step 1: it cannot get a certificate there.
 - Use HTTPS. Registration and sign-in send the password in the request body. Set the client's
   `sync_address = "https://atuin.example.com"` in `config.toml`. Keep TLS 1.2 enabled
   (BunkerWeb's default is TLS 1.2 and 1.3): the macOS client cannot negotiate TLS 1.3
@@ -82,17 +109,21 @@ sends both.
 Import `template.json` and the file under `configs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. In the web UI the
 **Missing Custom Configs** dialog lists the file as `modsec_crs/atuin_false_positives.conf`; upload
-`configs/modsec-crs/atuin_false_positives.conf` there. Assign `USE_TEMPLATE=atuin`, then change only
-`SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the upstream URL without a trailing slash or path).
+`configs/modsec-crs/atuin_false_positives.conf` there. Create the service from the template: in the
+service wizard pick it in the **Templates** list above the steps (it is listed as `Atuin`), then
+change only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the upstream URL without a trailing slash
+or path). Saving the service applies it.
 
 Before enabling blocking on your instance:
 
-1. Set service `SECURITY_MODE=detect` and reload.
+1. Set the service's `SECURITY_MODE` to `detect`: no easy-mode step has it, so open the service in
+   **Advanced** mode, **General**, set **Security mode** to `detect` and save. A new service starts
+   in `block`.
 2. Register, log in on a second machine, import a large history, run `atuin sync` on both, change
    the password, and read the BunkerWeb logs.
 3. Confirm the included exclusions match the targets in your logs. Narrow or add exceptions only
    where your traffic requires them.
-4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflows.
+4. Set **Security mode** back to `block` after those checks and repeat the workflows.
 
 False positives return `403` in block mode, and the client prints `Invalid request ... 403`. The
 default bad-behavior status list includes `400 401 403 404 405 429 444`: ten matching responses in
@@ -116,7 +147,7 @@ client (`LIMIT_REQ_*` as a group, then `LIMIT_REQ_URL_3` alone).
 | `LIMIT_REQ_URL_2=^/api/v0/record$`, `LIMIT_REQ_RATE_2=20r/s` | One path for the upload (`POST`, 3 per second at most) and the status calls (`GET`, up to 12 per second with six machines syncing together). At the default `2r/s` the second page of a 22,000-line upload got `429` and the client stopped. |
 | `LIMIT_REQ_URL_3=^/api/v0/(?:capabilities\|me\|store)$`, `LIMIT_REQ_RATE_3=20r/s` | Every sync starts with `GET /api/v0/capabilities`. Six machines syncing in the same second made 4 of those answer `429` at the default (the client carries on, but each `429` counts toward the ban above); with `20r/s` none did. |
 | `LIMIT_CONN_MAX_HTTP1=40` | One client downloads over up to 8 connections, so the default of 10 per address lets one machine sync at a time. Three new machines downloading together got `429` at the default (two of three over plain HTTP, all three over TLS) and all completed with `40` in both cases (the client speaks HTTP/1.1 over TLS, so the HTTP/2 limit does not apply). |
-| `USE_GREYLIST=no` | Optional step, off by default. See "Only Atuin clients" below. |
+| `USE_GREYLIST=no`, `GREYLIST_USER_AGENT=^atuin/` | Optional step 7, off by default. The user agent pattern is already filled in, so the switch alone works. See "Only Atuin clients" below. |
 
 `LIMIT_REQ_RATE` itself stays at its default `2r/s` for every other path: sign-in and registration
 are limited to 2 per second and address, which also slows password guessing (six machines
@@ -130,18 +161,29 @@ per second (download) and 3 per second (upload); the template allows 600 and 20.
 
 ### Only Atuin clients (optional)
 
-Set `USE_GREYLIST=yes` and `GREYLIST_USER_AGENT=^atuin/` to refuse every client whose user agent does
-not start with `atuin/` (the real client sends `atuin/18.24.8`). Measured: `atuin/18.24.8`
-and `atuin/18.0.0` got `200`; `curl`, a browser, `python-requests`, `ATUIN/18.24.8` (the match is case
-sensitive) and an empty user agent got `403`, and the real client registered, imported and synced.
-It is spoofable, so it only removes generic scanners and browsers; it also refuses your own `curl` health
-checks and any third-party client that does not send that user agent. Both settings were measured
-together; `GREYLIST_USER_AGENT` is not in the template because BunkerWeb ignores it while `USE_GREYLIST`
-is `no`.
+Step 7 ("Security - Atuin clients") holds the switch `USE_GREYLIST` and the field
+`GREYLIST_USER_AGENT`, already filled with `^atuin/`. Switch it on and save: BunkerWeb refuses every
+client whose user agent does not start with `atuin/` (the real client sends `atuin/18.24.8` or
+`atuin/18.25.0`). Measured on an easy-mode service with only the switch turned on: the real client
+registered, logged in and synced (`200`), as did `atuin/18.0.0`; `curl`, a browser,
+`python-requests`, `ATUIN/18.25.0` (the match is case sensitive) and an empty user agent got
+`403`. With the switch off, the pattern is ignored and `curl` and browsers get `200`.
+
+- **Do not empty the field while the switch is on.** The easy-mode field saves empty, and the
+  switch with no pattern refuses every client, the Atuin client included. Type `^atuin/` again, or
+  switch it off.
+- **Refusals count toward the ban.** Each refused request answers `403`, and `403` is in the
+  bad-behavior list: the tenth refusal within 60 seconds bans the address from the service for 24
+  hours (`86400s`), and from then on every request from that address is refused, the real client
+  too. A scanner behind the same address as your machines locks them out.
+- **It is spoofable.** A client can send any user agent, so this only removes generic scanners and
+  browsers. It also refuses your own `curl` health checks and any third-party client that does not
+  send an `atuin/` user agent.
 
 ## CRS exception scope and cost
 
-`configs/modsec-crs/atuin_false_positives.conf` is a service-scoped **modsec-crs** config. Every
+`configs/modsec-crs/atuin_false_positives.conf` is a service-scoped **modsec-crs** config. Its four
+rules cover five paths (`/register` and `/login` share one). Every
 rule is one chain: the exact path (`@streq`, or an anchored `@rx` for `/register` and `/login`, with
 `t:normalizePath`) and the exact method, so the same text on another path, another method, a path
 suffix (`/api/v0/record/`) or in another field stays blocked. `949110` and `959100` are never touched.
@@ -172,7 +214,7 @@ paranoia level 2 with 10,000 of the generated passwords: the list of those 114 i
 `920271`, which belong to the 920 family and are not part of the exception. Levels 3 and 4 were not
 run. If you raise the level, expect the same removal for every rule those tags carry.
 
-**Cost.** On those four routes, ciphertext text and password text are no longer inspected by the
+**Cost.** On those five paths, ciphertext text and password text are no longer inspected by the
 protocol-attack, LFI, RFI, RCE, PHP, generic, XSS, SQLi, session-fixation and Java rule families for the named fields.
 A password that contains an attack string passes, which is harmless: Atuin hashes it and never
 interprets it. Every other field is still inspected on those routes (`username`, `email`, the record's `id`, `idx`,
