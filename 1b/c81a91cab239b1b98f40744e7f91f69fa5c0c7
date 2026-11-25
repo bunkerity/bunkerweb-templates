@@ -1,0 +1,24 @@
+templates/synapse/README.md
+  s_2739bcf9dde90e::t_9502d234b1a40c 122-124
+  s_2739bcf9dde90e::t_6f0c9fbc619a25 58-65
+templates/synapse/template.json
+  s_2739bcf9dde90e::t_159f1a5ae1f5b6 121
+templates/synapse/configs/server-http/well-known.conf
+  s_2739bcf9dde90e::t_ecf970d2e24b93 4-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "1bc81a91cab239b1b98f40744e7f91f69fa5c0c7",
+  "prompts": {},
+  "sessions": {
+    "s_2739bcf9dde90e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9fc33a43-1eb1-4b6d-b0cd-4d4f8fef7d0b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
