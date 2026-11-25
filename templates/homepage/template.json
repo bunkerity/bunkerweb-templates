@@ -1,0 +1,77 @@
+{
+  "id": "homepage",
+  "name": "Homepage",
+  "settings": {
+    "SERVER_NAME": "homepage.example.com",
+    "AUTO_LETS_ENCRYPT": "yes",
+    "USE_REVERSE_PROXY": "yes",
+    "REVERSE_PROXY_URL": "/",
+    "REVERSE_PROXY_HOST": "http://homepage:3000",
+    "LIMIT_REQ_RATE": "500r/s",
+    "LIMIT_CONN_MAX_HTTP2": "500",
+    "LIMIT_REQ_URL_1": "^/api/auth/callback/credentials$",
+    "LIMIT_REQ_RATE_1": "10r/m",
+    "BAD_BEHAVIOR_STATUS_CODES": "405 429 444",
+    "REVERSE_PROXY_INTERCEPT_ERRORS": "no",
+    "REVERSE_PROXY_AUTH_REQUEST": "",
+    "REVERSE_PROXY_AUTH_REQUEST_SIGNIN_URL": "",
+    "REVERSE_PROXY_URL_1": "/outpost.goauthentik.io",
+    "REVERSE_PROXY_HOST_1": "",
+    "REVERSE_PROXY_HEADERS_1": "Host $http_host;X-Original-URL $scheme://$http_host$request_uri;Content-Length \"\"",
+    "REVERSE_PROXY_PASS_REQUEST_BODY_1": "no"
+  },
+  "steps": [
+    {
+      "title": "Domains and TLS",
+      "subtitle": "Set your public hostname, and list the same name in Homepage's HOMEPAGE_ALLOWED_HOSTS. Turn Let's Encrypt off for a name that is not public.",
+      "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
+    },
+    {
+      "title": "Reverse proxy",
+      "subtitle": "Point BunkerWeb at Homepage's port 3000. Keep the address without a path.",
+      "settings": [
+        "USE_REVERSE_PROXY",
+        "REVERSE_PROXY_URL",
+        "REVERSE_PROXY_HOST"
+      ]
+    },
+    {
+      "title": "HTTP - Request rate and parallel requests",
+      "subtitle": "Homepage asks for every tile at once when it opens. These values fit 5 browsers opening 60 tiles together, raise them for more tiles.",
+      "settings": ["LIMIT_REQ_RATE", "LIMIT_CONN_MAX_HTTP2"]
+    },
+    {
+      "title": "HTTP - Error messages",
+      "subtitle": "Show the real error text in widget tiles instead of BunkerWeb's error page.",
+      "settings": ["REVERSE_PROXY_INTERCEPT_ERRORS"]
+    },
+    {
+      "title": "Security - Sign-in attempts",
+      "subtitle": "LIMIT_REQ_URL_1 and LIMIT_REQ_RATE_1 allow 10 password tries a minute when you turn on Homepage's own sign-in.",
+      "settings": ["LIMIT_REQ_URL_1", "LIMIT_REQ_RATE_1"]
+    },
+    {
+      "title": "Security - Bad behavior status codes",
+      "subtitle": "A failing widget or status dot answers 400, 401, 403 or 404 on every refresh. Keep those codes out of the ban counter.",
+      "settings": ["BAD_BEHAVIOR_STATUS_CODES"]
+    },
+    {
+      "title": "Security - Sign-in with authentik (optional)",
+      "subtitle": "Leave empty to skip. To require an authentik sign-in, fill REVERSE_PROXY_HOST_1 (the outpost address), REVERSE_PROXY_AUTH_REQUEST and REVERSE_PROXY_AUTH_REQUEST_SIGNIN_URL as the README shows.",
+      "settings": [
+        "REVERSE_PROXY_HOST_1",
+        "REVERSE_PROXY_URL_1",
+        "REVERSE_PROXY_HEADERS_1",
+        "REVERSE_PROXY_PASS_REQUEST_BODY_1",
+        "REVERSE_PROXY_AUTH_REQUEST",
+        "REVERSE_PROXY_AUTH_REQUEST_SIGNIN_URL"
+      ]
+    },
+    {
+      "title": "Security - Review CRS exclusions",
+      "subtitle": "Skip injection rules for search text and service names.",
+      "configs": ["modsec-crs/homepage_false_positives.conf"]
+    }
+  ],
+  "configs": ["modsec-crs/homepage_false_positives.conf"]
+}

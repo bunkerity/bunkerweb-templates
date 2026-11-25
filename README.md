@@ -94,6 +94,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | --- | --- |
 | <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/beszel.svg" align="absmiddle" alt="" width="24" height="24" /> [Beszel](templates/beszel/) | Monitoring hub template with WebSocket agent connections |
 | <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/grafana.svg" align="absmiddle" alt="" width="24" height="24" /> [Grafana](templates/grafana/) | Dashboard template with query and HTML-response WAF tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/homepage.png" align="absmiddle" alt="" width="23" height="24" /> [Homepage](templates/homepage/) | Dashboard template with room for every tile, widget-safe ban rules and an optional authentik sign-in |
 | <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/umami-light.svg"><img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/umami.svg" align="absmiddle" alt="" width="24" height="24" /></picture> [Umami](templates/umami/) | Web analytics template with tracker and dashboard tuning |
 | <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/uptime-kuma.svg" align="absmiddle" alt="" width="24" height="24" /> [Uptime Kuma](templates/uptime-kuma/) | Monitoring template with Socket.IO polling and WebSockets |
 
