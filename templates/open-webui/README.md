@@ -212,14 +212,30 @@ on those exact paths and the method `POST`. Open WebUI hands the text to the mod
 execute it. If you prefer a narrower rule, enumerate literal targets for the few `N` your users
 reach; the list is unbounded.
 
-**Cost:** the excluded arguments (and, on the "by id" rules, the whole request body) are no longer
+**What each "by id" rule removes.** A removal by id switches the rule off for the whole request, so
+on these requests the listed rules, among them the SQL injection rules `942100` and `942550`, stop
+checking every part of the request: all arguments, the query string, the cookies and headers such
+as `User-Agent` and `Referer`.
+
+| Id | Where it applies | Rules removed |
+| --- | --- | --- |
+| `9865103` | `POST /api/v1/chats/new`, `/api/v1/chats/import`, `/api/v1/chats/<uuid>` | 47, including `942100` and `942550` |
+| `9865105` | `POST` on the chat completion, `messages`, `embeddings`, OpenAI and Ollama paths of the table | 49, including `942100`, `942550`, `934170` and `943120` |
+| `9865114` | `POST /api/v1/tasks/title/completions` | 47, including `942100` and `942550` |
+| `9865118` | `POST /api/v1/models/import` | 47, including `942100` and `942550` |
+
+Each list is the one in the matching block of the file.
+
+**Cost:** the excluded arguments (and, on the "by id" rules, the whole request) are no longer
 checked by the listed injection rules, so a stored-XSS or SQL injection payload in a prompt, note,
 system prompt or function source is not stopped by the WAF. Open WebUI has to handle that content
-safely itself, and an agent with tools can still act on a prompt-injected instruction. Headers,
-cookies, other arguments, other paths, other methods and every rule outside the lists stay active.
-`949110` and `959100` are never excluded. The same payload on the same path in the **query string**
-is also not inspected by the ids removed on the "by id" paths (measured, `G05f` in the matrix); the
-app ignores unknown query parameters.
+safely itself, and an agent with tools can still act on a prompt-injected instruction. On the
+target-based rules, headers, cookies, other arguments, other paths, other methods and every rule
+outside the lists stay active. On the four "by id" paths and the method `POST`, only the rules
+outside the lists stay active: the same payload in the query string (measured, `G05f` in the
+matrix), a cookie or a header such as `User-Agent` or `Referer` is not inspected by the listed
+rules either. The app ignores unknown query parameters. Other paths and other methods keep every
+rule. `949110` and `959100` are never excluded.
 
 Not covered, so a payload there is blocked: other search boxes (`/api/v1/knowledge/search`,
 workspace model and prompt lists), channel messages, admin prompt suggestions with SQL in them
