@@ -1,0 +1,22 @@
+templates/grafana/configs/modsec/grafana_sql_fields.conf
+  s_2739bcf9dde90e::t_546a12fa3f9b38 7-12
+templates/grafana/README.md
+  s_2739bcf9dde90e::t_d0fc152cf2f559 112-113
+  s_2739bcf9dde90e::t_f4071712fa2909 111,114-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "7301ea3d6be535a03470f96852ed7e8fb240f3df",
+  "prompts": {},
+  "sessions": {
+    "s_2739bcf9dde90e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9fc33a43-1eb1-4b6d-b0cd-4d4f8fef7d0b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
