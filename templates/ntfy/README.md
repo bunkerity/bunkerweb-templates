@@ -43,11 +43,18 @@ Home Assistant), subscriptions over SSE, WebSocket and long-poll, and the accoun
 - Run ntfy `2.37.2` or a close release with persistent cache, attachment and auth storage. BunkerWeb
   must reach `http://ntfy:80` on a private network. Do not publish that port: ntfy believes the
   forwarded-IP header of whoever connects (next section).
-- For a public server set `auth-default-access: deny-all` and create users with `ntfy user add`. This
-  template adds no authentication of its own. Leave `enable-signup` off unless anyone may register.
+- For a public server set `auth-default-access: deny-all` and `enable-login: true`, and create users
+  with `ntfy user add`. Without `enable-login` (default `false`) the web app has no sign-in page and no
+  Account menu, so nobody can use it. This template adds no authentication of its own. Leave
+  `enable-signup` off unless anyone may register.
 - Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its
   certificate (default HTTP challenge requires inbound port 80). For existing certificate files,
-  use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+  switch the service to Advanced mode, turn Let's Encrypt off and set `USE_CUSTOM_SSL=yes`,
+  `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`: the guided steps have no field for them.
+- For a test host that is not public (a lab or LAN name), turn Let's Encrypt off. BunkerWeb 1.6.17 does
+  not keep the switch when you create the service, so the template's `yes` returns and plain HTTP
+  answers `301` to HTTPS. Create the service, open it again, switch Let's Encrypt off in step 1 and
+  save: HTTP then answers without the redirect (checked on 1.6.17).
 - The ntfy web app shows "Notifications not supported" over plain HTTP: browsers only allow
   notifications on HTTPS. That is a browser rule, not a proxy problem.
 
@@ -60,6 +67,7 @@ Set these in ntfy's `server.yml` or as `NTFY_*` variables. BunkerWeb sends `Host
 | --- | --- | --- |
 | `base-url` | `https://ntfy.example.com`, no trailing slash, no path | ntfy writes it into attachment links, `/config.js` and the UnifiedPush discovery reply. Running under a sub-path such as `https://host/ntfy` is not supported upstream ([issue 398](https://github.com/binwiederhier/ntfy/issues/398), [issue 1009](https://github.com/binwiederhier/ntfy/issues/1009)). |
 | `behind-proxy` | `true` | ntfy keys every limit on the address that connects, which is BunkerWeb's: "all visitors are rate limited as if they are one" ([config docs](https://docs.ntfy.sh/config/#behind-a-proxy-tls-etc)). With it on, ntfy logged the address BunkerWeb saw as the visitor. |
+| `enable-login` | `true` | The web app shows no sign-in and no Account page without it (`/config.js` reports `"enable_login": false`), so users created with `ntfy user add` cannot sign in to the web app. ntfy's default is `false`. |
 | `proxy-forwarded-header` | keep `X-Forwarded-For` | ntfy takes the right-most address in the header that is not listed in `proxy-trusted-hosts` (`server/util.go:111-145`, v2.37.2). BunkerWeb appends the address it saw, so that is the one ntfy uses. |
 | `proxy-trusted-hosts` | empty when BunkerWeb faces the clients | Only list the proxies that sit in front of BunkerWeb. See the warning below. |
 | `keepalive-interval` | default `45s`, always below 60 s | BunkerWeb closes a response that is silent for `REVERSE_PROXY_READ_TIMEOUT` (60 s). With `75s` a JSON stream was closed after 60 s. The Android app drops a stream after 77 s of silence (`HttpUtil.kt:43`). |
@@ -85,18 +93,20 @@ network, `X-Forwarded-For: 5.5.5.5` and `6.6.6.6, 5.5.5.5` both reached ntfy as 
 ## Install
 
 Import `template.json` and `configs/modsec-crs/ntfy_false_positives.conf` using the repository
-[installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=ntfy`, update `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the port, no trailing
-slash or path), and review the guided steps. Those two are the only values most setups change.
+[installation guide](../../README.md#install), or its plugin bundle layout. Create a service, pick
+`ntfy` in the Templates list, update `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the port, no
+trailing slash or path), and review the guided steps. Those two are the only values most setups
+change. Saving the service applies it; there is no separate reload.
 
 Before enabling blocking on your instance:
 
-1. Set service `SECURITY_MODE=detect` and reload.
+1. Open the service, switch to Advanced mode, open General and set Security mode to `detect`
+   (easy mode has no field for it), then save.
 2. Sign in to the web app, change a setting, create a token, subscribe, publish from the dialog,
    publish with `curl -d`, `curl -T file` (an attachment), the JSON form, your webhook senders and
    your real clients (Android, iOS, UnifiedPush, scripts) while reading BunkerWeb logs.
 3. Confirm the exclusions match the targets you see in the log.
-4. Switch to `SECURITY_MODE=block` and repeat.
+4. Set Security mode back to `block` in the same place, save, and repeat.
 
 In block mode a false positive returns `403`. The default bad-behavior status list includes
 `400 401 403 404 405 429 444`: ten matching responses in 60 seconds ban the client for one day. For
@@ -114,7 +124,7 @@ to ban it. This is why the detect run matters.
 | `LIMIT_REQ_URL=/`, `LIMIT_REQ_RATE=100r/s` | BunkerWeb allows 2 requests per second by default (`2r/s`, a sliding one-second window), counted per client address **and exact path** (read from `core/limit/limit.lua`). Publishers that post to one topic, a monitor that polls one URL and a Matrix homeserver hit it; page loads and polls of different topics do not. At the default, 40 publishes to one topic gave 3×`200` and 37×`429`, and 150 gave 6×`200` and 144×`429`; 150 publishes to 150 different topics all gave `200`. 30 parallel pushes to the Matrix gateway gave 2×`200` and 28×`429` at the default and 30×`200` with this template. ntfy's own burst allowance is 60 requests (`config.go:106`), so `100r/s` lets ntfy decide. With `100r/s` all 190 same-topic requests passed. Not measured above 100 requests per second. |
 | `LIMIT_CONN_MAX_HTTP1=40` | BunkerWeb allows 10 held connections per address by default, and a held stream or WebSocket counts for each. The web app opens one WebSocket per subscribed topic (`web/src/app/ConnectionManager.js`). With 12 held SSE streams, 9 to 10 got `200` and 2 to 3 got `429` at the default; all 12 got `200` with `40`. In the browser, reloading the web app with 12 subscribed topics showed BunkerWeb's `429` page at the default, and with `40` all 12 topics received a live message. Past 30 streams from one address ntfy answers `429` itself (`visitor-subscription-limit`, `config.go:105`; 45 streams gave 29 to 30×`200`). Over HTTPS a browser speaks HTTP/2 and `LIMIT_CONN_MAX_HTTP2` applies instead; the lab ran plain HTTP, so that value was not measured. |
 | `REVERSE_PROXY_INTERCEPT_ERRORS=no` | BunkerWeb swaps every upstream `400`, `401`, `404`, `429` and `5xx` for its own HTML page. ntfy's apps read its JSON error (`{"code":40026,...}`) and the CLI prints it. With the setting, curl got `{"code":40007,...}`, `{"code":40101,...}` and `{"code":40401,...}`, and `ntfy publish` printed `invalid delay parameter`; without it the CLI printed a whole HTML page. In the web app's change-password dialog a wrong current password shows `Unexpected response 400` without the setting and `Password incorrect` with it. A WAF `403` and a stopped upstream (`502`) still show BunkerWeb's page. |
-| `BLACKLIST_URI=^/metrics$` | Keeps Prometheus metrics off the public name when ntfy serves them on the main port: `/metrics` answered `200` direct and `403` through BunkerWeb, while a topic named `metrics2` still got `200`. Clear the field if you scrape through BunkerWeb. |
+| `BLACKLIST_URI=^/metrics$` | Keeps Prometheus metrics off the public name when ntfy serves them on the main port: `/metrics` answered `200` direct and `403` through BunkerWeb, while a topic named `metrics2` still got `200`. Clear the field if you scrape through BunkerWeb (its default is empty). |
 | `AUTO_LETS_ENCRYPT=yes` | Convenience for a public hostname. Not exercised in the lab (needs public DNS). |
 
 Measured and deliberately **not** set:
@@ -144,13 +154,13 @@ is removed for a whole request and `949110` is never touched.
 | Id | Scope | What is removed |
 | --- | --- | --- |
 | `9864100` | `PUT`/`POST` on `/<topic>` and `/<topic>/<id>` (not `/v1/...`) | Rules `920420` (Content-Type not allowed), `920340`/`920640` (no Content-Type with a body) and `920450` for the `Expect` header name only. |
-| `9864110` | `PUT`/`POST` on `/<topic>`, urlencoded body | `921150` on argument names, and `930120`, `932125`, `932230`, `932235`, `932250`, `932260`, `932370` on `ARGS` and `ARGS_NAMES`. |
-| `9864120` | `POST /` (JSON publish) | The seven rules above on `ARGS:json.message` only. |
-| `9864130` | `GET /<topic>/publish\|send\|trigger` (scripts, message in the query) | The seven rules above on `ARGS:message` and `ARGS:m` only. |
-| `9864131` | `PUT /<topic>` (the web app's publish dialog with an attachment, message in the query) | The seven rules above on `ARGS:message` only. |
-| `9864140` | `POST /_matrix/push/v1/notify` | The seven rules above on `ARGS:json.notification.content.body` only. |
+| `9864110` | `PUT`/`POST` on `/<topic>`, urlencoded body | `921150` on argument names, and `930120`, `932125`, `932160`, `932230`, `932235`, `932250`, `932260`, `932370` on `ARGS` and `ARGS_NAMES`. |
+| `9864120` | `POST /` (JSON publish) | The eight rules above on `ARGS:json.message` only. |
+| `9864130` | `GET /<topic>/publish\|send\|trigger` (scripts, message in the query) | The eight rules above on `ARGS:message` and `ARGS:m` only. |
+| `9864131` | `PUT /<topic>` (the web app's publish dialog with an attachment, message in the query) | The eight rules above on `ARGS:message` only. |
+| `9864140` | `POST /_matrix/push/v1/notify` | The eight rules above on `ARGS:json.notification.content.body` only. |
 | `9864150` | `POST`/`PUT`/`DELETE` on `/v1/account`, `/v1/account/password`, `/v1/account/password/reset`, `/v1/users` | `932130`, `932230`, `932250`, `933180`, `942100`, `942540` on `ARGS:json.password` and `ARGS:json.new_password` only. |
-| `9864160` | `PUT`/`POST` on `/<topic>` with `Content-Type: application/json` | The seven rules above and `932160` on `ARGS`. |
+| `9864160` | `PUT`/`POST` on `/<topic>` with `Content-Type: application/json` | The eight rules above on `ARGS`. |
 | `9864170` | `PUT`/`POST`/`PATCH`/`DELETE` on `/` and the account, token, settings, subscription, reservation, phone, e-mail and web push paths, with `Content-Type: text/plain` | `920420` for the `Content-Type` header only. |
 | `9864180` | `POST /<topic>?template=github`, JSON body | `942100`, `942190`, `934110` on `ARGS:json.issue.body`, `json.issue.title`, `json.pull_request.body`, `json.pull_request.title`, `json.comment.body`. |
 
@@ -162,12 +172,12 @@ Why each exists:
   `curl -T file https://host/topic` is refused without the `920450` entry. ntfy parses nothing from
   these bodies, so no inspection is lost.
 - **Message text (`9864110` to `9864140`).** Alert text is shell and log output: paths, `ssh`,
-  `docker compose`, `systemctl`, tracebacks, `&&` and `;`. These seven RCE rules fire on it. Only the
+  `docker compose`, `systemctl`, tracebacks, `&&` and `;`. These eight rules fire on it (`932160` is the one that blocks a path such as `/etc/passwd`). Only the
   field that carries the message loses them. SQL injection, XSS and every other rule still inspect it,
   and `title`, `tags`, filters and every other field keep all rules.
 - **`9864110` is wider than the others.** `curl -d "message"` is urlencoded, so the whole text becomes an
   argument *name* when it has no `=`. Names are arbitrary and cannot be listed, so `ARGS` and
-  `ARGS_NAMES` are excluded for those seven rules on that path and method.
+  `ARGS_NAMES` are excluded for those eight rules on that path and method.
 - **Message in the query (`9864130`, `9864131`).** ntfy reads `message` from the query on two routes: `GET
   /<topic>/publish|send|trigger` (scripts, ntfy's "publish via GET"; `m` is its alias) and `PUT /<topic>`,
   which the web app's publish dialog uses when a file is attached because the body is the file
@@ -195,12 +205,13 @@ Why each exists:
   `curl ... | sh` lines, which also trip `942100`, `942190` and `934110`. Only the five fields the
   github template renders lose them, and only when the URL asks for that template.
 
-**Cost:** the seven or eight rules no longer inspect the message text, webhook bodies and password
+**Cost:** the eight rules no longer inspect the message text, webhook bodies and password
 fields, and `920420` no longer judges text/plain on the web app's API paths. ntfy stores and relays
 the text; it does not execute it. The risk moves to whatever *renders* messages (web app, mail, your own
 consumers): keep ntfy's web app and consumers escaping output. A `title` or a token label that
-contains shell text is still blocked with `403`, as is a subscribe filter with shell-like text; that is
-a limit of this template, not a bug.
+contains shell text or a path such as `/etc/passwd` is still blocked with `403`, as is a subscribe
+filter with shell-like text, and so is SQL text in a message (`942100`); that is a limit of this
+template, not a bug.
 
 ## Validation
 
@@ -226,11 +237,19 @@ Tested on 2026-11-17 and 2026-11-18 with **ntfy v2.37.2** behind **BunkerWeb 1.6
   `GET /<topic>/publish?message=` and as `PUT /<topic>?message=` (for `PUT`, newlines as `\n` like the
   dialog): 53 of 63 pass in each form with the two rules; without them 23 of 59 passed (the four `; ssh
   host` messages added later were not run without). The other 10 trip rules outside the seven (`932120`,
-  `932160`, `932380`, `933160`, `934110`, `941xxx`, `942100`, `952110`) and stay `403`. Dropping any one of
+  `932160`, `932380`, `933160`, `934110`, `941xxx`, `942100`, `952110`); `932160` has been removed on
+  the same fields since 2026-11-23 (next bullet) and the rest stay `403`. Dropping any one of
   the seven makes a message fail: `932125` (a German alert quoting `ls -la`), `932370` (`; ssh root@db01
   ...`). Before this round the rule covered `GET`, `PUT` and `POST` on `/<topic>` and on the suffixes.
   The narrowing closed `GET /<topic>?message=`, `POST ...?message=` and a urlencoded body `message=` on
   `/<topic>/publish` (all `200` before, `403` now).
+- **Paths in alert text, 2026-11-23:** a message such as `cron backup.sh exited 1: tar: /etc/passwd:
+  Cannot stat` got `403` from `932160` in all five message forms (`curl -d`, JSON `message`,
+  `GET /<topic>/publish?message=`, `PUT /<topic>?message=`, the Matrix gateway). With `932160` added
+  to `9864110`, `9864120`, `9864130`, `9864131` and `9864140`, those messages and 7 more with paths,
+  tracebacks and `docker`, `systemctl` or `scp` commands answered `200` in every form. The same text
+  in `title`, in a parameter named `message2`, on `GET /<topic>?message=`, on `POST /<topic>?message=`,
+  in another JSON field and in another Matrix field still got `403` from `932160`.
 - **Settings:** each of `ALLOWED_METHODS`, `MAX_CLIENT_SIZE`, `LIMIT_REQ_RATE`, `LIMIT_CONN_MAX_HTTP1`,
   `REVERSE_PROXY_INTERCEPT_ERRORS` and `BLACKLIST_URI` was run with and without its value; the numbers
   are in the table above.
