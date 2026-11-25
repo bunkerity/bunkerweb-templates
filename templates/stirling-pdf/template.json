@@ -91,7 +91,7 @@
     },
     {
       "title": "Security - Review CRS exclusions",
-      "subtitle": "Skip injection rules for the Automate pipeline JSON and saved signature images.",
+      "subtitle": "Skip injection rules for the Automate pipeline JSON and saved signature images, and the file-name rule for uploads under /api/v1/.",
       "configs": ["modsec-crs/stirling-pdf_false_positives.conf"]
     }
   ],
