@@ -215,8 +215,13 @@ Why each one exists:
 
 **Overall cost:** a stored-XSS or SQL injection string inside tracker data, a dashboard filter, a
 password or a report is not stopped by the WAF. Umami has to handle that content safely; in the
-smoke test the dashboard showed a website named `<b>1=1</b>` as plain text. Everything else
-(other arguments, paths, methods, headers, cookies and every other CRS rule) stays active.
+smoke test the dashboard showed a website named `<b>1=1</b>` as plain text. The three rules marked
+"by id" (`9875100`, `9875150`, `9875151`) switch their listed rules off for the whole request on
+their path and method: every argument, the query string, the cookies and the headers (`User-Agent`
+and `Referer` included) skip those rules, not only the arguments named above. The other rules keep
+reading those requests. The `Referer` rule (`9875127`) skips four rules for that header only. On
+every other path and method, and for every rule outside the lists, nothing changes. The
+argument-based rows leave the other arguments, headers and cookies of their request checked.
 
 ## Validation
 
