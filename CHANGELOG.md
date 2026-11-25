@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Tell Beszel users to type BunkerWeb's default (`60s`) to undo the live-update timeout instead of clearing the field, name the superuser **Trusted IP proxy headers** field for `X-Real-IP`, and give web UI click paths for Let's Encrypt, security mode and the custom certificate.
 - [@TheophileDiot] Make the optional Atuin client-only step safe to switch on: it now carries `GREYLIST_USER_AGENT` prefilled with `^atuin/`, so turning it on no longer refuses every client and leads to a one-day ban, and document a tested Compose file, where detect mode and the certificate fields live in the web UI, and the five paths the CRS exceptions cover.
 - [@TheophileDiot] Let Jellyfin poster, backdrop and profile picture uploads through `920420` (rule `9859110`, `POST` with an `image/` type only) and custom CSS with `@import` lines through `941130` and `941170` (rule `9859120`, one field of the branding route), add `media-src 'self' blob:` to the CSP so direct play works over plain HTTP, drop the duplicate `interest-cohort=()`, and document Known proxies, the base64 upload size, the theme hosts the CSP blocks and the tested Jellyfin 10.11.6.
 - [@TheophileDiot] Make the Filestash Office editor open and save: document the Collabora `net.frame_ancestors` and `ssl.termination` flags, the two host names and the `form-action` entry the Filestash template now sets, tested with Collabora 24.04.10.2.1.

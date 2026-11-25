@@ -19,7 +19,7 @@
   "steps": [
     {
       "title": "Domains and TLS",
-      "subtitle": "Match your public hostname to Beszel's APP_URL.",
+      "subtitle": "Match your public hostname to Beszel's APP_URL. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -40,7 +40,7 @@
     },
     {
       "title": "HTTP - Live updates",
-      "subtitle": "Keep the live-update stream open past 60 seconds so a dashboard tab does not reconnect every minute.",
+      "subtitle": "Keep the live-update stream open past 60 seconds so a dashboard tab does not reconnect every minute. Enter 60s, BunkerWeb's default, to go back to it.",
       "settings": ["REVERSE_PROXY_READ_TIMEOUT"]
     },
     {
