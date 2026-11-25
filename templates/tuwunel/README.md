@@ -52,7 +52,7 @@ Provision a curated BunkerWeb configuration for [Tuwunel](https://github.com/mat
 Matrix separates the **server name** (what appears in user IDs) from the **hostname that actually serves traffic**. Delegation lets `example.com` be your server name while BunkerWeb terminates TLS and proxies to Tuwunel.
 
 1. Point an `A`/`AAAA` record for your server name (e.g. `example.com`) at the host running BunkerWeb.
-2. In the last step of the easy-mode wizard, in the editor of `well-known.conf`, **replace `example.com` with your own homeserver domain** in the two `return 200` lines (not in the comment). You can also edit the file before you upload it during the import. The placeholders are not usable as-is: until you replace them the service answers `200` with `example.com` and no warning. When BunkerWeb is not on port `443`, add the port to both lines (`https://host:8448` in the client line, `host:8448` in the server line):
+2. In the last step of the easy-mode wizard, in the editor of `well-known.conf`, **replace `example.com` with your own homeserver domain** in the two `return 200` lines (not in the comment). You can also edit the file before you upload it during the import. The placeholders are not usable as-is: until you replace them the service answers `200` with `example.com` and no warning. Delegation names BunkerWeb's public HTTPS endpoint, never Tuwunel's own listener: do not put the internal port `8008` there. The server line already ends in `:443`, BunkerWeb's public HTTPS port, so keep it when BunkerWeb answers on `443`. When BunkerWeb's public HTTPS port is another one, replace `443` with it in the server line and add it to the client line (`https://host:8448` in the client line, `host:8448` in the server line):
    - `/.well-known/matrix/client` advertises the client API base URL to Matrix clients.
    - `/.well-known/matrix/server` advertises the federation endpoint (`your-domain:443`) to other homeservers.
 
@@ -95,8 +95,9 @@ This template delegates federation to port `443` via `/.well-known/matrix/server
   with ten rooms got `429` answers, with `20r/s` it got none. Raise the value when many users share
   one address (an office behind NAT) or when remote homeservers federate with you, since they arrive
   from few addresses. BunkerWeb answers `429` with an HTML page, not Matrix JSON
-  (`M_LIMIT_EXCEEDED`), so a client shows a generic error. Repeated `429` answers also count toward
-  the bad behavior ban.
+  (`M_LIMIT_EXCEEDED`), so a client shows a generic error. A `429` does not count toward the bad
+  behavior ban: the template sets `BAD_BEHAVIOR_STATUS_CODES` to `405` only, so a shared address is
+  not banned for hitting the rate limit. If you add `429` to that setting, it is.
 - `LISTEN_HTTP` is `no`: the service itself does not answer on plain HTTP. BunkerWeb's default server
   answers instead (a redirect to HTTPS with the default settings, a `404` on some setups). The
   Let's Encrypt HTTP challenge was not tested end to end, so check that issuance works before you
