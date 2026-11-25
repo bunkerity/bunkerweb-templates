@@ -1,0 +1,19 @@
+templates/stirling-pdf/template.json
+  s_2739bcf9dde90e::t_eb2720543cb8e2 94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "c7f86a17969ec0ae4b637d6ff8475c9987066de7",
+  "prompts": {},
+  "sessions": {
+    "s_2739bcf9dde90e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9fc33a43-1eb1-4b6d-b0cd-4d4f8fef7d0b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
