@@ -1,0 +1,25 @@
+templates/open-webui/README.md
+  s_2739bcf9dde90e::t_939d866a7a1b23 215-229,232-238
+templates/open-webui/configs/modsec-crs/open-webui_false_positives.conf
+  s_2739bcf9dde90e::t_51dd5e7070dcae 105-108
+  s_2739bcf9dde90e::t_2fbf48dbaa3334 235-238
+  s_2739bcf9dde90e::t_c553d5f238f3eb 859-862
+  s_2739bcf9dde90e::t_80d4091c976a4e 16-19
+  s_2739bcf9dde90e::t_6c641844226753 1074-1077
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "03229a439393158b987fec51b33fe9e1c247c17a",
+  "prompts": {},
+  "sessions": {
+    "s_2739bcf9dde90e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9fc33a43-1eb1-4b6d-b0cd-4d4f8fef7d0b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
