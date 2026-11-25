@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Warn that BunkerWeb 1.6.17's web UI also answers `403` when you create a Pocket ID service, not only on import, give the command that prints the Docker subnet for `TRUST_PROXY`, name the OIDC client **Access** tab that opens a new client to all users, add a `.localhost` lab setup and shorten the step titles.
 - [@TheophileDiot] Make the ntfy web app offer sign-in by documenting `enable-login: true` next to `auth-default-access: deny-all`, let alert text that names a path such as `/etc/passwd` through the CRS in every publish form (`932160` on the message fields only), shorten the step titles, and give web UI paths for Security mode and Let's Encrypt.
 - [@TheophileDiot] Add a Homepage template with limits sized for a 60-tile dashboard, widget-safe bad-behavior handling and an optional authentik sign-in, plus five exact-path CRS exclusions for search suggestions (shell commands, paths, SQL, and PHP, Java, IIS and Ruby error text) and service names.
 - [@TheophileDiot] Tell Beszel users to type BunkerWeb's default (`60s`) to undo the live-update timeout instead of clearing the field, name the superuser **Trusted IP proxy headers** field for `X-Real-IP`, and give web UI click paths for Let's Encrypt, security mode and the custom certificate.
