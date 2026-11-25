@@ -118,7 +118,7 @@
     },
     {
       "title": "Matrix - Well-known delegation",
-      "subtitle": "Serve the .well-known client and server delegation. In the editor below, replace example.com in the two return 200 lines with your Matrix hostname, and add the port when it is not 443.",
+      "subtitle": "Serve the .well-known client and server delegation. In the editor below, replace example.com in the two return 200 lines with the hostname where BunkerWeb is reached. The server line already ends in :443, BunkerWeb's public HTTPS port. Replace that port, and add it to the client line, only when BunkerWeb answers on another one. Never use Synapse's port 8008.",
       "configs": ["server-http/well-known.conf"]
     }
   ]

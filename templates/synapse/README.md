@@ -55,10 +55,14 @@ clients and federating servers can discover the homeserver.
 
 Matrix uses `.well-known` delegation to publish your Matrix hostname. In the last step of the
 easy-mode wizard, in the editor of `well-known.conf`, replace `example.com` with the hostname
-where Synapse is reachable in the two `return 200` lines (not in the comment). When Synapse is
-not on port `443`, add the port to both: `https://host:8448` in the client line and `host:8448`
-in the server line. You can also edit the file before you upload it during the import. The
-`server_name` in your Synapse `homeserver.yaml` must match the delegation you publish here.
+where clients and other servers reach BunkerWeb in the two `return 200` lines (not in the
+comment). Delegation names BunkerWeb's public HTTPS endpoint, never Synapse's own listener: do not
+put the internal port `8008` there. The server line already ends in `:443`, BunkerWeb's public
+HTTPS port, so keep it when BunkerWeb answers on `443` (`matrix.example.com:443`). When BunkerWeb's
+public HTTPS port is another one, replace `443` with it in the server line and add it to the
+client line: `https://matrix.example.com:8448` and `matrix.example.com:8448`. You can also edit the
+file before you upload it during the import. The `server_name` in your Synapse `homeserver.yaml`
+must match the delegation you publish here.
 
 ## Install
 
@@ -115,8 +119,9 @@ many parallel requests when it starts and when you switch rooms: with `15r/s` a 
 account with ten rooms got `429` answers, with `20r/s` it got none. Raise the value when many
 users share one address (an office behind NAT) or when remote homeservers federate with you, since
 they arrive from few addresses. BunkerWeb answers `429` with an HTML page, not Matrix JSON
-(`M_LIMIT_EXCEEDED`), so a client shows a generic error. Repeated `429` answers also count toward
-the bad behavior ban.
+(`M_LIMIT_EXCEEDED`), so a client shows a generic error. A `429` does not count toward the bad
+behavior ban: the template sets `BAD_BEHAVIOR_STATUS_CODES` to `405` only, so a shared address is
+not banned for hitting the rate limit. If you add `429` to that setting, it is.
 
 ### Upload size
 
