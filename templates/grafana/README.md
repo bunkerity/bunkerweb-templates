@@ -108,13 +108,16 @@ The exceptions live in two files at service scope: `configs/modsec-crs/grafana_f
   reads a Grafana macro such as `$__timeFilter(time)`; `932130` and `933135` read a template
   variable in braces such as `${host}` and a comparison with a subquery; `933160` reads functions
   such as `substr` and `md5`; `932280` reads a JSON path such as `'{a,b}'` in PostgreSQL.
-  The field is matched by name, on any path of the service and whatever the capitalisation, so a
-  request to another Grafana path that carries a nested field called `rawSql` skips the same rules
-  for that field. A `rawSql` key at the top of the JSON body, every other field, header and
-  parameter, and every other rule (XSS, path traversal and file inclusion in a `rawSql` value)
-  stay checked. Cost: SQL injection is not detected in these fields, so only users who may query
-  your data sources should reach Grafana. Add a rule id to the file if a query of yours is
-  blocked by another rule; the log names it.
+  The match is on the argument name only: any argument whose name starts with `json.` and ends in
+  `.rawSql`, whatever the capitalisation. It holds on every path and method of the service, in JSON
+  bodies, form data and query strings alike. A nested `rawSql` key of a JSON body on another
+  Grafana path skips the same rules, and so does a query string or form field named
+  `json.<anything>.rawSql`, such as `?json.a.rawSql=...`. A `rawSql` key at the top of the JSON
+  body, every other argument name, the headers, the cookies, and every other rule (XSS, path
+  traversal and file inclusion in a `rawSql` value) stay checked. Cost: SQL injection is not
+  detected in these arguments, so only users who may query your data sources should reach
+  Grafana. Add a rule id to the file if a query of yours is blocked by another rule; the log
+  names it.
 - Rule `9858102` applies only to `POST /api/dashboards/db`, the API that provisioning tools use. It
   removes `932340`, `941100`, `941120`, `941160`, `941390`, `942100`, `942190` **for the entire
   request**, because dashboard panel/query indices vary. This body-wide SQLi exception also removes
