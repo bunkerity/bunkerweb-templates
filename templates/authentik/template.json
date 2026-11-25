@@ -22,12 +22,12 @@
   "steps": [
     {
       "title": "Web service - Domains and TLS",
-      "subtitle": "Set your public authentik hostname and certificate source.",
+      "subtitle": "Set your authentik host name. For a name that is not public, switch Automatic Let's Encrypt off, save, open the service again, switch it off again and save.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
       "title": "Web service - Upstream and WebSockets",
-      "subtitle": "Update both upstream hosts together; only /ws/ enables WebSockets.",
+      "subtitle": "Update both upstream hosts together. The WebSocket field of the /ws/ entry is a text box: keep yes.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_URL",
