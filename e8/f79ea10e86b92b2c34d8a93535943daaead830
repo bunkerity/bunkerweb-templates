@@ -1,0 +1,24 @@
+templates/tuwunel/configs/server-http/well-known.conf
+  s_2739bcf9dde90e::t_37846d1c8def69 6-9
+templates/tuwunel/README.md
+  s_2739bcf9dde90e::t_9143b2786bee59 55
+  s_2739bcf9dde90e::t_677c3abfe4222c 98-100
+templates/tuwunel/template.json
+  s_2739bcf9dde90e::t_b37a379da4bc6c 128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "e8f79ea10e86b92b2c34d8a93535943daaead830",
+  "prompts": {},
+  "sessions": {
+    "s_2739bcf9dde90e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9fc33a43-1eb1-4b6d-b0cd-4d4f8fef7d0b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
