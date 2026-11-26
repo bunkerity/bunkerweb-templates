@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Document in the Tomcat template the `RemoteIpValve` that makes Tomcat trust the proxy headers, the Manager access WAR deploys need and how to deploy large WARs, and say that the `mytomcat` upstream is a placeholder
 - [@TheophileDiot] Document how to turn off the Garage health route (empty the host on the saved service), give the web UI steps for virtual-host buckets and detect mode, say to turn Let's Encrypt off for a name that is not public, and correct the step texts
 - [@TheophileDiot] Fix the Drupal template: document the `settings.php` proxy lines the installer needs over HTTPS (it froze without them), limit the JSON:API content type to `/jsonapi`, and replace the `json(` pattern that made the web UI import answer `403`
 - [@TheophileDiot] Fix the Outline template so reloading a search page for code works (`?q=`), let `UNION SELECT`, Python and shell lines through the wiki search, and document the `Referer` 403 for script text, the whole-request scope of the comment rule, the MCP search limits and how to turn the ChatGPT user-agent exception off

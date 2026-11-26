@@ -30,7 +30,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your Tomcat hostname(s) and TLS options.",
+      "subtitle": "Set your Tomcat host name. Turn Let's Encrypt off for a name that is not public.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -50,7 +50,7 @@
     },
     {
       "title": "Web service - Upstream server",
-      "subtitle": "Direct the reverse proxy toward your Tomcat service.",
+      "subtitle": "Replace the placeholder mytomcat with the name or address of your Tomcat container. Keep port 8080 unless yours differs.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_HOST",
@@ -60,12 +60,12 @@
     },
     {
       "title": "Performance - Client optimization",
-      "subtitle": "Control caching and compression behaviour.",
+      "subtitle": "Control caching and compression. Leave Serve files off: Tomcat serves its own files.",
       "settings": ["USE_CLIENT_CACHE", "SERVE_FILES", "USE_GZIP"]
     },
     {
       "title": "HTTP - Servlet tuning",
-      "subtitle": "Adjust request limits and allowed methods for Tomcat apps.",
+      "subtitle": "Set the upload size and the allowed methods. Keep PUT for WAR deploys and add PATCH if your app uses it.",
       "settings": ["MAX_CLIENT_SIZE", "ALLOWED_METHODS"],
       "configs": ["modsec-crs/tomcat_false_positives.conf"]
     }
