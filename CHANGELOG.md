@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Document that DocuSeal 3.4.0 answers `OPTIONS /api/...` with `404` (call the API from a server), the whitelist route for API clients that trip bad behavior, the two-save path that turns Let's Encrypt off, and the DocuSeal version and flows tested
 - [@TheophileDiot] Document the two-save path that turns Let's Encrypt off in the Uptime Kuma template, the first-run database and administrator screens, the WebSocket text box, that WebSocket frames are not inspected, and why a Raw-mode save answers `403` on 1.6.17
 - [@TheophileDiot] Document in the Tomcat template the `RemoteIpValve` that makes Tomcat trust the proxy headers, the Manager access WAR deploys need and how to deploy large WARs, and say that the `mytomcat` upstream is a placeholder
 - [@TheophileDiot] Document how to turn off the Garage health route (empty the host on the saved service), give the web UI steps for virtual-host buckets and detect mode, say to turn Let's Encrypt off for a name that is not public, and correct the step texts

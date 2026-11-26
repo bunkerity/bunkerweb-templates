@@ -26,7 +26,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your DocuSeal hostname.",
+      "subtitle": "Point the template at your DocuSeal hostname and replace the example e-mail. Turn Let's Encrypt off for a name that is not public: BunkerWeb 1.6.17 keeps it on at creation, so edit the service again to switch it off.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {

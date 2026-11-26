@@ -23,9 +23,9 @@
 This template proxies DocuSeal through BunkerWeb with automatic Let's Encrypt certificates, reverse
 proxying, API-friendly error handling and a 50m request size limit.
 
-No ModSecurity CRS exclusions ship with this template yet. The DocuSeal API was not observed behind
-ModSecurity, so if you use it, test your calls and check the ModSecurity logs for false positives
-before relying on the defaults. One known case on BunkerWeb 1.6.17: an API call whose image or
+No ModSecurity CRS exclusions ship with this template yet. The API calls named in
+[Prerequisites](#prerequisites) passed ModSecurity without a false positive. Test your own calls and
+check the ModSecurity logs for false positives before relying on the defaults. One known case on BunkerWeb 1.6.17: an API call whose image or
 signature value is a `data:` URI (for example `data:image/png;base64,...`, tested on
 `POST /api/submissions`) is blocked by CRS rules 934170, 941130, 941170, 932235 and 932260. DocuSeal
 also accepts plain base64 or a URL on those fields, and plain base64 passes, so send that instead.
@@ -43,9 +43,11 @@ The signing UI is not affected: it uploads signatures, initials and files as mul
 ## Prerequisites
 
 - A running DocuSeal server that BunkerWeb can reach. The routes and the port (3000) come from the
-  upstream `docusealco/docuseal` source, read at commit `13a1835` on 2026-10-30. The template
-  itself was tested on BunkerWeb 1.6.17 with an echo backend, not against a running DocuSeal
-  instance.
+  upstream `docusealco/docuseal` source, read at commit `13a1835` on 2026-10-30. The template was
+  also tested on BunkerWeb 1.6.17 against DocuSeal 3.4.0 (`docuseal/docuseal:latest`, 2026-11-25)
+  with the Compose example below: first-run setup, PDF upload, the template editor (signature and
+  text fields), an API token calling `GET /api/templates` and `POST /api/submissions`, and signing
+  the submission from its `/s/<slug>` link.
 - A public hostname pointing to BunkerWeb.
 - Access to the BunkerWeb web UI or service environment variables.
 
@@ -120,11 +122,13 @@ docker compose up -d
 1. Import `template.json` as described in the repository's
    [installation guide](../../README.md#install), or in the web UI with Templates →
    **Create new template** → **Raw**, then upload or paste it.
-2. Assign `USE_TEMPLATE=docuseal` to the service, or select **DocuSeal** in the web UI.
+2. Assign `USE_TEMPLATE=docuseal` to the service, or select **Docuseal** in the web UI.
 3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT` and `REVERSE_PROXY_HOST` with values for your
-   deployment.
-4. Reload BunkerWeb, open the public URL, and test sign-in and the main workflow of the application
-   (for example a document, upload or API call).
+   deployment. For a name that is not public, switch **Let's Encrypt** off. BunkerWeb 1.6.17 keeps
+   it on at the first save, so open the service again, switch it off and save once more.
+4. Save the service: the web UI applies it by itself (with environment variables, reload
+   BunkerWeb). Open the public URL, and test sign-in and the main workflow of the application (for
+   example a document, upload or API call).
 
 ### Placeholders
 
@@ -163,8 +167,17 @@ The values below are examples. Replace them with your own before using the templ
   the total size of a file sent by a chunked client, and it also sets ModSecurity's overall request
   body limit. Raise it only if clients need larger single requests.
 - **Methods:** only the listed HTTP methods are accepted; anything else is rejected before reaching
-  the application. DocuSeal's API uses `GET`, `POST`, `PUT`, `PATCH` and `DELETE`, and `OPTIONS`
-  lets browsers send CORS preflight requests for cross-origin API calls.
+  the application. DocuSeal's API uses `GET`, `POST`, `PUT`, `PATCH` and `DELETE`. `OPTIONS` passes
+  BunkerWeb, but DocuSeal 3.4.0 answers `OPTIONS /api/...` with `404` itself, with or without
+  BunkerWeb in front. A browser only accepts a successful preflight, so a page on another origin
+  cannot call the API with an `X-Auth-Token` header. Call the API from a server instead.
+- **API clients and bad behavior:** an integration that opens many requests in parallel, or that
+  often gets `400`, `401`, `403`, `404`, `405`, `429` or `444` (the default
+  `BAD_BEHAVIOR_STATUS_CODES` of BunkerWeb 1.6.17), can ban its own address for a day: the default is
+  10 such answers within a minute. To exempt an integration, open the service in the web UI, switch
+  to Advanced mode, open the **Whitelist** tab, add its address to **Whitelist IP/network** and save.
+  BunkerWeb then skips its security checks for that address, ModSecurity included, so list only
+  addresses you control.
 - **Headers:** DocuSeal sends its own `Content-Security-Policy` with a per-request script nonce on
   page loads, so `KEEP_UPSTREAM_HEADERS` keeps it instead of replacing it with BunkerWeb's policy.
   The other security headers (`X-Frame-Options`, `Strict-Transport-Security`, `Referrer-Policy`,
@@ -176,7 +189,9 @@ The values below are examples. Replace them with your own before using the templ
 
 ### Web service - Front service
 
-Point the template at your DocuSeal hostname.
+Point the template at your DocuSeal hostname and replace the example e-mail. Turn Let's Encrypt off
+for a name that is not public: BunkerWeb 1.6.17 keeps it on at creation, so edit the service again to
+switch it off.
 
 | Setting              | Value                  | Description                                                |
 | -------------------- | ---------------------- | ---------------------------------------------------------- |
