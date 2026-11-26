@@ -203,7 +203,7 @@ out normal sync or WebDAV clients.
 ## CRS exception scope and cost
 
 `configs/modsec-crs/seafile_false_positives.conf` is a service-scoped **modsec-crs** config with
-five rules. Each one names a path prefix and a method, and removes only the CRS checks listed here.
+six rules. Each one names a path prefix and a method, and removes only the CRS checks listed here.
 
 | Rule      | Path and method                                            | What it removes                                                                                                                                              |
 | --------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -211,14 +211,18 @@ five rules. Each one names a path prefix and a method, and removes only the CRS 
 | `9882110` | `PUT /seafdav/`                                            | CRS `920340`, `920420` and `920640` (WebDAV clients send a file with its own Content-Type, or with none).                                                    |
 | `9882120` | `GET` or `POST` under `/sys/`                              | CRS `930130` (Seafile's system admin pages live under `/sys/`).                                                                                              |
 | `9882130` | `PUT /seafhttp/repo/<id>/commit/`, `block/`, `fs/`         | CRS `920340` and `920640` (the sync client stores commits and blocks with no Content-Type).                                                                  |
-| `9882131` | `POST /seafhttp/repo/<id>/recv-fs/`                        | Body inspection (`requestBodyAccess=Off`): the sync client sends binary objects labelled as a web form, and CRS `920250` flags some of them.                  |
+| `9882131` | `POST /seafhttp/repo/<id>/recv-fs/`                        | The body of the request: the sync client sends binary objects labelled as a web form, and CRS rules such as `920250`, `920270` and `921150` flag some of them. |
+| `9882132` | `POST /seafhttp/repo/<id>/recv-fs/` with no query string   | The form fields the CRS reads out of that body, and CRS `920250` as a whole. A request with a query string is checked in full.                                |
 
 Cost: the same checks stay on for every other path and method (each rule has controls that return
 `403`). Under `/seafdav/` a `PUT` is accepted with any Content-Type. On the five upload addresses the
-two header checks are off, but other restricted headers are still blocked. Rule `9882131` is the widest:
-no CRS rule reads those request bodies, and only a client with a valid repository token reaches the
-path. Delete a rule from the config if you do not use the feature (for example `9882110` without
-SeafDAV, or `9882130` and `9882131` without desktop sync).
+two header checks are off, but other restricted headers are still blocked. Rules `9882131` and `9882132`
+are the widest: no CRS attack rule reads the content of a `recv-fs` body, and only a client with a valid
+repository token reaches the path. They leave the path, the headers, the cookies and the query string of
+those requests under the CRS, so an attack sent there still answers `403`. Rule `9882132` applies only
+when the request has no query string, which is how the sync client calls `recv-fs`. Delete a rule from
+the config if you do not use the feature (for example `9882110` without SeafDAV, or `9882130`,
+`9882131` and `9882132` without desktop sync).
 
 To adjust a rule in the web UI, open **Configs**, pick the custom config of your service (type
 `MODSEC_CRS`), edit it and save. A rule you copy from here for another path needs an id of your own
@@ -253,8 +257,8 @@ What the tests showed:
 | Check                           | Result                                                                                                                                                            |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Sign-in                         | Without the four `seahub_settings.py` lines: `403 Origin checking failed`. With them: `302` to the library list.                                                  |
-| Same requests without the rules | Web upload `403` (`920450`, `920600`), WebDAV `PUT` `403` (`920340`, `920420`, `920640`), `/sys/` `403` (`930130`), sync `PUT` of a commit `403` and `recv-fs` `403` (`920250`). |
-| Same requests with the rules    | Browser upload `200`, WebDAV `PUT` of a small file, a 15 MB file, an image and a PDF, with accents, spaces and an apostrophe in the names `201` or `204`, `COPY` and `MOVE` `204` (after the fix above), `/sys/info/` and `/sys/users/` `200`, `seaf-cli` sync of three files of 0.2 to 3 MB `synchronized`. |
+| Same requests without the rules | Web upload `403` (`920450`, `920600`), WebDAV `PUT` `403` (`920340`, `920420`, `920640`), `/sys/` `403` (`930130`), sync `PUT` of a commit `403` and `recv-fs` `403` (`920250`, `920270`, `921150`). |
+| Same requests with the rules    | Browser upload `200`, WebDAV `PUT` of a small file, a 15 MB file, an image and a PDF, with accents, spaces and an apostrophe in the names `201` or `204`, `COPY` and `MOVE` `204` (after the fix above), `/sys/info/` and `/sys/users/` `200`, `seaf-cli` sync of four files of 0.04 to 2.5 MB `synchronized`, with `recv-fs` answering `200` and no CRS rule logged. |
 | Controls                        | The cases listed below the table, all still `403` with the CRS rule that fired before.                                                                             |
 | Share links                     | `curl` of `/f/<token>/?dl=1` before: `302` to `/challenge`. After: `302` to the file, which downloaded byte for byte.                                             |
 
@@ -263,8 +267,9 @@ Controls that still answer `403` with the template applied: the two header check
 a `Proxy` header on an upload address; a `PUT` or `POST` with or without a Content-Type on `/api2/`
 and `/seafhttp/other/`; a `POST` to `/seafdav/`; a `PUT` of a sync block that sets a Content-Type;
 `/api2/x/sys/`, `/seafhttp/sys/x` and a `.htaccess` path; a script payload in the query of `/sys/info/`,
-in the body of an upload address and in the body of `check-fs`. The same payload in the body of
-`recv-fs` passes the CRS, which is the cost of rule `9882131`.
+in the body of an upload address and in the body of `check-fs`; and an attack in the query string,
+a cookie, the `Referer` or the `User-Agent` of a `recv-fs` request. The same payload in the body of
+`recv-fs` passes the CRS, which is the cost of rules `9882131` and `9882132`.
 
 ## Known limits
 
