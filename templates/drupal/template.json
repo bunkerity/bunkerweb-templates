@@ -18,7 +18,7 @@
     "CUSTOM_SSL_KEY_DATA": "",
     "USE_REVERSE_PROXY": "yes",
     "REVERSE_PROXY_URL": "/",
-    "REVERSE_PROXY_HOST": "http://mydrupal",
+    "REVERSE_PROXY_HOST": "http://drupal:80",
     "SERVE_FILES": "no",
     "USE_CLIENT_CACHE": "yes",
     "USE_GZIP": "yes",
@@ -35,7 +35,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your Drupal hostname(s) and TLS configuration.",
+      "subtitle": "Replace the example host name with yours. Turn Let's Encrypt off for a name that is not public, and set Use custom certificate with your own certificate and key.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -55,7 +55,7 @@
     },
     {
       "title": "Web service - Upstream server",
-      "subtitle": "Direct the reverse proxy toward your Drupal backend.",
+      "subtitle": "Replace the example upstream with your Drupal container name and the port its web server listens on (80 for the official image).",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_HOST",
@@ -69,7 +69,7 @@
     },
     {
       "title": "Security - Drupal hardening",
-      "subtitle": "Rate-limit the installer, allow JSON:API methods and uploads, and enable Drupal CRS exclusions.",
+      "subtitle": "Rate-limit the installer (the two fields without a label hold its URL and its rate), allow JSON:API methods and uploads, and enable Drupal CRS exclusions.",
       "settings": [
         "USE_LIMIT_REQ",
         "LIMIT_REQ_URL",
