@@ -216,12 +216,12 @@ Everything ran against the real app (`ghcr.io/gethomepage/homepage:v2.8.0`) behi
 | ----------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
 | Dashboard, widgets, search, names   | 115      | All as expected: 104 pass, 11 give the app's own `403`, `404` or `500`. 19 were blocked without the config. |
 | Controls (other argument, path, method) | 13   | All still blocked or cut: `403` from the same CRS rules, or the connection closed for the answer rule. |
-| Search box, error text typed one character at a time (47 texts: PHP, MySQL, PostgreSQL, SQL Server, Oracle, Java, Python, ASP.NET, IIS, Ruby, Node) | 2846 | 786 were cut or blocked without the search rules above, none with them: every answer is `200` with the typed text first. |
-| Search box, shell commands typed one character at a time (27 texts) | 919 | 142 blocked without the rules, none with them. |
-| Search box, every entry of the CRS error text lists (SQL, Ruby, IIS, ASP.NET, 250 of the PHP list) | 639 | 492 cut or blocked without the rules, none with them. |
-| Search box with the real DuckDuckGo suggestions | 47 | 22 cut or blocked without the rules, none with them. |
-| Search box in Chrome, five error and command texts typed | 167 | 82 requests failed or answered `403` without the rules, none with them. |
-| Controls of the search rules (other argument, path or method, and attack payloads in `query`) | 19 | All still blocked (`403`) or cut. |
+| Search box, error text typed one character at a time (47 texts: PHP, MySQL, PostgreSQL, SQL Server, Oracle, Java, Python, ASP.NET, IIS, Ruby, Node) | 2846 | 786 were cut or blocked without the search rules above, none with them: every answer is `200` with the typed text first. Measured before the shipped config kept `953110` (leaked PHP source code) on; earlier-run evidence. |
+| Search box, shell commands typed one character at a time (27 texts) | 919 | 142 blocked without the rules, none with them. Measured before the shipped config kept `953110` (leaked PHP source code) on; earlier-run evidence. |
+| Search box, every entry of the CRS error text lists (SQL, Ruby, IIS, ASP.NET, 250 of the PHP list) | 639 | 492 cut or blocked without the rules, none with them. Measured before the shipped config kept `953110` (leaked PHP source code) on; earlier-run evidence. |
+| Search box with the real DuckDuckGo suggestions | 47 | 22 cut or blocked without the rules, none with them. Measured before the shipped config kept `953110` (leaked PHP source code) on; earlier-run evidence. |
+| Search box in Chrome, five error and command texts typed | 167 | 82 requests failed or answered `403` without the rules, none with them. Measured before the shipped config kept `953110` (leaked PHP source code) on; earlier-run evidence. |
+| Controls of the search rules (other argument, path or method, and attack payloads in `query`) | 19 | All still blocked (`403`) or cut. Measured before the shipped config kept `953110` (leaked PHP source code) on; earlier-run evidence. |
 | Line feed before the path           | 4 + 4    | The exclusion does not match, so all 4 stay blocked, by `921190` and by the rule the exclusion would lift. With `921190` taken out for the test, only the lifted rule blocks them. |
 | Built-in sign-in                    | 16       | All as expected: page, CSRF, session cookie, redirect, sign out, wrong password. |
 | Sign-in with symbol-heavy password  | 2        | Blocked with `403`, as listed under known limits.                                                |
