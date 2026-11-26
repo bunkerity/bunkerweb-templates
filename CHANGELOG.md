@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Let realistic searches (shell, code, SQL, markup, URLs, error messages) and results pages that echo them through the SearXNG template, and document the limiter and engine contact setup and the Let's Encrypt and detect-mode steps
 - [@TheophileDiot] Fix the n8n template: widen the editor rate limit to every `/rest/` URL, let n8n's analytics posts through the CRS so they stop banning the admin (rule `9861130`), and document embedding, plain-HTTP sign-in, Let's Encrypt and webhook-only access
 - [@TheophileDiot] Fix the NetBird template: document the global `CLIENT_BODY_TIMEOUT` for idle gRPC streams, let dashboard names and posture-check paths through the CRS (rules `9862200` to `9862211`), and name the tested NetBird version, STUN and the request limit for peers behind one address
 - [@TheophileDiot] Let task renames, project and label names with SQL or script text through the CRS in the Kaneo template, keep reply bodies whole for clients without gzip, and document how to find BunkerWeb's address for `TRUSTED_PROXIES`
