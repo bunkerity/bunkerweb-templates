@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Fix the NetBird template: document the global `CLIENT_BODY_TIMEOUT` for idle gRPC streams, let dashboard names and posture-check paths through the CRS (rules `9862200` to `9862211`), and name the tested NetBird version, STUN and the request limit for peers behind one address
 - [@TheophileDiot] Let task renames, project and label names with SQL or script text through the CRS in the Kaneo template, keep reply bodies whole for clients without gzip, and document how to find BunkerWeb's address for `TRUSTED_PROXIES`
 - [@TheophileDiot] Let Directus Flows "Run Script" code (rule `9853100`) and passwords with symbols (rule `9853110`) through the CRS on their own field only, allow `SEARCH` queries, and document the sign-in page's `400` and the bad-behavior ban, what CORS `self` allows (and why it blocks the admin app with Let's Encrypt off), the rich-text recipe click path and GraphQL HTML writes.
 - [@TheophileDiot] Keep authentik uploads across container recreation with a `/media` volume (a named volume at `/data` loses them), give the two-save path that keeps Let's Encrypt off, point to Advanced mode for detect mode and custom certificates, and say which script text the CRS exceptions still block.
