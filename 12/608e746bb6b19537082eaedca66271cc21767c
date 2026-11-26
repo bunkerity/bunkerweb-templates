@@ -1,0 +1,43 @@
+templates/searxng/configs/modsec-crs/searxng_false_positives.conf
+  s_eef229d942a9f0::t_7f8baa511d39dd 136-138,221-291
+  s_eef229d942a9f0::t_5f8735dad9b63a 6-11,13-22,26-29,37-40,45-46,49,54-55,59,62-63,65,67-69,74,76-86,89,92,94,97-98,101-106,108,115-118,126,146,149-155,158-159,162,167-168,172,175-176,178,180-182,187,189-199,202,205,207,210-211,214-219,292
+templates/searxng/template.json
+  s_eef229d942a9f0::t_eadc65b256d304 21
+  s_eef229d942a9f0::t_f352503424b2a7 59
+CHANGELOG.md
+  s_98f5222f70a659::t_9addb7dccea16c 8
+templates/searxng/README.md
+  s_eef229d942a9f0::t_f39e9ea02f48fd 139-149,153-187,189-190,192-197
+  s_eef229d942a9f0::t_c4c895b041bf23 204-209
+  s_eef229d942a9f0::t_81442c0f11fb64 236-237
+  s_eef229d942a9f0::t_8277ea3a8a6881 59-60
+  s_eef229d942a9f0::t_e27a2a230e9109 88-92,96-97,102
+  s_eef229d942a9f0::t_3255903663b626 77
+  s_eef229d942a9f0::t_fc4a8b4a475fc2 45-51,54-56,58
+  s_eef229d942a9f0::t_018c604a3b5d0d 75
+  s_eef229d942a9f0::t_4af0c8758daaa6 290-296
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "12608e746bb6b19537082eaedca66271cc21767c",
+  "prompts": {},
+  "sessions": {
+    "s_98f5222f70a659": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e186289-196f-4810-bffd-1e3ef20fc027",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_eef229d942a9f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5eb74450-b20e-4fd2-883d-aabbc1c3f36a",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
