@@ -44,10 +44,15 @@ endpoint for uptime monitors.
   network. Never publish Garage's RPC port (`3901`) through BunkerWeb or anywhere else. The admin
   port (`3903`) is reachable through the template for one path only, `/health` (see "Things to
   think about"). The template proxies nothing else of it.
-- Point your S3 hostname (for example `s3.example.com`) at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes
-  BunkerWeb request its certificate (default HTTP challenge requires inbound port 80). For existing
-  certificate files, use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and
-  `CUSTOM_SSL_KEY`.
+- Point your S3 hostname (for example `s3.example.com`) at BunkerWeb. Step 1 of the template keeps
+  **Automatic Let's Encrypt** on: BunkerWeb requests the certificate over the HTTP challenge, which
+  needs inbound port 80. For a name that is not public (a LAN or lab name), turn it off, or every
+  client is redirected to HTTPS and finds no usable certificate. Easy mode drops that switch when
+  you create the service (the service answers `301` to HTTPS until you fix it): open the service
+  again, turn it off and save. For existing certificate files, turn it off and use the
+  **Advanced** mode of the service, **Custom SSL certificate** tab: **Use custom certificate**,
+  **Certificate path** and **Key path** (`USE_CUSTOM_SSL`, `CUSTOM_SSL_CERT`, `CUSTOM_SSL_KEY`).
+  The guided steps do not carry them.
 - Set Garage's `[s3_api]` `s3_region` and `root_domain` as described in "Configure Garage for the
   proxy".
 - Every client signs its requests (SigV4). Garage verifies the signature and refuses an unsigned
@@ -76,13 +81,31 @@ $remote_addr`, see "Things to think about".
 ## Import and initial detect run
 
 Import `template.json` and `configs/modsec-crs/garage_false_positives.conf` using the repository
-[installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=garage`, update `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the port, no trailing
-slash or path), and review the guided steps.
+[installation guide](../../README.md#install), or its plugin bundle layout. In the web UI, go to
+**Services**, **Create new service**, open **Templates** and pick **Garage**. In step 1 set
+**Server name** to your S3 hostname. In step 2 change the upstream host if Garage is not
+`http://garage:3900` (keep the port, no trailing slash or path). Review the other guided steps.
 
 **Virtual-host-style buckets.** BunkerWeb 1.6.17 refuses a wildcard `SERVER_NAME`
-(`*.s3.example.com` fails the setting's regex and the whole configuration is not saved). List every
-bucket host as a service of its own and give each one the template:
+(`*.s3.example.com` fails the setting's regex and the whole configuration is not saved), so each
+bucket host is a service of its own. Path-style addressing needs only the first service. For each
+bucket host, for example `mybucket.s3.example.com`:
+
+1. Set Garage's `root_domain` to `".s3.example.com"` and point the bucket host at BunkerWeb.
+2. In the web UI, go to **Services**, **Create new service**, open **Templates** and pick
+   **Garage** again.
+3. In step 1 set **Server name** to the bucket host and save the service.
+4. Open the new service again. Each service has its own **Automatic Let's Encrypt** choice: leave
+   it on for a public name (it requests a certificate of its own), or turn it off for a name that
+   is not public (see Prerequisites). In step 3 empty the **host** of the health check (see
+   "Things to think about"): a bucket host needs no monitor route, and `GET /health` on it then
+   reaches the bucket. Save again.
+
+The second save is needed because the web UI ignores both changes while it creates a service: it
+keeps the template's host and turns Let's Encrypt back on.
+
+Each service gets its own copy of the exclusions. Without the web UI, give the same template to a
+second service in the environment instead:
 
 ```text
 SERVER_NAME=s3.example.com mybucket.s3.example.com
@@ -90,14 +113,14 @@ mybucket.s3.example.com_USE_TEMPLATE=garage
 mybucket.s3.example.com_REVERSE_PROXY_HOST=http://garage:3900
 ```
 
-Each service gets its own copy of the exclusions. Path-style addressing needs only the first host.
-
 Before enabling blocking on your instance:
 
-1. Set the service `SECURITY_MODE=detect` and reload.
+1. Set the service's **Security mode** to `detect` (`SECURITY_MODE`; in the web UI it is in the
+   **Advanced** or **Raw** mode of the service, under General) and save. Saving applies the change,
+   no separate reload is needed.
 2. Run your real clients (backup tool, application SDK, browser uploads) while reading BunkerWeb's
    ModSecurity log lines; compare the rule ids with the list in "CRS exception scope and cost".
-3. Switch to `SECURITY_MODE=block` and repeat the workflows.
+3. Switch **Security mode** back to `block`, save, and repeat the workflows.
 
 > [!IMPORTANT]
 > False positives return `403` and BunkerWeb counts them for bad behavior: about ten matching
@@ -112,7 +135,7 @@ Before enabling blocking on your instance:
 | `REVERSE_PROXY_HEADERS=Host $http_host;X-Forwarded-For $remote_addr` | Forward the client's `Host` header with its port (SigV4 signs it) and a single client address. |
 | `REVERSE_PROXY_INTERCEPT_ERRORS=no`                    | Let S3 clients read Garage's XML errors (`NoSuchKey`, `AccessDenied`) instead of BunkerWeb's HTML page. |
 | `REVERSE_PROXY_BUFFERING=no`                           | Stream downloads instead of spooling them to a temporary file, as Garage's reverse-proxy guide advises. |
-| `REVERSE_PROXY_URL_1=^/health$`, `REVERSE_PROXY_HOST_1=http://garage:3903` | Token-free health check for uptime monitors. |
+| `REVERSE_PROXY_URL_1=^/health$`, `REVERSE_PROXY_HOST_1=http://garage:3903` | Token-free health check for uptime monitors. To turn it off, empty only the host (the web UI refuses an empty URL). |
 | `ALLOWED_METHODS=GET\|HEAD\|POST\|PUT\|DELETE\|OPTIONS` | S3 uses `PUT` and `DELETE`; `OPTIONS` carries CORS preflights. The default answers `405`.              |
 | `MAX_CLIENT_SIZE=256m`                                 | Largest single request body, a `PutObject` or one multipart part.                                       |
 | `MODSECURITY_REQ_BODY_NO_FILES_LIMIT=2m`               | Room for `DeleteObjects` (1000 keys) and `CompleteMultipartUpload` XML bodies.                          |
@@ -195,7 +218,9 @@ target, never the rule, and `949110` and `959100` are never touched.
   gets `403` (rule `942100`), an XML object with `<script>` text gets `403` (`941100`), and a body
   that is not valid JSON under a JSON label (NDJSON, a template) gets `400` (rule `200002`). No
   literal target can name an object's content, so the template does not exclude it. Label such
-  uploads `application/octet-stream` in your client or accept the check. Benign JSON and XML
+  uploads `application/octet-stream` in your client or accept the check. `curl --data-binary` labels
+  its body urlencoded unless you add `-H 'Content-Type: ...'`, and a body with a line break then gets
+  `403` (rule `921150`). Benign JSON and XML
   objects pass.
 - A key that is itself an attack string, such as `eval (x).js` (also `934100`, `941390` on the path)
   or a traversal, is still blocked.
@@ -221,8 +246,11 @@ target, never the rule, and `949110` and `959100` are never touched.
   `/v1/health`, `/health/x` and `/check` through BunkerWeb are answered by the S3 side with `403`,
   so the rest of the admin API stays private. A bucket named `health` is the cost: with the step on,
   `GET /health?list-type=2` reached the admin port (`200`); without it the same request reached the
-  S3 API. Clear `REVERSE_PROXY_URL_1` and `REVERSE_PROXY_HOST_1` if you have such a bucket or no
-  monitor.
+  S3 API. If you have such a bucket or no monitor, empty `REVERSE_PROXY_HOST_1` in step 3 of the
+  saved service (creation ignores it) and save: with no host the entry does nothing, `GET /health`
+  reaches the S3 side and answers `403`.
+  Leave `REVERSE_PROXY_URL_1` as it is: in easy mode the web UI refuses an empty URL ("Variable
+  REVERSE_PROXY_URL_1 is not valid.") and keeps `^/health$`.
 - **Website hosting (`3902`) and K2V.** Not covered and not tested. Serve a website
   endpoint from a separate BunkerWeb service of its own, never from the S3 hostname, and do not
   enable K2V behind this template without testing it.
@@ -305,6 +333,13 @@ the browser checks.
 - **Browser.** Real Chrome, page on `http://app.localhost:19110`, S3 on `http://s3.garage.localhost:19100`:
   presigned `PUT`, `GET`, PostObject and `<img>` passed; the iframe was blocked by `frame-ancestors`
   until the `CONTENT_SECURITY_POLICY` override above.
+- **Web UI, easy mode (2026-11-25).** On a saved service, emptying only `REVERSE_PROXY_HOST_1`
+  saved with no message and `GET /health` went from `200` to `403`; emptying both fields showed
+  "Variable REVERSE_PROXY_URL_1 is not valid." and kept `^/health$`. While a service is created,
+  the web UI ignores an emptied health host and a switched-off Let's Encrypt. A second service
+  from the template (server name `bkt.s3.garage.localhost`, Let's Encrypt off, health host
+  emptied) answered a signed `PUT`, `GET` and listing in virtual-host style with `200`, and
+  rclone copied and checked 5 objects and a 40 MB multipart upload without a difference.
 - **Web UI import.** Templates, Create template, Raw: `template.json` and the config uploaded,
   saved, and listed next to the plugin copy (done on the first build of the template, before the
   health and forwarding settings were added; the final file was packed as a plugin for every run).

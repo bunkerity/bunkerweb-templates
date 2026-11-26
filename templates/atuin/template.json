@@ -18,13 +18,14 @@
     "LIMIT_REQ_URL_3": "^/api/v0/(?:capabilities|me|store)$",
     "LIMIT_REQ_RATE_3": "20r/s",
     "LIMIT_CONN_MAX_HTTP1": "40",
-    "USE_GREYLIST": "no"
+    "USE_GREYLIST": "no",
+    "GREYLIST_USER_AGENT": "^atuin/"
   },
   "configs": ["modsec-crs/atuin_false_positives.conf"],
   "steps": [
     {
       "title": "Web service - Domains and TLS",
-      "subtitle": "Passwords travel in sign-in requests: give the client an https:// sync_address.",
+      "subtitle": "Turn Let's Encrypt off for a name that is not public. Passwords travel in sign-in requests: give the client an https:// sync_address.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -52,7 +53,7 @@
     },
     {
       "title": "HTTP - Sync request rate",
-      "subtitle": "Per-path limits sized to the client's upload and parallel download pages.",
+      "subtitle": "LIMIT_REQ_URL_n picks a path, LIMIT_REQ_RATE_n sets its limit: three pairs sized to the client's sync pages.",
       "settings": [
         "LIMIT_REQ_URL_1",
         "LIMIT_REQ_RATE_1",
@@ -68,13 +69,13 @@
       "settings": ["LIMIT_CONN_MAX_HTTP1"]
     },
     {
-      "title": "Security - Only Atuin clients (optional)",
-      "subtitle": "Set yes and GREYLIST_USER_AGENT=^atuin/ to refuse other user agents (spoofable).",
-      "settings": ["USE_GREYLIST"]
+      "title": "Security - Atuin clients",
+      "subtitle": "Optional, off by default. Switch on to refuse every client whose user agent does not match ^atuin/. A client can fake it.",
+      "settings": ["USE_GREYLIST", "GREYLIST_USER_AGENT"]
     },
     {
       "title": "Security - Review CRS exclusions",
-      "subtitle": "Ciphertext and password fields on five exact routes skip the injection rules.",
+      "subtitle": "Ciphertext and password fields on five exact paths skip the injection rules.",
       "configs": ["modsec-crs/atuin_false_positives.conf"]
     }
   ]

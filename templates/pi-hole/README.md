@@ -16,33 +16,42 @@
   <a href="#install">Install</a> ·
   <a href="#settings">Settings</a> ·
   <a href="#host-header">Host header</a> ·
-  <a href="#cloudflare-real-ip-assumption">Cloudflare real IP</a> ·
   <a href="#validation">Validation</a> ·
+  <a href="#modsecurity-exceptions">ModSecurity exceptions</a> ·
   <a href="#root-domain-caveat">Root domain caveat</a>
 </p>
 
-This template reverse-proxies the Pi-hole **web admin UI and REST API** through
-BunkerWeb. Pi-hole's DNS service is out of scope: keep serving DNS directly from
-Pi-hole on port 53 and only front the HTTP interface with BunkerWeb.
+This template reverse-proxies the Pi-hole v6 **web admin UI and REST API** (paths `/admin/`
+and `/api/`) through BunkerWeb. Pi-hole's DNS service is out of scope: keep serving DNS directly
+from Pi-hole on port 53 and only front the HTTP interface with BunkerWeb. Pi-hole v5 serves its
+API at `/admin/api.php`, which the template does not cover.
 
 ## At a glance
 
-| Fact        | Value                         |
-| ----------- | ----------------------------- |
-| Template id | `pi-hole`                     |
-| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
-| Configs     | 1 (modsec-crs)                |
-| Rule ids    | `9868000` to `9868999`        |
+| Fact        | Value                                      |
+| ----------- | ------------------------------------------ |
+| Template id | `pi-hole`                                  |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4              |
+| Pi-hole     | v6.6 (core v6.6, web v6.6.1, FTL v6.9)     |
+| Configs     | 1 (modsec-crs)                             |
+| Rule ids    | `9868000` to `9868999`                     |
 
 ## Install
 
 1. Follow the repository's [installation guide](../../README.md#install)
    for the web UI or plugin bundle method.
-2. Assign the template to the Pi-hole service (`USE_TEMPLATE=pi-hole` or select
-   it in the easy-mode UI).
-3. Replace the example domain and upstream with your Pi-hole deployment, then
-   review the real-IP settings described below.
-4. Reload BunkerWeb and verify the admin UI and REST API through the proxy.
+2. In the web UI, open **Services**, create a service in easy mode and pick **Pi-hole** in the
+   **Templates** dropdown above the steps.
+3. Fill in the steps:
+   - **Domain and TLS**: replace the example domain and the example Let's Encrypt e-mail with your
+     own. If the name is not public (a lab or LAN name), switch Let's Encrypt off. BunkerWeb 1.6.17
+     drops that switch when it creates the service: save once, open the service again, switch it
+     off and save again.
+   - **Reverse proxy**: replace the upstream with the address of the Pi-hole web port, for example
+     `http://pihole:80` when BunkerWeb and Pi-hole share a Docker network (the container name
+     works as the host name), or `http://192.168.1.10:80` for a Pi-hole on another machine.
+4. Save the service. BunkerWeb applies it on its own, no reload needed. Then verify the admin UI
+   and REST API through the proxy (see [Validation](#validation)).
 
 ## Settings
 
@@ -70,23 +79,39 @@ environment allows it:
 
 ## Host header
 
-Pi-hole answers `403` on `/` unless the request carries `Host: pi.hole`, because its web
-server redirects by host name. The template sets `REVERSE_PROXY_CUSTOM_HOST=pi.hole`, so
-BunkerWeb sends `pi.hole` as the upstream `Host` header instead of the public host name. The
-setting is unsuffixed: `REVERSE_PROXY_CUSTOM_HOST_1` has no effect.
-
-## Cloudflare real IP assumption
-
-`REAL_IP_FROM` and `REAL_IP_HEADER` default to Cloudflare's IP ranges and the
-`CF-Connecting-IP` header, assuming Pi-hole sits behind Cloudflare. If you are
-**not** behind Cloudflare, edit `REAL_IP_FROM`/`REAL_IP_HEADER` to match your own
-proxy or set `USE_REAL_IP=no`, otherwise client IPs will be mis-attributed.
+Pi-hole v6.6 answers `404` on `/` unless the request carries `Host: pi.hole`, because its web
+server redirects by host name (`/admin/` answers with any host name). The template sets
+`REVERSE_PROXY_CUSTOM_HOST=pi.hole`, so BunkerWeb sends `pi.hole` as the upstream `Host` header
+instead of the public host name, and `/` redirects to `/admin/`. The setting is unsuffixed:
+`REVERSE_PROXY_CUSTOM_HOST_1` has no effect.
 
 ## Validation
 
 - Run `jq . template.json` to confirm the template definition is valid JSON.
 - Sign in to the admin UI and exercise its API-backed dashboard through
-  BunkerWeb to confirm routing, client IP attribution, and rate limits.
+  BunkerWeb to confirm routing and rate limits.
+- After you save settings in Pi-hole, expect about a second of `502` while Pi-hole restarts its
+  web server (measured: it starts about 1 s after the save and lasts 1 to 1.5 s).
+
+## ModSecurity exceptions
+
+The config `pihole_false_positives.conf` has three rules, all for `/api/` only (the web UI sends
+everything it saves there):
+
+- `9868101` turns off the file inclusion checks, for paths in dnsmasq lines, group names and
+  filters.
+- `9868102` turns off the command injection checks, for regex filters with command-like words.
+- `9868107` lets a free-text comment contain a semicolon followed by an SQL word, on create and
+  edit of domains, adlists, groups and clients. Other fields, other routes and the other SQL
+  checks stay on.
+
+The template no longer exempts `/admin/` (the pages themselves) or any content type: the web UI
+works without that. A script or app that calls the API with a `text/plain` or
+`application/octet-stream` body gets `403`: send `application/json`, or a multipart form for a
+Teleporter file.
+
+To change a rule, open **Configs** in the web UI, create a custom config for your service with
+type `MODSEC_CRS`, and paste the rule there.
 
 ## Root Domain Caveat
 
@@ -96,7 +121,7 @@ redirected to `/admin/` — this is how Pi-hole is built and cannot be changed;
 using BunkerWeb, you would need to modify Pi-hole itself to achieve otherwise.
 
 If you still want to proceed, use the raw config below instead of the
-`template.json`.
+`template.json`: paste it in the service's Raw mode in the web UI.
 
 ## Raw Config
 
@@ -117,9 +142,6 @@ LIMIT_REQ_RATE=20r/s
 MAX_CLIENT_SIZE=100m
 ALLOWED_METHODS=GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE
 USE_METRICS=no
-USE_REAL_IP=yes
-REAL_IP_FROM=172.64.0.0/13 104.16.0.0/13
-REAL_IP_HEADER=CF-Connecting-IP
 USE_REVERSE_PROXY=yes
 REVERSE_PROXY_URL_1=/
 REVERSE_PROXY_HOST_1=http://pihole-server-ip:80

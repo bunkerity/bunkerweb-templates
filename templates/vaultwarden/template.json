@@ -18,7 +18,7 @@
   "steps": [
     {
       "title": "Web service - Domains and TLS",
-      "subtitle": "Match your public hostname to Vaultwarden's DOMAIN setting.",
+      "subtitle": "Match your public hostname to Vaultwarden's DOMAIN. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -44,7 +44,7 @@
     },
     {
       "title": "Security - Review encrypted-field CRS exclusions",
-      "subtitle": "Five rules skip all arguments on the listed POST and PUT paths.",
+      "subtitle": "Eleven rules skip all arguments on the listed POST and PUT paths.",
       "configs": ["modsec-crs/vaultwarden_false_positives.conf"]
     }
   ]

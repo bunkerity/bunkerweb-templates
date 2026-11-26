@@ -18,13 +18,13 @@
   "configs": ["modsec-crs/pocket-id_false_positives.conf"],
   "steps": [
     {
-      "title": "Web service - Domains and TLS",
-      "subtitle": "Passkeys bind to this exact host name: set the final one before anyone registers.",
+      "title": "Domain and TLS",
+      "subtitle": "Set the final public host name before anyone registers a passkey. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
-      "title": "Web service - Upstream",
-      "subtitle": "Point REVERSE_PROXY_HOST at Pocket ID's port 1411.",
+      "title": "Upstream",
+      "subtitle": "Point the upstream at Pocket ID's port 1411 on a private network.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_URL",
@@ -32,37 +32,37 @@
       ]
     },
     {
-      "title": "HTTP - Client address for Pocket ID",
-      "subtitle": "Send BunkerWeb's view of the client, so a forged X-Forwarded-For never reaches the audit log or the app's limits.",
+      "title": "Client address header",
+      "subtitle": "Send BunkerWeb's view of the client, so a forged X-Forwarded-For never reaches the audit log or the app's limits. Keep the value.",
       "settings": ["REVERSE_PROXY_HEADERS"]
     },
     {
-      "title": "HTTP - API methods and upload size",
-      "subtitle": "Pocket ID uses PUT, PATCH, DELETE and OPTIONS; uploads stop at 10 MiB, so 11m lets its own error through.",
+      "title": "API methods, upload size",
+      "subtitle": "Pocket ID uses PUT, PATCH, DELETE and OPTIONS: one method per box. Uploads stop at 10 MiB, so 11m lets its own error through.",
       "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE"]
     },
     {
-      "title": "HTTP - Request rate",
+      "title": "Request rate",
       "subtitle": "The web app asks for the same URL up to 7 times in one second: 20r/s keeps it working and still caps floods.",
       "settings": ["LIMIT_REQ_RATE"]
     },
     {
-      "title": "HTTP - Upstream error bodies",
+      "title": "Upstream error bodies",
       "subtitle": "Pass Pocket ID's own JSON errors through: OIDC clients and the web app read them.",
       "settings": ["REVERSE_PROXY_INTERCEPT_ERRORS"]
     },
     {
-      "title": "Security - Bad behavior status codes",
+      "title": "Bad behavior status codes",
       "subtitle": "Pocket ID answers 401, 404 and 400 as part of normal use: keep them out of the ban counter.",
       "settings": ["BAD_BEHAVIOR_STATUS_CODES"]
     },
     {
-      "title": "Security - Permissions-Policy for passkeys",
-      "subtitle": "BunkerWeb's default turns passkeys off; this copy allows publickey-credentials-create and -get for the site itself.",
+      "title": "Passkey Permissions-Policy",
+      "subtitle": "BunkerWeb's default turns passkeys off: this copy allows publickey-credentials-create and -get for the site itself.",
       "settings": ["PERMISSIONS_POLICY"]
     },
     {
-      "title": "Security - CRS exclusions for callback URLs and admin secrets",
+      "title": "CRS exclusions",
       "subtitle": "Path-scoped: LAN, loopback and IPv6 callback URLs, the SCIM endpoint, SMTP and LDAP bind passwords.",
       "configs": ["modsec-crs/pocket-id_false_positives.conf"]
     }

@@ -42,13 +42,22 @@ SearXNG's own limiter and link token.
 
 - Run SearXNG `2026.11.13` (`searxng/searxng:2026.11.13-8a53a6aa5`) or a close release. BunkerWeb must
   reach `http://searxng:8080` on a private network; do not publish that port.
-- Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its
-  certificate (the default HTTP challenge needs inbound port 80). For existing certificate files use
-  `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+- Point your public hostname at BunkerWeb. Step 1 of the guided setup has Let's Encrypt on: BunkerWeb
+  then requests its certificate (the default HTTP challenge needs inbound port 80). Turn it off for a
+  name that is not public (a lab, `.localhost`), or clients are redirected to HTTPS with no usable
+  certificate. If the redirect stays after you save, edit the service and save again: BunkerWeb 1.6.17
+  can lose the switch at creation. For your own certificate files use the service's Advanced tab
+  (these settings are not in the guided steps): switch Let's Encrypt off, then `USE_CUSTOM_SSL`,
+  `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
 - Serve SearXNG at the root of the hostname: the template proxies `/` and was not tested under a
   sub-path.
+- SearXNG `2026.11.13` loads no wikipedia, wikidata or openstreetmap engine until it has a contact
+  address: set `general.contact_url` (`SEARXNG_CONTACT_URL`). SearXNG logs `wikipedia engine requires
+  general.contact_url`; this is not the WAF.
 - The limiter, `public_instance` and the link token need Valkey (or Redis) for SearXNG
-  (`searx/limiter.py:233-249`). A private instance without the limiter needs none.
+  (`searx/limiter.py:233-249`): set `SEARXNG_VALKEY_URL` (for example `valkey://valkey:6379/0`) next
+  to `SEARXNG_LIMITER=true`. With the limiter on and no Valkey address SearXNG still starts and logs
+  `The limiter requires Valkey`. A private instance without the limiter needs none.
 - If BunkerWeb itself sits behind another proxy or a CDN, set `USE_REAL_IP=yes` and the matching
   `REAL_IP_FROM` first. Otherwise `$remote_addr` is the proxy, SearXNG sees one address for everybody
   and its bot defence misfires (upstream issue
@@ -63,9 +72,9 @@ The "without it" column is what was measured or read in the source of `2026.11.1
 | ---------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `server.base_url` (`SEARXNG_BASE_URL`)               | `https://searxng.example.com/`                             | `base_url` takes precedence over `X-Forwarded-Proto` and `X-Forwarded-Host` (`searx/flaskfix.py:40-67`). A wrong value builds wrong absolute links and the redirect after saving preferences (upstream issue [#1852](https://github.com/searxng/searxng/issues/1852)); it also fills the OpenSearch description (`/opensearch.xml`) the browser reads for address-bar search. |
 | `server.secret_key` (`SEARXNG_SECRET`)               | a long random value                                        | The image and favicon proxies sign their URLs with it (`/image?url=...&h=<hmac>`). The shipped `ultrasecretkey` lets anyone forge a signed proxy URL.                                                                                                                                                                                              |
-| `botdetection.trusted_proxies` (`limiter.toml`)      | BunkerWeb's address only, for example `['10.0.0.5/32']`    | The default is `127.0.0.0/8` and `::1`, so behind BunkerWeb the limiter sees BunkerWeb's address for every client. A range that also covers your clients (the sample comments suggest `192.168.0.0/16`, `172.16.0.0/12`, `10.0.0.0/8`) lets a client on that range choose its own address: see the client-address row in the settings table.        |
+| `botdetection.trusted_proxies` (`limiter.toml`)      | BunkerWeb's address only: in `limiter.toml` write `[botdetection]` then `trusted_proxies = ['10.0.0.5/32']` | The default is `127.0.0.0/8` and `::1`, so behind BunkerWeb the limiter sees BunkerWeb's address for every client. A range that also covers your clients (the sample comments suggest `192.168.0.0/16`, `172.16.0.0/12`, `10.0.0.0/8`) lets a client on that range choose its own address: see the client-address row in the settings table.        |
 | `search.formats`                                     | add `json`, `csv`, `rss` only if clients need them         | The default is `[html]` and `format=json` is answered `403` (`searx/settings.yml`; upstream issues [#3749](https://github.com/searxng/searxng/issues/3749), [#5677](https://github.com/searxng/searxng/issues/5677)). Each `403` counts toward BunkerWeb's bad-behavior ban.                                                                       |
-| `server.limiter`, `server.public_instance`           | `true` for an open instance (needs Valkey)                 | Off by default. On, the app rate-limits per address, caps `format!=html` at 4 requests per hour, and (with `public_instance`) turns the link token on. See "Things to think about".                                                                                                                                                              |
+| `server.limiter`, `server.public_instance`           | `true` for an open instance; also set `valkey.url` (`SEARXNG_VALKEY_URL=valkey://valkey:6379/0`) | Off by default. On, the app rate-limits per address, caps `format!=html` at 4 requests per hour, and (with `public_instance`) turns the link token on. See "Things to think about".                                                                                                                                                              |
 | `server.image_proxy`                                 | `true` (the container default)                             | With it off, result thumbnails load straight from the engines' hosts in the visitor's browser.                                                                                                                                                                                                                                                   |
 
 Security: `trusted_proxies` must name only BunkerWeb. With a range that includes clients, a request
@@ -76,19 +85,21 @@ blocks the 16th request from one address (`evidence/xff-wide-nosetting.txt`).
 ## Install
 
 Import `template.json` and the file under `configs/` using the repository
-[installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=searxng`, then change only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the upstream URL
-without a trailing slash or path). In the web UI raw import, the config dialog lists the file as
-`modsec_crs/searxng_false_positives.conf`: upload the file under that name.
+[installation guide](../../README.md#install), or its plugin bundle layout. In the web UI, create
+the service in easy mode and pick the SearXNG template, then change only the server name and the
+upstream address (keep the upstream URL without a trailing slash or path). In the web UI raw import,
+the config dialog lists the file as `modsec_crs/searxng_false_positives.conf`: upload the file under
+that name. Saving the service applies it: there is no separate reload.
 
 Before enabling blocking on your instance:
 
-1. Set service `SECURITY_MODE=detect` and reload.
+1. Set the service's Security mode to `detect` (Advanced or Raw mode, General: it is not in the
+   guided steps) and save.
 2. Search for text from your own users (code, error messages, URLs, paths), open the image
    category, page through results, save preferences, and read the BunkerWeb logs.
 3. Confirm the included exclusions match the targets in your logs. Narrow or add exceptions only
    where your traffic requires them.
-4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflows.
+4. Switch to `block` after those checks and repeat the workflows.
 
 > [!IMPORTANT]
 > False positives return `403` in block mode. The default bad-behavior status list is
@@ -125,66 +136,146 @@ Measured and dropped because they made no difference or the default is harmless:
 ## CRS exception scope and cost
 
 `configs/modsec-crs/searxng_false_positives.conf` is a service-scoped **modsec-crs** config. Each
-exclusion is one chained rule: the path (anchored, `t:normalizePath`) and the method. The matrix
-recorded which rules matched which target on the real app and only those pairs are removed. The
-search box takes any text, so the list covers SQL, shell and PHP code, path traversal, template
-syntax, HTML and script markup, URLs and error messages.
+exclusion is one chained rule: the path (anchored, `t:normalizePath`) and the method. A list of 799
+distinct realistic searches (shell commands, code in a dozen languages, SQL questions, markup,
+template syntax, URLs, file paths and error messages from databases, PHP, Java, .NET, Node and
+Python) was sent to `/search` and `/autocompleter`; every CRS rule that fired on `q` was removed
+from `ARGS:q` only. The results of the runs on the shipped file are under "Validation".
 
-| Id      | Method and path          | Targets removed                                                              | Rules                    |
-| ------- | ------------------------ | ---------------------------------------------------------------------------- | ------------------------ |
-| `9871101` | `GET`, `POST` `/search`  | `ARGS:q`; `RESPONSE_BODY` for 6                                              | 38 rule ids, by target |
-| `9871103` | `GET` `/search`          | `REQUEST_URI_RAW` and `REQUEST_LINE` for 3 rules (the whole URI)             | `930100 930110 944150` |
-| `9871102` | `GET` `/autocompleter`   | the `9871101` set plus the `9871103` set                                     | 38 rule ids, by target |
+| Id        | Method and path         | Targets removed                                                                                                           |
+| --------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `9871101` | `GET`, `POST` `/search` | `ARGS:q` for 71 rule ids; the CRS rules tagged `attack-disclosure` on the answer                                          |
+| `9871103` | `GET` `/search`         | the whole URI for four rules: `920540` (`REQUEST_URI`), `930100`, `930110` (`REQUEST_URI_RAW`), `944150` (`REQUEST_LINE`) |
+| `9871102` | `GET` `/autocompleter`  | the same URI checks as `9871103`, `ARGS:q` for the same 71 rule ids, the answer rules, and `ARGS_NAMES` for 59 of the 71  |
 
 `ARGS:q` carries the text on `GET` and on `POST` (the "method" preference), and for the `json`, `csv`
 and `rss` formats. On `GET` the raw URI and request line carry the same query string, so rule `9871103`
-(`GET /search`) and `9871102` also remove `930100`, `930110` and `944150` from those two targets. On
-`POST` the browser form sends `q` in the body (the theme's search forms post to `/search` with no
-query string), so `9871101` leaves the raw URI and the request line inspected. Three checks stay on
-the URI of a `POST /search`: `930100` and `930110` (path traversal such as `../../etc/passwd`) and
-`944150` (a `${jndi:` Log4Shell string). Each answers `403` there. Shell text such as `$(id)` in the `q`
-of the URL of a `POST /search` is not stopped: the `ARGS:q` exclusion covers it and none of these three
-checks matches it (it answered `200` in the tests). API clients that `POST` to `/search` must put the search parameters in the form body, not in
-the URL, or a query that looks like path traversal gets `403`; see the
-[SearXNG search API](https://docs.searxng.org/dev/search_api.html). The response-side rules
-(`951220`, `951230`, `952110`, `953100`, `953120`, `956100`) are removed from `RESPONSE_BODY` because
-SearXNG prints the query back: a search for `You have an error in your SQL syntax` or `<?php` makes
-those leakage rules score the answer and `959100` deny it. On the small autocompleter answer the
-body came back empty (7 requests, `Content-Length: 282`, status `200`); on the 60 KB HTML page the
-body arrived complete although the deny was logged. `949110` and `959100` are never excluded.
+(`GET /search`) and `9871102` also remove `920540`, `930100`, `930110` and `944150` from those targets.
+On `POST` the browser form sends `q` in the body, so `9871101` leaves the URI inspected: four checks
+stay on the URI of a `POST /search` (`920540`, an escaped Unicode character; `930100` and `930110`,
+path traversal such as `../../etc/passwd`; `944150`, a `${jndi:` Log4Shell string) and each answers
+`403` there. API clients that `POST` to `/search` must put the search parameters in the form body,
+not in the URL; see the [SearXNG search API](https://docs.searxng.org/dev/search_api.html).
 
-**Cost:** the query argument is no longer checked by the listed injection rules, on the two paths
-and methods only. SearXNG never runs the text: it forwards it URL-encoded to the engines and prints
-it HTML-escaped, so a stored or reflected injection through `q` is not the risk that these rules
-cover; any other consumer of the query (your own plugin, a log pipeline) has to handle it. The
-leakage rules also no longer see the app's own error pages on those two paths, which is the only
-content they would have caught there. On `GET`, `REQUEST_URI_RAW` and `REQUEST_LINE` are whole targets:
-`930100`, `930110` and `944150` do not read the raw URI or the request line of `GET /search` and
-`GET /autocompleter` at all, so a payload in another parameter of that URI is stopped only by their
-`ARGS` match, not by these two targets. On `POST /search` the whole URI stays inspected. Every other
-argument, header, cookie, path and method stay under the full CRS.
+The answer side: SearXNG prints the query back, and the results carry text from other sites, so a
+search for a database or PHP error message (`ORA-00942`, `fopen(` with a file name) makes the CRS
+leakage rules score the page and `959100` deny it. On the small autocompleter answer the body came
+back empty with status `200`; on a results page the connection was cut. The template removes every
+rule tagged `attack-disclosure` for these two paths, not a list of ids, because the page holds
+whatever the engines return. `949110` and `959100` are never excluded. To keep those checks on the
+results page, delete the `ctl:ruleRemoveByTag=attack-disclosure` line from the two rules.
 
-Controls: 28 requests with the same payloads where no exclusion applies all got `403` from the
-specific rule the exclusion removes: another argument on `/search` (`GET`, `POST`), another method
-(`HEAD`), a path suffix, a path prefix, `;` in the path, a different case, the text in a cookie, the
-`Referer` or the `User-Agent`, nine other paths with `q`, five autocompleter variants, a traversal in
-the image URL, and an XSS blob in the preferences link.
+The autocompleter script puts the typed text in the URL without escaping an ampersand, so the text
+after `&` reaches BunkerWeb as argument names. Rule `9871102` therefore removes `ARGS_NAMES` for 59
+rule ids. These are the ids that fired on a name when `ARGS_NAMES` was left out of the rule: 4 of
+them (`932160`, `932250`, `932260`, `942100`) on the 23 typed texts that hold an ampersand (310
+requests, every prefix as typed), and 59 of the 71 in all when each of the 799 searches was put
+after `x&` (`x&<text>`, 799 requests). The other 12 ids never fired on a name; four of them
+(`930100`, `930110`, `931100`, `941370`) do not read argument names at all. So a text in an
+argument name that trips one of those 12 gets `403` on `/autocompleter`, as before this rule
+existed. The names of every argument of `/autocompleter` skip the 59 rules, not only the names a
+typed ampersand creates; that is the cost of this rule. The value of
+an argument other than `q` is not excluded: a typed text such as `(&(uid=*)(userPassword=*))` still
+gets `403` on the suggestions request (the search itself works), because rule `921200` reads the
+value of the argument that the ampersand creates. So do markup or code typed after an ampersand with
+an `=` in it (`x&<a href="...">`), and a line feed (`921120`, `921150`, `921160`). A `403` on
+suggestions counts toward the bad-behavior ban.
+
+**Text that still gets `403`:** a real NUL byte in the URL (`%00` in the address, rule `920270` on the
+URI; typing the characters `%00` in the box works), the same text outside `q`, and any text that trips
+a CRS rule not in the list. If one does, copy a line in each rule, change the id and keep the order
+(in the web UI: Configs, open `searxng_false_positives.conf`):
+
+```
+    ctl:ruleRemoveTargetById=<id>;ARGS:q,\
+```
+
+**Cost:** the query argument is no longer checked by the listed injection, code and protocol rules,
+on the two paths and methods only. SearXNG never runs the text: it forwards it URL-encoded to the
+engines and prints it HTML-escaped, so a stored or reflected injection through `q` is not the risk
+that these rules cover; any other consumer of the query (your own plugin, a log pipeline) has to
+handle it. The leakage rules also no longer see the app's own error pages on those two paths. On
+`GET`, the four rules `920540`, `930100`, `930110` and `944150` do not read the raw URI or the request
+line of `GET /search` and `GET /autocompleter` at all, so a payload in another parameter of that URI
+is stopped only by their `ARGS` match. On `GET /autocompleter` the names of all arguments also skip
+59 rules (see above).
+
+To roll back, each rule on its own:
+
+- Delete rule `9871103`: the four URI checks come back on `GET /search` only, and path-like
+  searches there get `403`.
+- Delete the four `ctl:ruleRemoveTargetById=...;REQUEST_URI` / `REQUEST_URI_RAW` / `REQUEST_LINE`
+  lines in rule `9871102`: the URI checks come back on `GET /autocompleter`. Deleting `9871103` does
+  not do that.
+- Delete the 59 lines that end in `;ARGS_NAMES` in rule `9871102`: argument names on
+  `/autocompleter` are checked again, and a text with an ampersand can get `403` on suggestions.
+- Delete rule `9871102` altogether to remove every exception from `/autocompleter`; the address-bar
+  and typed-search suggestions then get `403` for any text that looks like an attack.
+
+The values of other arguments, headers, cookies, other paths and other methods stay under the full
+CRS.
+
+Controls (run on the shipped file, 2026-11-26): 132 requests with the same payloads where no
+exclusion applies; 126 got `403` from the rule the exclusion removes, and for the other 6 (shell and
+SQL text in the `Referer` and `User-Agent`) no CRS rule matched that text in that header either.
+Twelve more requests put markup, a PHP setting, a shell string, SQL and a traversal in the *name* of
+an argument. On `/search` all 12 got `403`. On `/autocompleter` the 7 that trip one of the ids
+the rule leaves out (`941120`, `941230`, `941250`, `941270`, `941280`, `941300`, `933120`) got `403`
+from that id, and the 5 that trip an id the rule removes (a `$(wget ...)` string, `x && cat
+/etc/passwd`, `<script>`, `' or '1'='1`, `../../etc/passwd`) answered `200`. Before the change
+(the 2026-11-25 `9871102`, with 71 ids on names, run again on 2026-11-26) the 7 answered `200` too. The 132 cover another argument on `/search` and `/autocompleter` (`GET`, `POST`), `HEAD`, a path
+suffix, a path prefix, `;` in the path, a different case, the text in a cookie, the `Referer` or the
+`User-Agent`, eight other paths with `q`, `POST /autocompleter`, a traversal in the image URL, an XSS
+blob in the preferences link, and the four checks that stay on the URI of a `POST /search`.
 
 Not covered, so a payload there is blocked: the `q` argument on `/` (the address bar sends
 `/search?q=`, not `/?q=`), the `preferences` blob, and any plugin you add.
 
 ## Validation
 
-Tested on 2026-11-18: SearXNG `2026.11.13-8a53a6aa5` (two mock engines behind a stub, the container's
-other defaults; the full engine set for the preference-size probes), Valkey 8 for the limiter,
-`bunkerity/bunkerweb-all-in-one:1.6.17` (CRS 4.29.0), default paranoia level and anomaly thresholds,
-`SECURITY_MODE=block`, plain HTTP on a local test host and one HTTPS and HTTP/2 run with the
-self-signed certificate.
+Stack: SearXNG `2026.11.13-8a53a6aa5`, Valkey 8, `bunkerity/bunkerweb-all-in-one:1.6.17` (CRS
+4.29.0), default paranoia level and anomaly thresholds, `SECURITY_MODE=block`, the service created
+in easy mode from the template imported through a CRS-protected web UI. Each result below is
+attributed to its run; the numbers apply to the shipped `searxng_false_positives.conf` only where the
+run says so.
+
+- **Run on the shipped file, 2026-11-26** (a Python `requests` script, a Chrome user agent, over HTTPS): the 799
+  distinct searches sent as `GET /search?q=` and as `GET /autocompleter?q=`, plus a canary at each
+  end: 1,602 requests, all `200`. The 23 typed texts that hold an ampersand, every prefix, sent the
+  way the page script does (310 requests): 306 `200`, 4 `403` (`921200`, on the value of the
+  argument the ampersand creates, on the last four prefixes of `(&(uid=*)(userPassword=*))`). The
+  799 searches put after `x&` (799 requests): 753 `200`, 46 `403` on the value of an argument
+  other than `q` or on a line feed or `%00`. The 2026-11-25 `9871102` (71 ids on names), run
+  again on 2026-11-26, gave the same 4 and the same 46 on the same texts, so the narrower rule
+  loses none of them.
+- **Chrome on the shipped file, 2026-11-26** (HTTPS, a desktop user agent, typed key by key so the
+  autocompleter runs, then Enter): 13 searches, namely the nine of the earlier browser run
+  (`cat /etc/shadow; rm -rf /`, `echo hello && whoami`, `powershell -enc SQBFAFgA`,
+  `javascript:alert(document.cookie)`, `select name from sqlite_master`, `fopen("data.txt", "r")`,
+  `alert(1)`, `<?php system($_GET[0]); ?>`, `getClass().forName("java.lang.Runtime")`) and four with an
+  ampersand (`ls && cat /etc/passwd`, `(&(uid=*)(userPassword=*))`, `cat /etc/shadow; rm -rf / & ls`,
+  `a & b=1`). Every search reached the results page and kept its text in the box. The 110
+  autocompleter requests answered `200`, except 2 `403` for `(&(uid=*)(userPassword=*))`. Chrome did
+  not run the 799-search list: the `requests` run covers it.
+- **Earlier runs**, three configurations, none of them the shipped file:
+  - **2026-11-18, the first template** (no `ARGS_NAMES` exclusion, 32 distinct ids on `ARGS:q`, each
+    listed for both routes, 64 lines): the request matrix, settings, browser smoke and web UI import
+    in the details below.
+  - **2026-11-25, the template before this change** (71 ids on `ARGS:q` and 71 on `ARGS_NAMES`):
+    searches in eight lists of about 860 queries with duplicates. Against the first template,
+    101 of the 602 searches in lists 1 to 4 and 6 got `403`. With the 71 ids on `ARGS:q`, the re-run
+    of those lists still had one query answered `403` on both endpoints, and so did the full
+    eight-list run; both came before the last change of that day. After that change, 177 queries
+    selected from the lists and two canary entries passed on both endpoints (358 responses, all
+    `200`). The full eight-list run was not repeated on that final file.
+  - **2026-11-26, the same 2026-11-25 file**, run again to compare with the shipped file: the
+    figures above that name it.
 
 <details>
 <summary>Evidence behind the claims above</summary>
 
-- **Request matrix** (final run on the shipped files, `evidence/matrix-final2.tsv`): 270 requests
+- **Request matrix** (2026-11-18, the first template, which had no `ARGS_NAMES` exclusion;
+  `evidence/matrix-final2.tsv`): 270 requests
   that must succeed and 28 controls, one at a time with their ModSecurity lines attributed per
   request. The same 120 seeds of the first run all pass straight to SearXNG without the WAF; the
   first two runs without the config got `403` for 49 of 145 requests, every one on the query text
@@ -195,9 +286,9 @@ self-signed certificate.
   external bang redirect, the `html`, `json`, `csv` and `rss` formats, and 14 client user agents
   (curl, `python-requests`, `httpx`, `aiohttp`, `axios`, `node-fetch`, Go, OkHttp, Perplexica, a
   SearXNG client, LiteLLM, Homepage, Wget, Java; run with the limiter off).
-- **Settings:** each non-default setting was switched back to the BunkerWeb default and the failure
-  above reproduced.
-- **Browser smoke** (Chrome through Playwright, bad behavior on, template as shipped, only
+- **Settings** (2026-11-18): each non-default setting was switched back to the BunkerWeb default and
+  the failure above reproduced.
+- **Browser smoke** (2026-11-18, Chrome through Playwright, bad behavior on, the first template, only
   `SERVER_NAME` and `REVERSE_PROXY_HOST` set). With the limiter off: searches for `' OR 1=1 --`,
   `../../etc/passwd`, `<script>alert(1)</script>`, `$(id)` and a 60-character Japanese sentence each
   rendered 8 results with the text kept in the box, the image category loaded, page 2 loaded, the
@@ -205,8 +296,9 @@ self-signed certificate.
   With the limiter and link token on: the same flow, 232 responses, all `200`. The BunkerWeb log
   for each run shows no ModSecurity denial, no ban and no `403` or `444`
   (`evidence/smoke-limiter-off.summary`, `evidence/smoke-limiter-on.summary`).
-- **Web UI import:** raw mode with `template.json` plus the config file imports and is listed
-  (7 steps, 11 settings, 1 config).
+- **Web UI import:** on 2026-11-18, raw mode with `template.json` plus the config file imported and
+  was listed (7 steps, 11 settings, 1 config). On 2026-11-25 the import went through a web UI protected by
+  BunkerWeb's own CRS (JSON, config and full Save): no rule fired.
 
 </details>
 
@@ -259,6 +351,13 @@ clients.
 - **Search engines and the offline harness.** The matrix used two mock engines. A real engine
   answers slower, which lowers the number of concurrent requests per user, and engines have their
   own captcha and rate limits that BunkerWeb does not see.
+- **Restarting SearXNG.** While the SearXNG container is stopped or starting (about 20 seconds)
+  BunkerWeb answers `502`. Stopping it and starting it again, and recreating it with a new address,
+  both recovered by themselves with no BunkerWeb restart or reload (checked on 2026-11-25). If a
+  `502` stays after SearXNG answers on its own port, check that the name in the upstream address
+  still resolves from BunkerWeb.
+- **Long searches.** A search by `GET` carries the text in the URL: about 5,000 characters worked,
+  20,000 got `414` from nginx before the WAF. A form `POST` (the "method" preference) took 20,000.
 - **Not supported through the template:** a sub-path deployment (`X-Script-Name`).
 
 ---

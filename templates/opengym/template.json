@@ -37,6 +37,7 @@
     "COOKIE_AUTO_SECURE_FLAG": "yes",
     "KEEP_UPSTREAM_HEADERS": "Content-Security-Policy Content-Security-Policy-Report-Only Permissions-Policy X-Frame-Options Referrer-Policy",
     "STRICT_TRANSPORT_SECURITY": "max-age=63072000; includeSubDomains; preload",
+    "PERMISSIONS_POLICY": "publickey-credentials-create=*, publickey-credentials-get=*",
     "SERVE_FILES": "no",
     "USE_GZIP": "yes",
     "USE_BAD_BEHAVIOR": "yes",
@@ -47,7 +48,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your openGym hostname(s).",
+      "subtitle": "Point the template at your openGym hostname(s). Turn Automatic Let's Encrypt off for a name that is not public.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -86,7 +87,7 @@
     },
     {
       "title": "Security - Passkey endpoint throttling",
-      "subtitle": "openGym ships no rate limiting of its own, so the reverse proxy is the only brake.",
+      "subtitle": "openGym does not throttle passkey sign-in or pairing itself, so the reverse proxy is the brake there.",
       "settings": [
         "USE_LIMIT_REQ",
         "LIMIT_REQ_URL",
@@ -102,12 +103,13 @@
     },
     {
       "title": "Security - Headers and session cookie",
-      "subtitle": "Add HSTS, keep the stricter upstream headers, and leave the __Host- prefixed cookie intact.",
+      "subtitle": "Add HSTS, keep the stricter upstream headers, allow passkeys, and leave the __Host- prefixed cookie intact.",
       "settings": [
         "COOKIE_FLAGS",
         "COOKIE_AUTO_SECURE_FLAG",
         "KEEP_UPSTREAM_HEADERS",
-        "STRICT_TRANSPORT_SECURITY"
+        "STRICT_TRANSPORT_SECURITY",
+        "PERMISSIONS_POLICY"
       ]
     },
     {

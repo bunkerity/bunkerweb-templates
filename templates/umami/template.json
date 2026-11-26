@@ -18,7 +18,7 @@
   "steps": [
     {
       "title": "Domains and TLS",
-      "subtitle": "Use the public hostname that sites embed the tracker from.",
+      "subtitle": "Use the public hostname that sites embed the tracker from. For a name that is not public, switch Let's Encrypt off.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {

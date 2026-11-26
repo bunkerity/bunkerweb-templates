@@ -29,18 +29,20 @@ nginx uses.
 
 ## At a glance
 
-| Fact        | Value                         |
-| ----------- | ----------------------------- |
-| Template id | `projectsend`                 |
-| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
-| Configs     | 1 (modsec-crs)                |
-| Rule ids    | `9870000` to `9870999`        |
-| Upstream    | `http://projectsend:80`       |
+| Fact        | Value                                             |
+| ----------- | ------------------------------------------------- |
+| Template id | `projectsend`                                     |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, ProjectSend 2.10.0 |
+| Configs     | 1 (modsec-crs)                                    |
+| Rule ids    | `9870000` to `9870999`                            |
+| Upstream    | `http://projectsend:80`                           |
 
 ## Prerequisites
 
 - A running ProjectSend v2 container (`projectsend/projectsend:2`) that BunkerWeb can reach. The
-  image listens on port 80.
+  image listens on port 80. The template was tested on BunkerWeb 1.6.17 with ProjectSend 2.10.0 and
+  the Compose example below: first-run setup, sign-in, and a 22 MB file uploaded from the browser
+  in two parts, with no ModSecurity denial.
 - A public hostname pointing to BunkerWeb.
 - Access to the BunkerWeb web UI or service environment variables.
 
@@ -139,6 +141,25 @@ that does not overlap `10.20.30.0/24`, which the BunkerWeb documentation uses fo
 docker network create --subnet 10.20.31.0/24 bw-services
 ```
 
+Then attach BunkerWeb to the same network. In the Compose file of your BunkerWeb (the all-in-one
+container, or the `bunkerweb` service of the multi-container stack), keep the networks the service
+already uses and add `bw-services`:
+
+```yaml
+services:
+  bunkerweb: # the name of your BunkerWeb service
+    networks:
+      - default # keep every network it already uses
+      - bw-services
+
+networks:
+  bw-services:
+    external: true
+```
+
+Apply it with `docker compose up -d` in the BunkerWeb project. BunkerWeb then reaches the
+application as `http://projectsend:80`.
+
 > [!IMPORTANT]
 > Generate the database passwords once, next to `docker-compose.yml`. Compose reads them from
 > `.env`. Keep this file: MySQL stores the first credentials in the `db-data` volume and rejects
@@ -152,14 +173,19 @@ docker compose up -d
 
 ## Install
 
-1. Import `template.json` (Templates, **Create new template**, **Raw**, then upload or paste it).
-2. When the **Missing Custom Configs** dialog appears, upload every file listed in the
-   [Custom configs](#custom-configs) section from `configs/`, then save.
-3. Assign `USE_TEMPLATE=projectsend` to the service, or select **ProjectSend** in the web UI.
+1. Import `template.json` (Templates, **Create template**, **Raw**, then upload or paste it).
+2. When the **Missing Custom Configs** dialog appears, upload the file listed in the
+   [Custom configs](#custom-configs) section, `configs/modsec-crs/projectsend_false_positives.conf`,
+   then save. The dialog spells the folder `modsec_crs`: upload the file from `configs/modsec-crs/`
+   all the same.
+3. Assign `USE_TEMPLATE=projectsend` to the service, or select **Projectsend** in the web UI.
 4. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT` and `REVERSE_PROXY_HOST` with values for your
-   deployment.
-5. Reload BunkerWeb, open the public URL, then test sign-in, a small upload, a file larger than
-   20 MiB (it is sent in several parts) and a public share link.
+   deployment. For a name that is not public, switch **Let's Encrypt** off. BunkerWeb 1.6.17 keeps
+   it on at the first save, so open the service again, switch it off and save once more.
+5. Save the service: the web UI applies it by itself (with environment variables, reload
+   BunkerWeb). Open the public URL. BunkerWeb shows its anti-bot check once, then a new
+   ProjectSend installation opens `/setup` to create the first administrator. Then test sign-in, a
+   small upload, a file larger than 20 MiB (it is sent in several parts) and a public share link.
 
 For both import methods (web UI and plugin), see the repository [installation guide](../../README.md#install).
 
@@ -190,6 +216,12 @@ The values below are examples. Replace them with your own before using the templ
   `MAX_CLIENT_SIZE=100m` limits each request, not the size of a file, so keep it at least twice
   the part size. It also sets the ModSecurity request body limit, so do not raise it far beyond
   what you need.
+- **Buffering warning in the log:** while a part arrives, BunkerWeb's log shows the NGINX warning
+  `a client request body is buffered to a temporary file`, even with
+  `REVERSE_PROXY_REQUEST_BUFFERING=no`. It is expected. That setting only controls the hop to
+  ProjectSend. ModSecurity reads each request body, so NGINX keeps a body of more than a few
+  kilobytes in a temporary file on BunkerWeb's disk and removes it when the request ends. With
+  ModSecurity off for the service, the warning does not appear.
 - **Methods:** `ALLOWED_METHODS` includes `PUT` (upload parts), `PATCH` and `DELETE` (file
   management). Anything else is rejected before reaching the application.
 - **Custom configs (`modsec-crs`):** ModSecurity rules loaded before the OWASP Core Rule Set. The
@@ -231,7 +263,9 @@ Set the public hostname ProjectSend answers on.
 
 ### SSL / Let's Encrypt
 
-Obtain and renew the certificate automatically.
+Obtain and renew the certificate automatically. Replace the example e-mail. Turn Let's Encrypt off
+for a name that is not public: BunkerWeb 1.6.17 keeps it on at creation, so edit the service again
+to switch it off.
 
 | Setting              | Value               | Description                                                |
 | -------------------- | ------------------- | ---------------------------------------------------------- |

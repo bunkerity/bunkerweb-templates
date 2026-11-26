@@ -47,9 +47,11 @@ PocketBase API and superuser UI under it, and agents that connect to the hub ove
 - Create the admin account before the site is reachable. The first visitor to `/` creates it
   (`POST /api/beszel/create-user` works only while no user exists,
   `internal/users/users.go:90-150`), or set `USER_EMAIL` and `USER_PASSWORD` on the hub.
-- Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its
-  certificate (the default HTTP challenge needs inbound port 80). For your own certificate files
-  use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+- Point your public hostname at BunkerWeb. **Automatic Let's Encrypt** in step 1 makes BunkerWeb
+  request its certificate (the default HTTP challenge needs inbound port 80). For your own
+  certificate files, switch it off, then open the service in **Advanced** mode, tab **Custom SSL
+  certificate**, which holds `USE_CUSTOM_SSL`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`. No guided
+  step has them.
 - Agents in **WebSocket mode** dial the hub: give them `HUB_URL=https://beszel.example.com`, the
   `TOKEN` and the `KEY` from the Add System dialog (or a universal token). Agents in **SSH mode**
   are dialled by the hub on port `45876` and never cross BunkerWeb.
@@ -59,7 +61,7 @@ PocketBase API and superuser UI under it, and agents that connect to the hub ove
 | Beszel setting | Value | What was measured or read |
 | --- | --- | --- |
 | `APP_URL` (hub) | `https://beszel.example.com` | Used for alert and notification links and for the agent setup text (upstream docs). Required when the hub is served under a sub-path. |
-| _Settings, Application, Trusted proxy headers_ in the superuser UI (`/_/#/settings`) | `X-Real-IP` | Without it PocketBase logs BunkerWeb's address as the client of every request (`userIP` `172.22.0.4`, the BunkerWeb container). With it the log shows the real client (`172.22.0.1`) even when the request carries a forged `X-Real-IP: 8.8.8.8` and `X-Forwarded-For: 6.6.6.6`, because BunkerWeb replaces both (`r5-pbip.log`, `r5-EF.log`). |
+| Superuser UI (`/_/#/settings`), _Application_, **IP proxy headers**, field **Trusted IP proxy headers** | `X-Real-IP`: type it and press Enter (the suggestions are `CF-Connecting-IP`, `X-Forwarded-For` and `Fly-Client-IP`, so `X-Real-IP` is not listed), then save | After saving, the panel shows your own address as _Resolved user IP_ and _Detected proxy header: X-Real-IP_ (checked on Beszel 0.21.2: the address went from the BunkerWeb container to the browser's). Without it PocketBase logs BunkerWeb's address as the client of every request (`userIP` `172.22.0.4`, the BunkerWeb container). With it the log shows the real client (`172.22.0.1`) even when the request carries a forged `X-Real-IP: 8.8.8.8` and `X-Forwarded-For: 6.6.6.6`, because BunkerWeb replaces both (`r5-pbip.log`, `r5-EF.log`). |
 | `TRUSTED_AUTH_HEADER` (hub, only if you use it) | the header your authenticating proxy sets | **BunkerWeb passes a client-sent header on.** With `TRUSTED_AUTH_HEADER=X-Auth-Email` and `TRUSTED_PROXY_IPS` set to the Docker network, `GET /api/collections/systems/records` with only `X-Auth-Email: <admin address>` returned the admin's systems through BunkerWeb (2 systems in total, 0 without the header, `r5-trusted.log`). `TRUSTED_PROXY_IPS` matches the connection address, which is BunkerWeb's, so it does not help. A `REVERSE_PROXY_HEADERS` entry `X-Auth-Email ""` blanked the header (the same request then returned 0 systems), but then the header cannot carry a login either. Forward authentication in front of Beszel was not tested. |
 | `AUTO_LOGIN` (hub) | leave unset | Logs every request in as that user (upstream docs). Never set it on an exposed hub. |
 | OAuth2 or OIDC | redirect URI `https://beszel.example.com/api/oauth2-redirect` | Set `USER_CREATION=true` for automatic account creation. With `OAUTH_DISABLE_POPUP=true` also register the base URL with a trailing slash (upstream issue #2170). Editing the users collection needs "hide collection create and edit controls" switched off in `/_/#/settings`, and BunkerWeb needs rule `9852104` of this template for the save (see below). The flow against a real identity provider was not tested. |
@@ -73,18 +75,24 @@ see the header setting below.
 ## Install
 
 Import `template.json` and `configs/modsec-crs/beszel_false_positives.conf` using the repository
-[installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=beszel`, update `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the port, `8090`, and
-no trailing slash), and review the guided steps.
+[installation guide](../../README.md#install), or its plugin bundle layout. The upload dialog
+lists the config as `modsec_crs/beszel_false_positives.conf`: it is the same file. Then add a
+service in **Easy** mode, choose the Beszel template and go through the guided steps: your host
+name in step 1, and in step 2 the hub address (keep the port, `8090`, and no trailing slash).
+
+Step 1 keeps **Automatic Let's Encrypt** on. Turn it off for a name that is not public. BunkerWeb
+1.6.17 ignores a switch you turn off while creating the service, so open the service again, turn
+it off and save.
 
 Before enabling blocking on your instance:
 
-1. Set the service `SECURITY_MODE=detect` and reload.
+1. Open the service in **Advanced** mode, tab **General**, set **Security mode** to `detect` and
+   save. Saving the service applies it.
 2. Use the dashboard, a system page, the notification settings, the superuser UI and your agents
    while reading BunkerWeb logs.
 3. Confirm the included exclusions match the logged targets; narrow or extend them only where your
    traffic requires it.
-4. Switch to `SECURITY_MODE=block` and repeat your workflows.
+4. Set **Security mode** back to `block`, save, and repeat your workflows.
 
 In block mode a false positive returns `403`, and the default bad-behavior list
 (`400 401 403 404 405 429 444`, ten matching responses in 60 seconds) bans the client for a day.
@@ -103,7 +111,7 @@ lane folder; hub and agent `0.21.2`, BunkerWeb `1.6.17`, plain HTTP on loopback 
 | `REVERSE_PROXY_INTERCEPT_ERRORS=no` | Keep PocketBase's own error answers. | A wrong password returns `400` with `{"message":"Failed to authenticate."}` as JSON; with BunkerWeb's default the same request returns its own HTML `400` page (`r5-F.log`, `r5-W.log`). |
 | `ALLOWED_METHODS=GET\|POST\|HEAD\|PATCH\|DELETE` | PocketBase edits with `PATCH` and removes with `DELETE`. | `PATCH` of a system `200` and `DELETE` `204`; with the default list both get `405`. |
 | `LIMIT_REQ_RATE=50r/s` | A page load is a burst of small requests. | A cold sign-in and system page is 42 requests with 22 in one second (`coldload-signin.log`); the sign-in page alone is 11. At `50r/s` a burst of 160 requests over 16 connections gets 50 `200` and 110 `429`, and at BunkerWeb's `2r/s` it gets 2 `200` and 158 `429`. The value is about 2.3 times the observed peak. Several tabs loading at once behind one address were not measured. |
-| `REVERSE_PROXY_READ_TIMEOUT=360s` | The upstream nginx and Caddy examples use `360s`. | The live-update stream (`/api/realtime`) sends nothing while idle. With `360s` it stayed open for the 130 second probe; at the default `60s` the proxy closed it at 60.19 seconds. The browser then reconnects by itself and the update still arrived (2 stream requests and 5 subscribe requests in 140 seconds, `r5-T60.log`), so this setting saves a reconnect each minute and covers a slow agent collection, it is not what makes the dashboard work. The real agent stayed connected for 600 seconds at both values. |
+| `REVERSE_PROXY_READ_TIMEOUT=360s` | The upstream nginx and Caddy examples use `360s`. | The live-update stream (`/api/realtime`) sends nothing while idle. With `360s` it stayed open for the 130 second probe; at the default `60s` the proxy closed it at 60.19 seconds. The browser then reconnects by itself and the update still arrived (2 stream requests and 5 subscribe requests in 140 seconds, `r5-T60.log`), so this setting saves a reconnect each minute and covers a slow agent collection, it is not what makes the dashboard work. The real agent stayed connected for 600 seconds at both values. To go back to BunkerWeb's `60s`, type `60s` in step 4: an empty field keeps `360s`. |
 | `REVERSE_PROXY_HEADERS=X-Forwarded-For $remote_addr;CF-Connecting-IP $remote_addr` | The hub reads `CF-Connecting-IP` first. | Against an echo backend a client that sends `X-Forwarded-For: 6.6.6.6` and `CF-Connecting-IP: 7.7.7.7` gets `xff 172.22.0.1` and `cf 172.22.0.1`; with BunkerWeb's value the upstream receives `6.6.6.6, 172.22.0.1` and `7.7.7.7` (`r5-EF.log`, `r5-EW.log`). A second real agent that registered itself with a universal token and sent those headers was stored with host `7.7.7.7` without the setting and `172.22.0.6` (its real address) with it (`r5-W.log`, `r5-F.log`). `X-Real-IP` is overwritten by BunkerWeb in both. |
 | `MAX_CLIENT_SIZE=20m` | The superuser UI uploads a backup ZIP to `/api/backups/upload`. | The hub itself rejects a body above 16 MiB with `400` (reproduced against the hub directly). 9, 11 and 16 MiB uploads returned `204`, 17 MiB `400` from the hub, 21 MiB `413` from BunkerWeb. At BunkerWeb's `10m`, 11 MiB and above get `413`. Enter `10m`, BunkerWeb's default, if you never upload a backup; an empty field keeps `20m`. |
 
@@ -181,6 +189,7 @@ folder, 0 failures; the same requests were `evidence/verify/matrix-final.tsv`):
   `system="<id>"` on the monitors list do not trigger `942100` and need no exception. A script
   that needs a filter outside the shape gets a narrower rule of its own in a custom config: copy
   one of the three rules, give it a new id, and anchor its path, method and that one literal filter.
+  In the web UI: **Configs**, **Create Custom Config**, pick the service, type `MODSEC_CRS`.
 
 For the two logs page rules (`9852103`, `9852109`) the value is free text, so the exception reaches
 every typed filter on two exact paths and nothing else. Measured with 161 more requests in the same

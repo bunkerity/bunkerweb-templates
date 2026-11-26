@@ -49,9 +49,17 @@ IPv6 address.
 - Pocket ID is passkey-only and passkeys bind to the host name. Pick the final public host name
   **before** the first administrator registers a passkey: a passkey made on `id.example.com` does
   not work on another name. WebAuthn also needs a secure context, so the site must be served over
-  HTTPS. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its certificate (the default HTTP
-  challenge needs inbound port 80). For existing certificate files use `AUTO_LETS_ENCRYPT=no`,
-  `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+  HTTPS. Step 1 of the service wizard turns **Automatic Let's Encrypt** on, so BunkerWeb requests
+  its certificate (the default HTTP challenge needs inbound port 80). For existing certificate
+  files turn it off, then open the service in **Advanced** mode, **Custom SSL certificate**, and
+  set `USE_CUSTOM_SSL`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`: no easy-mode step has them.
+- For a lab without public DNS, use a name that ends in `.localhost`, for example `id.localhost`,
+  and turn **Automatic Let's Encrypt** off: BunkerWeb cannot get a certificate for that name and
+  keeps its default self-signed one. BunkerWeb 1.6.17 ignores that switch when you create the
+  service, so save, open the service again and turn it off a second time. Chrome treats
+  `https://<name>.localhost` as a secure context, and passkey registration and sign-in worked on
+  the default certificate (tested with certificate errors ignored; a browser that does not trust
+  the certificate can refuse passkeys, so give it a certificate it trusts).
 - `APP_URL` on the Pocket ID container must be the exact public HTTPS origin, for example
   `https://id.example.com` (see the next section).
 - Set `ENCRYPTION_KEY` on the Pocket ID container and keep it with the data directory. Pocket ID
@@ -68,16 +76,17 @@ Pocket ID documentation and source at `v2.19.3` say where marked (docs / source)
 | Pocket ID setting                  | Value                                                  | Without it                                                                                                                                                                                                                                                                                                                                                           |
 | ---------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `APP_URL`                          | `https://id.example.com` (no path, no trailing slash)  | Issuer, redirects and the WebAuthn relying party come from it (docs). With an `https` value the session cookies are named `__Host-...` (measured: `__Host-access_token` with `HttpOnly; Secure; SameSite=Lax`, identical through BunkerWeb and direct, `cookies.txt`). A different host name than the browser uses breaks passkey sign-in.                             |
-| `TRUST_PROXY`                      | BunkerWeb's address or network on the Docker network   | Pocket ID takes the client address from `X-Forwarded-For` only from trusted senders (docs). See the security line below.                                                                                                                                                                                                                                              |
+| `TRUST_PROXY`                      | The subnet of the Docker network BunkerWeb and Pocket ID share. `docker network inspect <network> --format '{{(index .IPAM.Config 0).Subnet}}'` prints it, for example `172.18.0.0/16`. Never `0.0.0.0/0` | Pocket ID takes the client address from `X-Forwarded-For` only from trusted senders (docs). See the security line below.                                                                                                                                                                                                                                              |
 | `INTERNAL_APP_URL` (only if used)  | an address Pocket ID can reach itself on               | Used when the server must call its own public address and cannot reach it (docs). Leave it unset unless your container cannot resolve the public name.                                                                                                                                                                                                                |
 | `TRUSTED_PLATFORM` (only if used)  | `CF-Connecting-IP` behind Cloudflare, otherwise unset  | Reads the client address from that header (docs). Do not set it for plain BunkerWeb: a client could then send the header. The documentation also says to switch Cloudflare Rocket Loader off for the web app.                                                                                                                                                         |
 | `ALLOW_INSECURE_CALLBACK_URLS`     | leave unset                                            | Allows insecure (`http`) callback URLs (docs). Only a client that really needs `http://<LAN host>/callback` needs it. The CRS exclusions in this template let such a URL through the WAF; the app's own check is separate.                                                                                                         |
 | `DISABLE_RATE_LIMITING`            | leave unset                                            | The app has its own limiter: 100 requests a second with a burst of 300 per client address (source). It sees BunkerWeb's view of the address only with `TRUST_PROXY` set as above.                                                                                                                                                                                     |
 | `LOG_LEVEL`                        | `info` or higher, but know what it prints              | Pocket ID logs the request path, the query string and the `Referer` at `INFO` (upstream issue 1903, fixed in the next major version). One-time login links (`/lc/<code>`, `/st/<token>`) and authorization URLs (`state`, `nonce`) are in those fields: protect the log.                                                                                                                                       |
 
-New OIDC clients are group-restricted by default (source): check the client's allowed groups
-before you test a sign-in.
-
+New OIDC clients are group-restricted by default (source): until you open the client's **Access**
+tab, under **Allowed User Groups**, and choose **All Users** (confirm **Unrestrict**) or select a
+group your test user belongs to, the consent page answers "You are not allowed to access this
+service." (measured on `v2.19.3`).
 
 > [!WARNING]
 > Security: `TRUST_PROXY` must name only BunkerWeb, never `0.0.0.0/0`. With a wide value, anyone who
@@ -89,6 +98,12 @@ before you test a sign-in.
 | BunkerWeb's address     | app saw the real client address     | app saw the real client address          |
 | `true` (everyone)       | app saw `6.6.6.6`, the forged one   | app saw the real client address          |
 
+A subnet trusts every container on that network, so keep the network for BunkerWeb and Pocket ID.
+For BunkerWeb's single address,
+`docker inspect <bunkerweb container> --format '{{(index .NetworkSettings.Networks "<network>").IPAddress}}'`
+prints it (`172.18.0.3` in the test), but Docker can give a recreated container another one. With
+`TRUST_PROXY` set to the subnet, Pocket ID logged the address BunkerWeb saw as the client (`ip=`).
+
 The template's `REVERSE_PROXY_HEADERS=X-Forwarded-For $remote_addr` makes the header exactly the
 address BunkerWeb saw (`xff.txt`). It protects a request that goes through BunkerWeb; a client that
 reaches the app's port directly can still send anything, so keep that port private.
@@ -96,19 +111,32 @@ reaches the app's port directly can still send anything, so keep that port priva
 ## Install
 
 Import `template.json` and the files under `configs/` using the repository
-[installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=pocket-id`, then change only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the
-upstream URL without a trailing slash or path). In the web UI raw import, the config dialog lists
-the file as `modsec_crs/pocket-id_false_positives.conf`: upload it under that name.
+[installation guide](../../README.md#install), or its plugin bundle layout. In the web UI, open
+**Templates**, **Create template**, switch to **Raw** mode and use **Upload template JSON**. The
+**Missing Custom Configs** dialog lists the file as `modsec_crs/pocket-id_false_positives.conf`:
+upload `configs/modsec-crs/pocket-id_false_positives.conf` there, then save. Create the service
+from the template: in the service wizard pick it in the **Templates** list above the steps (it is
+listed as `Pocket-id`), then change only **Server name** (step 1) and **Reverse proxy host**
+(step 2; keep the upstream URL without a trailing slash or path). Saving the service applies it:
+there is no separate reload step.
+
+> [!WARNING]
+> BunkerWeb 1.6.17's web UI answers `403` when you import this template, and when you create or edit a
+> service that uses it, if the web UI is itself protected by BunkerWeb's CRS (the setup wizard default).
+> The long `PERMISSIONS_POLICY` value trips the CRS. Until a BunkerWeb release fixes it, set the web UI
+> service's Security mode to `detect` (Advanced mode, General) for the import and for each save of this
+> service, then set it back to `block`.
 
 Before enabling blocking on your instance:
 
-1. Set service `SECURITY_MODE=detect` and reload.
+1. Set the service's `SECURITY_MODE` to `detect`: no easy-mode step has it, so open the service in
+   **Advanced** mode, **General**, set **Security mode** to `detect` and save. A new service
+   starts in `block`.
 2. Register a passkey, sign in, create a client with your real callback URLs, run one sign-in
    from your relying party, sign out, and read the BunkerWeb logs.
 3. Confirm the included exclusions match the targets in your logs. Narrow or add exceptions only
    where your traffic requires them.
-4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflow.
+4. Set **Security mode** back to `block` after those checks and repeat the workflow.
 
 > [!IMPORTANT]
 > False positives return `403` in block mode. `BAD_BEHAVIOR_THRESHOLD` matching responses in 60
@@ -204,7 +232,8 @@ Array arguments are listed for the literal indices `0` to `9`, and secrets for `
 targets, a target without the index, `ARGS_GET:` and `ARGS_POST:` targets, and macros in a target do
 not work in `ctl:ruleRemoveTargetById` on this BunkerWeb. **An eleventh callback or logout URL is
 blocked again**, and so is a client with more than five secrets. To raise a limit, add the index in
-the same way (indices 10 and 11 were tested and work).
+the same way (indices 10 and 11 were tested and work). In the web UI, open **Configs**, open
+`pocket-id_false_positives` (type `MODSEC-CRS`, your service), edit the text and save.
 
 **Cost:** a URL that passes the four conditions is not screened for inclusion or SSRF by `931100`,
 `932130`, `934110` or `934190` on that argument. Pocket ID matches `redirect_uri` against the
@@ -298,9 +327,20 @@ the `fd20:ce:` alternative of the IPv6 host rule. The settings check and the two
 - **User agents** (earlier run, config unchanged on those paths): 31 client agents against
   discovery, JWKS, token, userinfo and `/`: 155 requests, 93 `200` and 62 `401` (the app's own answer
   to a bad token), none `403`.
-- **Web UI import** (earlier run, `template.json` unchanged): raw mode with a copy of `template.json`
-  (`id` and `name` changed, because the original id is already loaded as a plugin) plus the config
-  file imports and is listed with 9 steps, 12 settings and 1 config next to the plugin copy.
+- **Web UI import and easy mode** (2026-11-23, files as shipped, `bunkerity/bunkerweb-all-in-one:1.6.17`
+  with the setup wizard's CRS-protected web UI, Chrome 159): the template JSON and the config file
+  import through the web UI request (`POST /templates/create`). In block mode the only rules that
+  fire are `941370`, `942151` and `949110` (the `PERMISSIONS_POLICY` value, see the warning under
+  Install) and the import answers `403`; with the web UI service in `detect` it saves, and the
+  config file alone raises none. A service created in easy mode answered `403` on
+  `POST /services/new?template=pocket-id` (`942151` on `ARGS:PERMISSIONS_POLICY`, then `949110`) and
+  saved with the web UI service in `detect`. Later edits in Advanced and in easy mode saved without
+  touching the web UI service. On that service a passkey registered, signed out and signed in again,
+  a client with a LAN and then a port-less `localhost` callback saved, and its consent page opened
+  after **All Users** was chosen on the **Access** tab.
+- **Secrets and passwords** (same run, `PUT` through BunkerWeb): the client save sends the secrets
+  back; 5 secrets passed, 6 got `403` (`930120` on `credentials.secrets.array_5`). Of 64 random
+  symbol-only SMTP passwords of 12 to 31 characters, 1 got `403` (`934200`).
 
 </details>
 

@@ -30,15 +30,16 @@
     "USE_GZIP": "yes",
     "GZIP_PROXIED": "expired no-cache no-store private auth",
     "USE_ANTIBOT": "javascript",
-    "ANTIBOT_IGNORE_URI": "^/api/ ^/api2/ ^/seafhttp/ ^/seafdav(?:/|$) ^/share/ ^/uploads(?:/|$) ^/zip-downloads(?:/|$) ^/thumbnail/ ^/office-convert/ ^/seafile-office-web/ ^/notification(?:/|$)",
+    "ANTIBOT_IGNORE_URI": "^/api/ ^/api2/ ^/seafhttp/ ^/seafdav(?:/|$) ^/d/ ^/f/ ^/uploads(?:/|$) ^/zip-downloads(?:/|$) ^/thumbnail/ ^/office-convert/ ^/seafile-office-web/ ^/notification(?:/|$)",
     "BAD_BEHAVIOR_THRESHOLD": "20",
     "BAD_BEHAVIOR_STATUS_CODES": "400 405 429 444",
     "COOKIE_FLAGS_4": "sfcsrftoken SameSite=Lax"
   },
+  "configs": ["modsec-crs/seafile_false_positives.conf"],
   "steps": [
     {
       "title": "Web service - Front door",
-      "subtitle": "Configure the public hostname and TLS certificate.",
+      "subtitle": "Replace the example hostname and e-mail. Turn off Let's Encrypt for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {
@@ -88,7 +89,8 @@
         "BAD_BEHAVIOR_THRESHOLD",
         "BAD_BEHAVIOR_STATUS_CODES",
         "COOKIE_FLAGS_4"
-      ]
+      ],
+      "configs": ["modsec-crs/seafile_false_positives.conf"]
     }
   ]
 }

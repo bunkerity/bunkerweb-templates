@@ -53,9 +53,13 @@ OpenAI-compatible API clients and single sign-on.
 - Open WebUI's Socket.IO server accepts the `websocket` transport only (`transports=['websocket']`
   in `backend/open_webui/socket/main.py`). Without the WebSocket upgrade the chat page cannot
   receive replies, so do not put another proxy in front of BunkerWeb that strips `Upgrade`.
-- Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its
-  certificate (the default HTTP challenge needs inbound port 80). For existing certificate files,
-  use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+- Point your public hostname at BunkerWeb. Automatic Let's Encrypt (on in step 1) makes BunkerWeb
+  request its certificate and needs a public name and inbound port 80. For a private or LAN name,
+  or for your own certificate files, turn it off in step 1. The guided steps show no other
+  certificate setting: open the service's **Advanced** tab and use **Custom SSL certificate**
+  (`USE_CUSTOM_SSL`, `CUSTOM_SSL_CERT`, `CUSTOM_SSL_KEY`) or **Self-signed certificate**. On
+  BunkerWeb 1.6.17 the switch is not kept when you create the service: open the service again and
+  turn it off there.
 - Serve Open WebUI at the root of the hostname: the template proxies `/` and was not tested under
   a sub-path.
 
@@ -66,7 +70,7 @@ the source of `v0.13.3` (`backend/open_webui/env.py` and `main.py` in the Open W
 
 | Open WebUI setting                                | Value                                                    | Without it                                                                                                                                                                                                                                                       |
 | ------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `FORWARDED_ALLOW_IPS`                             | BunkerWeb's address on the Docker network (not `*`)      | The default `*` trusts every sender, and uvicorn takes the first `X-Forwarded-For` entry: a client that reaches the app's port directly picks the address the app sees (`6.6.6.6` in the test, `uvicorn-ip.log`). Through BunkerWeb the template replaces the header (see the settings table). |
+| `FORWARDED_ALLOW_IPS`                             | BunkerWeb's IP address on the Docker network, or that network's CIDR such as `172.20.0.0/16`; several entries separated by commas (not `*`, not a container name) | The default `*` trusts every sender, and uvicorn takes the first `X-Forwarded-For` entry: a client that reaches the app's port directly picks the address the app sees (`6.6.6.6` in the test, `uvicorn-ip.log`). Through BunkerWeb the template replaces the header (see the settings table). |
 | `WEBUI_URL`                                       | `https://open-webui.example.com`                         | OAuth and OpenID Connect redirect addresses are built from `WEBUI_URL`, or from the request address when it is empty (`utils/oauth.py:575,694,2256`). Behind another TLS-terminating proxy the request address is `http`, so the redirect address is wrong.     |
 | `WEBUI_SESSION_COOKIE_SECURE`                     | `true` once the site is HTTPS                            | The default is `false` (`env.py:782`): the session and token cookies are also sent over plain HTTP. `WEBUI_AUTH_COOKIE_SECURE` follows it.                                                                                                                       |
 | `WEBUI_SECRET_KEY`                                | a long random value, kept across container recreation    | Without it `start.sh` writes `.webui_secret_key` into `/app/backend`, which is not the `/app/backend/data` volume: a recreated container gets a new key and every session and every encrypted value is lost (`start.sh:29-46`).                                  |
@@ -75,6 +79,14 @@ the source of `v0.13.3` (`backend/open_webui/env.py` and `main.py` in the Open W
 
 Keep `ENABLE_WEBSOCKET_SUPPORT` at its default `true`. The documentation's fallback (long polling)
 needs sticky sessions with more than one replica.
+
+`FORWARDED_ALLOW_IPS` takes what uvicorn accepts. In the `v0.13.3` image (uvicorn 0.54.0) that is
+an IP address, a CIDR network, a comma-separated list of them, or `*`. A container name never
+matches, because uvicorn compares the text with the sender's address: `bw` trusted neither
+`10.231.75.10` nor any other address in the check. A container address changes when the container
+is recreated, so give BunkerWeb a fixed address (`ipv4_address` in Compose) or trust the network's
+CIDR. A CIDR also trusts every other container on that network: keep only BunkerWeb and Open WebUI
+on it.
 
 Security: `FORWARDED_ALLOW_IPS` must name only BunkerWeb. With `*`, anyone who can reach the
 Open WebUI port directly chooses the client address shown in the app's audit trail and used by
@@ -86,19 +98,27 @@ e-mail address (`routers/auths.py:99`), not by address.
 
 Import `template.json` and the files under `configs/` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=open-webui`, then change only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the upstream
-URL without a trailing slash or path). In the web UI raw import, the config dialog lists the files
-as `modsec_crs/open-webui_false_positives.conf` and `server_http/open-webui_large_cookies.conf`: upload
-each file under its listed name.
+`USE_TEMPLATE=open-webui` (in easy mode, pick **Open-webui** when you create the service), then change
+only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the upstream URL without a trailing slash or path).
+In the web UI raw import, the config dialog lists the files as
+`modsec_crs/open-webui_false_positives.conf` and `server_http/open-webui_large_cookies.conf`: upload
+each file under its listed name. Saving the service applies it: there is no separate reload step.
+
+> [!WARNING]
+> BunkerWeb 1.6.17's web UI answers `403` when you import this template, and when you create or edit a
+> service that uses it, if the web UI is itself protected by BunkerWeb's CRS (the setup wizard default).
+> The long `PERMISSIONS_POLICY` value trips the CRS. Until a BunkerWeb release fixes it, set the web UI
+> service's Security mode to `detect` (Advanced mode, General) for the import and for each save of this
+> service, then set it back to `block`.
 
 Before enabling blocking on your instance:
 
-1. Set service `SECURITY_MODE=detect` and reload.
+1. Set the service's Security mode to `detect` (Advanced or Raw mode, General); saving applies it.
 2. Sign in, send prompts with code, SQL and markup, use a temporary chat, upload a file, write a
    note, save a prompt and a custom model, and read the BunkerWeb logs.
 3. Confirm the included exclusions match the targets in your logs. Narrow or add exceptions only
    where your traffic requires them.
-4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflows.
+4. Set the Security mode back to `block` after those checks and repeat the workflows.
 
 > [!IMPORTANT]
 > False positives return `403` in block mode. The default bad-behavior status list includes
@@ -120,6 +140,7 @@ added in the second pass were reverted together; `REVERSE_PROXY_READ_TIMEOUT` an
 | `ALLOWED_METHODS=GET\|POST\|HEAD\|PUT\|PATCH\|DELETE` | Deleting a chat, changing chat parameters and notification targets use `DELETE`, `PATCH` and `PUT`. The default `GET\|POST\|HEAD\|QUERY` answers `405` to all three.                                                                                                                                                |
 | `LIMIT_REQ_RATE=100r/s`                      | The single page app loads hundreds of small assets at once: a cold load made 122 requests in one second. The default `2r/s` answered 78 of 80 burst requests with `429`; with `100r/s` all 80 pass. One address shared by several people that open the app together can exceed it (not measured with several browsers). |
 | `LIMIT_CONN_MAX_HTTP1=200`                   | Every open tab holds one WebSocket on its own HTTP/1.1 connection, also when the page uses HTTP/2. At the default `10`, the 11th WebSocket from one address got `429` and so did an ordinary request made while they were open; with `200`, 100 held WebSockets all got `101`. `429` also counts toward bad behavior. |
+| `LIMIT_CONN_MAX_HTTP2=400`                   | Over HTTPS the browser speaks HTTP/2 and this limit applies instead of the HTTP/1.1 one. A cold page load in a fresh Chrome made 209 requests signed out and 236 signed in. At the default `100`, 10 of the signed-out requests and 8 or 9 of the signed-in ones got `429`, and each counted toward the bad-behavior ban (10 of 30 after one load). With `150`, `200` and `400` all of them got `200` and no ban counter moved; `400` also held with 120 ms of added latency. `400` is the value the Grafana template uses and leaves room for pages that load more. The limit counts streams per client address, so it also bounds how many requests one address can hold open: `200` also passed, so you can lower it for a tighter cap. |
 | `BAD_BEHAVIOR_THRESHOLD=30`                  | BunkerWeb bans an address for one day after this many responses with a status from its bad-behavior list (`403` is in it) within a minute; the default is 10. While channels are off (the default, `config.py:2084`) Open WebUI answers `GET /api/v1/channels/` with `403` ("Channels is disabled") on every page load. Fourteen signed-in page loads in a row banned the address at the default (the next `GET /api/version` got `403`); with `30` the same fourteen left it unbanned. The cleaner fix is `ENABLE_CHANNELS=true` on the app. ModSecurity `403`s count toward the same ban: a scanner now needs 30 blocked requests in a minute. |
 | `MAX_CLIENT_SIZE=100m`                       | File uploads (Open WebUI sets no size limit of its own). A 99 MiB upload passes and a 100 MiB one gets `413`; at the default `10m` an 11 MiB upload gets `413`.                                                                                                                                                              |
 | `MODSECURITY_REQ_BODY_NO_FILES_LIMIT=10m`    | A chat resends its whole history as one JSON body on every turn, images included. At the default `128 KiB`, a 300 KiB prompt gets `400`; with `10m`, 9000 KiB passes and 10500 KiB gets `400`. A 200 KB image in a vision chat is about 200 KB of that budget.                                                               |
@@ -153,28 +174,28 @@ script markup, PHP, Python, Node and Java code, XML, URLs, raw HTTP requests and
 | Id | Method and path | Where | Rules |
 | --- | --- | --- | --- |
 | `9865101` | `POST /api/v1/auths/signup`, `/api/v1/auths/update/profile` | `json.profile_image_url` (data: URI) | 5 rules, by target |
-| `9865102` | `POST /api/v1/users/user/settings/update` | `json.ui.system` | 45 rules, by target |
-| `9865103` | `POST /api/v1/chats/new`, `/import`, `/<uuid>` | the whole request (by id) | 46 rules, by id |
-| `9865104` | `GET /api/v1/chats/search` | `text` (query string) | 47 rules, by target |
-| `9865105` | `POST /api/chat/completions`, `/api/v1/chat/completions`, `/api/chat/completed`, `/api/(v1/)messages`, `/api/(v1/)embeddings`, `/openai/chat/completions`, `/ollama/api/chat`, `/ollama/api/generate`, `/ollama/v1/chat/completions` | the whole request (by id) | 48 rules, by id |
-| `9865106` | `POST /api/v1/notes/create`, `/api/v1/notes/<uuid>/update` | `json.data.content.md`, `.html` | 45 rules, by target |
-| `9865107` | `GET /api/v1/notes/search` | `query` (query string) | 47 rules, by target |
-| `9865108` | `POST /api/v1/prompts/create`, `/api/v1/prompts/id/<id>/update` | `json.content` | 45 rules, by target |
-| `9865109` | `POST /api/v1/models/create`, `/api/v1/models/model/update` | `json.params.system` | 45 rules, by target |
-| `9865110` | `POST /api/v1/memories/add`, `/api/v1/memories/query` | `json.content` | 46 rules, by target |
-| `9865111` | `POST /api/v1/knowledge/create`, `/api/v1/knowledge/<uuid>/update` | `json.description` | 46 rules, by target |
-| `9865112` | `POST /api/v1/functions/create`, `/api/v1/tools/create` | `json.content` (Python source, admin) | 44 rules, by target |
-| `9865113` | `POST /api/v1/utils/code/format`, `/api/v1/utils/code/execute` | `json.code` (admin) | 43 rules, by target |
-| `9865114` | `POST /api/v1/tasks/title/completions` | the whole request (by id) | 45 rules, by id |
-| `9865115` | `POST /api/v1/tasks/auto/completions`, `/api/v1/images/generations` | `json.prompt` | 7 rules, by target |
-| `9865116` | `POST /api/v1/audio/speech` | `json.input` | 45 rules, by target |
-| `9865117` | `POST /api/v1/retrieval/process/text`, `/api/v1/files/<uuid>/data/content/update`, `/api/v1/chats/<uuid>/messages/<id>` | `json.content` | 45 rules, by target |
-| `9865118` | `POST /api/v1/models/import` | the whole request (by id) | 45 rules, by id |
-| `9865119` | `POST /api/v1/folders/<uuid>/update` | `json.data.system_prompt` | 45 rules, by target |
-| `9865120` | `POST /api/v1/evaluations/feedback` | `json.data.comment` | 45 rules, by target |
-| `9865121` | `GET /` (address-bar search) | `q` (query string) | 47 rules, by target |
-| `9865122` | `POST /api/v1/retrieval/config/update` | the URL fields of the Documents page | 1 rule, by target |
-| `9865123` | `POST /api/v1/images/config/update` | `json.COMFYUI_WORKFLOW` | 1 rule, by target |
+| `9865102` | `POST /api/v1/users/user/settings/update` | `json.ui.system` | 47 rules, by target |
+| `9865103` | `POST /api/v1/chats/new`, `/import`, `/<uuid>` | the whole request (by id) | 47 rules, by id |
+| `9865104` | `GET /api/v1/chats/search` | `text` (query string) | 48 rules, by target |
+| `9865105` | `POST /api/chat/completions`, `/api/v1/chat/completions`, `/api/chat/completed`, `/api/(v1/)messages`, `/api/(v1/)embeddings`, `/openai/chat/completions`, `/ollama/api/chat`, `/ollama/api/generate`, `/ollama/v1/chat/completions` | the whole request (by id) | 49 rules, by id |
+| `9865106` | `POST /api/v1/notes/create`, `/api/v1/notes/<uuid>/update` | `json.data.content.md`, `.html` | 47 rules, by target |
+| `9865107` | `GET /api/v1/notes/search` | `query` (query string) | 48 rules, by target |
+| `9865108` | `POST /api/v1/prompts/create`, `/api/v1/prompts/id/<id>/update` | `json.content` | 47 rules, by target |
+| `9865109` | `POST /api/v1/models/create`, `/api/v1/models/model/update` | `json.params.system` | 47 rules, by target |
+| `9865110` | `POST /api/v1/memories/add`, `/api/v1/memories/query` | `json.content` | 47 rules, by target |
+| `9865111` | `POST /api/v1/knowledge/create`, `/api/v1/knowledge/<uuid>/update` | `json.description` | 47 rules, by target |
+| `9865112` | `POST /api/v1/functions/create`, `/api/v1/tools/create` | `json.content` (Python source, admin) | 46 rules, by target |
+| `9865113` | `POST /api/v1/utils/code/format`, `/api/v1/utils/code/execute` | `json.code` (admin) | 45 rules, by target |
+| `9865114` | `POST /api/v1/tasks/title/completions` | the whole request (by id) | 47 rules, by id |
+| `9865115` | `POST /api/v1/tasks/auto/completions`, `/api/v1/images/generations` | `json.prompt` | 10 rules, by target |
+| `9865116` | `POST /api/v1/audio/speech` | `json.input` | 47 rules, by target |
+| `9865117` | `POST /api/v1/retrieval/process/text`, `/api/v1/files/<uuid>/data/content/update`, `/api/v1/chats/<uuid>/messages/<id>` | `json.content` | 47 rules, by target |
+| `9865118` | `POST /api/v1/models/import` | the whole request (by id) | 47 rules, by id |
+| `9865119` | `POST /api/v1/folders/<uuid>/update` | `json.data.system_prompt` | 47 rules, by target |
+| `9865120` | `POST /api/v1/evaluations/feedback` | `json.data.comment` | 47 rules, by target |
+| `9865121` | `GET /` (address-bar search) | `q` (query string) | 48 rules, by target |
+| `9865122` | `POST /api/v1/retrieval/config/update` | the URL fields of the Documents page | 1 rules, by target |
+| `9865123` | `POST /api/v1/images/config/update` | `json.COMFYUI_WORKFLOW` | 1 rules, by target |
 | `9865124` | `POST /api/v1/configs/import` | the URL and workflow fields of an exported config | 2 rules, by target |
 
 The rule counts are the ids in the file, each one seen on that argument in the matrix. A few of them
@@ -191,19 +212,38 @@ on those exact paths and the method `POST`. Open WebUI hands the text to the mod
 execute it. If you prefer a narrower rule, enumerate literal targets for the few `N` your users
 reach; the list is unbounded.
 
-**Cost:** the excluded arguments (and, on the "by id" rules, the whole request body) are no longer
+**What each "by id" rule removes.** A removal by id switches the rule off for the whole request, so
+on these requests the listed rules, among them the SQL injection rules `942100` and `942550`, stop
+checking every part of the request: all arguments, the query string, the cookies and headers such
+as `User-Agent` and `Referer`.
+
+| Id | Where it applies | Rules removed |
+| --- | --- | --- |
+| `9865103` | `POST /api/v1/chats/new`, `/api/v1/chats/import`, `/api/v1/chats/<uuid>` | 47, including `942100` and `942550` |
+| `9865105` | `POST` on the chat completion, `messages`, `embeddings`, OpenAI and Ollama paths of the table | 49, including `942100`, `942550`, `934170` and `943120` |
+| `9865114` | `POST /api/v1/tasks/title/completions` | 47, including `942100` and `942550` |
+| `9865118` | `POST /api/v1/models/import` | 47, including `942100` and `942550` |
+
+Each list is the one in the matching block of the file.
+
+**Cost:** the excluded arguments (and, on the "by id" rules, the whole request) are no longer
 checked by the listed injection rules, so a stored-XSS or SQL injection payload in a prompt, note,
 system prompt or function source is not stopped by the WAF. Open WebUI has to handle that content
-safely itself, and an agent with tools can still act on a prompt-injected instruction. Headers,
-cookies, other arguments, other paths, other methods and every rule outside the lists stay active.
-`949110` and `959100` are never excluded. The same payload on the same path in the **query string**
-is also not inspected by the ids removed on the "by id" paths (measured, `G05f` in the matrix); the
-app ignores unknown query parameters.
+safely itself, and an agent with tools can still act on a prompt-injected instruction. On the
+target-based rules, headers, cookies, other arguments, other paths, other methods and every rule
+outside the lists stay active. On the four "by id" paths and the method `POST`, only the rules
+outside the lists stay active: the same payload in the query string (measured, `G05f` in the
+matrix), a cookie or a header such as `User-Agent` or `Referer` is not inspected by the listed
+rules either. The app ignores unknown query parameters. Other paths and other methods keep every
+rule. `949110` and `959100` are never excluded.
 
 Not covered, so a payload there is blocked: other search boxes (`/api/v1/knowledge/search`,
 workspace model and prompt lists), channel messages, admin prompt suggestions with SQL in them
-(`C23a`: `403`), tool valves, and every endpoint the matrix did not exercise. Add one exclusion per
-argument your logs name.
+(`C23a`: `403`), tool valves, HTML markup in the autocomplete and image prompts (`json.prompt`) and
+in admin function, tool and code editor text, and every endpoint the matrix did not exercise. Add
+one exclusion per argument your logs name: in the web UI open **Configs**, **Create Custom Config**,
+pick the service and the type `MODSEC_CRS`, and base the rule on one of the rules in
+`open-webui_false_positives.conf`.
 
 ## Validation
 
@@ -220,6 +260,14 @@ local test host.
   `..%2f` traversal) still got `403` from the specific rule the exclusion removes. The other seeds need no exclusion: the page and
   its discovery files, sign-in and sign-up with a punctuation-heavy password, uploads, `PATCH` and `DELETE`, twelve client user
   agents, the OIDC callback and back-channel logout shapes, the shared-chat page.
+- **Ordinary text, second pass (2026-11-20, HTTPS, template imported through the web UI and the service created in easy mode):**
+  ten texts (SQL starting a prompt, `union select`, `x='{y}'`, `SELECT ... WHERE n='{{name}}'`, `ls -l | awk '{print $1}'`, a
+  prompt template with `{{name}}`, `curl -d '{...}'`, `json.loads('{...}')`, a `LIKE` query, a `<script>` tag) were sent to 30
+  endpoints, 300 requests. Rules `942100` and `942550` blocked 233 of the 295 that must pass (`403`); now all 295 pass. The other
+  5 (`<script>` markup in the autocomplete and image prompts and in admin function, tool and code editor text) are not covered
+  and still get `403`. 18 controls with the same attack text in another argument, path, method or a path suffix still get `403`.
+  In Chrome, saving the prompt `Explain this query: SELECT ... WHERE name='{{name}}' OR 1=1; --` returned `403` before and
+  `200` now.
 - **Settings:** each non-default setting was switched back to the BunkerWeb default and the failure above reproduced.
 - **Realtime:** a WebSocket handshake gets `101` on `/ws/socket.io` and on `/api/v1/audio/realtime`. The browser smoke kept the
   chat open for 125 seconds without input and the next reply still arrived.
@@ -232,7 +280,7 @@ local test host.
   `GET /api/v1/channels/` answered by Open WebUI itself (`Channels is disabled`, no ModSecurity line). No ModSecurity line, no ban.
 - **Web UI import:** raw mode with `template.json` plus both config files imports and is listed next to the plugin copy.
 
-Not verified: HTTPS and HTTP/2, a real OpenID Connect or LDAP provider, a real model backend
+Not verified: a real OpenID Connect or LDAP provider, a real model backend
 (Ollama, a hosted API), the notes editor in a browser (its text travels over Socket.IO), knowledge
 base indexing with a real embedding model, web search and image generation engines, a live
 voice call, channels, API key creation, mobile apps, several browsers behind one address, Open WebUI
@@ -241,8 +289,8 @@ versions other than `v0.13.3`. Validate your own clients.
 ## Things to think about
 
 - **Single sign-on.** After an OpenID Connect sign-in the app's `/auth` page must read the `token`
-  cookie from JavaScript; that is the `COOKIE_FLAGS_1` row above, and with plain passwords you can
-  clear that field. Set `WEBUI_URL` to the public HTTPS address first, or the callback is built from
+  cookie from JavaScript; that is the `COOKIE_FLAGS_1` row above. Password sign-in sets `HttpOnly`
+  on that cookie itself, so keep the value either way. Set `WEBUI_URL` to the public HTTPS address first, or the callback is built from
   the proxy's own scheme. The callback
   request itself (`code`, `state`, `iss` URL, `session_state`) passes the CRS (`U06b`). The IdP's
   back-channel logout `POST /oauth/backchannel-logout` also passes. No identity provider was run.
@@ -251,8 +299,9 @@ versions other than `v0.13.3`. Validate your own clients.
   them inside a minute in the smoke. Other `4xx` answers from the app count the same way; only
   this `403` was measured.
 - **Many people behind one address.** Each tab is one WebSocket (`LIMIT_CONN_MAX_HTTP1`), each cold
-  page load is about 120 requests (`LIMIT_REQ_RATE`). A `429` also feeds BunkerWeb's bad-behavior
-  ban, which bans the shared address. Raise both for offices and schools.
+  page load is about 120 requests (`LIMIT_REQ_RATE`) and over 200 HTTP/2 streams
+  (`LIMIT_CONN_MAX_HTTP2`). A `429` also feeds BunkerWeb's bad-behavior ban, which bans the shared
+  address. Raise all three for offices and schools.
 - **Voice and camera.** The Open WebUI documentation notes that microphone input over a LAN
   generally needs HTTPS (docs.openwebui.com, HTTPS page), so test these features on the HTTPS site.
 - **Long silent replies.** Open WebUI sends nothing while a model prefills or reasons (upstream issue 31408 asks for a heartbeat). `REVERSE_PROXY_READ_TIMEOUT=30m` covers a 330 s silence; raise it if your model is slower. Replies over the Socket.IO connection are not affected: the socket pings every 25 s.

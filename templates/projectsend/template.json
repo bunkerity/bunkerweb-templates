@@ -41,7 +41,7 @@
     },
     {
       "title": "SSL / Let's Encrypt",
-      "subtitle": "Obtain and renew the certificate automatically.",
+      "subtitle": "Obtain and renew the certificate automatically. Replace the example e-mail. Turn Let's Encrypt off for a name that is not public: BunkerWeb 1.6.17 keeps it on at creation, so edit the service again to switch it off.",
       "settings": ["AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {

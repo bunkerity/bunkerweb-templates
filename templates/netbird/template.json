@@ -56,7 +56,7 @@
   "steps": [
     {
       "title": "Step 1 - Domain and HTTPS",
-      "subtitle": "Choose the public NetBird domain and how TLS certificates are managed.",
+      "subtitle": "Replace the example domain with the NetBird address. Turn Let's Encrypt off for a name that is not public, or use a custom certificate.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -76,7 +76,7 @@
     },
     {
       "title": "Step 2 - Backend services",
-      "subtitle": "Set where BunkerWeb reaches your NetBird server and dashboard backends.",
+      "subtitle": "Set where BunkerWeb reaches your NetBird backends. The upstream boxes have no label, in this order: /relay, /ws-proxy/, /api/, /oauth2/, the gRPC Signal and Management services, and the dashboard (/) last.",
       "settings": [
         "USE_REVERSE_PROXY",
         "USE_GRPC",
@@ -92,7 +92,7 @@
     },
     {
       "title": "Step 3 - HTTP and websocket routes",
-      "subtitle": "Map relay, websocket, API, OAuth2, and dashboard paths to the right upstream.",
+      "subtitle": "Map relay, websocket, API, OAuth2, and dashboard paths to the right upstream. The second websocket box is plain text: keep yes.",
       "settings": [
         "REVERSE_PROXY_URL",
         "REVERSE_PROXY_WS",
@@ -106,7 +106,7 @@
     },
     {
       "title": "Step 4 - gRPC and long-lived connections",
-      "subtitle": "Configure gRPC method prefixes plus keepalive and timeout values for persistent sessions.",
+      "subtitle": "Set the global CLIENT_BODY_TIMEOUT to 1d first (see the README), or idle gRPC streams reset every 10 seconds. Then check the gRPC prefixes, keepalive and timeouts.",
       "settings": [
         "GRPC_URL",
         "GRPC_URL_1",
@@ -123,7 +123,7 @@
     },
     {
       "title": "Step 5 - Request limits and ModSecurity",
-      "subtitle": "Tune allowed methods and request/connection limits, and keep OAuth2 CRS exclusions.",
+      "subtitle": "Tune allowed methods and limits (raise LIMIT_REQ_RATE for many peers behind one address), and keep the CRS exceptions for sign-in, dashboard names and posture checks.",
       "settings": [
         "ALLOWED_METHODS",
         "USE_LIMIT_REQ",

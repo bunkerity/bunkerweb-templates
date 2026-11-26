@@ -24,7 +24,8 @@
 Provision a BunkerWeb configuration for [Filestash](https://www.filestash.app/), the web file
 manager that connects to S3, SFTP, WebDAV and other storage backends. The template proxies
 Filestash with automatic Let's Encrypt certificates, WebSocket support, a 100m request size limit,
-the WebDAV verbs and a ModSecurity exclusion file for the web editor and for uploads.
+the verbs Filestash uses for WebDAV on shared links and a ModSecurity exclusion file for sign-in,
+folder paths, the web editor and uploads.
 
 Editing Office documents inside Filestash needs a Collabora (WOPI) server on its own hostname. The
 [filestash-office](../filestash-office/README.md) template fronts that server and uses the same
@@ -35,33 +36,54 @@ Compose example, shown further down on this page.
 | Fact        | Value                         |
 | ----------- | ----------------------------- |
 | Template id | `filestash`                   |
-| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Filestash build `b6fe63f4f01e` |
 | Configs     | 1 (modsec-crs)                |
 | Rule ids    | `9855000` to `9855999`        |
 | Upstream    | `http://filestash:8334`       |
 
 ## Prerequisites
 
-- A running Filestash server that BunkerWeb can reach. The request shapes behind the ModSecurity
-  exclusions (method, path, `Content-Type`) come from the `mickael-kerjean/filestash` source on
-  `master`, commit `76238d7`, read on 2026-10-30. The template itself was tested on BunkerWeb 1.6.17
-  with an echo backend, not with a live Filestash server.
+- A running Filestash server that BunkerWeb can reach, with `APPLICATION_URL` set to the public
+  hostname of the BunkerWeb service (the Compose example below does it). Filestash answers
+  `Request coming from ... was blocked` for any other hostname. Tested with the
+  `machines/filestash:latest` image built on 2026-11-20 (build `b6fe63f4f01e`, shown on the admin
+  console About page), on BunkerWeb 1.6.17 in a real browser.
 - A public hostname pointing to BunkerWeb.
-- Access to the BunkerWeb web UI or service environment variables.
+- Access to the BunkerWeb web UI.
 
 ## Install
 
-1. Import `template.json` (Templates → **Create new template** → **Raw**, then upload or paste it).
+1. Import `template.json` (Templates → **Create template** → **Raw**, then upload or paste it).
 2. When the **Missing Custom Configs** dialog appears, upload every file listed in the
    [Custom configs](#custom-configs) section from `configs/`, then save.
-3. Assign `USE_TEMPLATE=filestash` to the service, or select **Filestash file manager with
-   WebDAV-aware proxy defaults** in the web UI.
+3. Create a service and pick **Filestash** in the **Templates** menu above the steps (its
+   description reads "Filestash file manager with WebDAV-aware proxy defaults"). Plugin users
+   assign `USE_TEMPLATE=filestash` instead.
 4. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT` and `REVERSE_PROXY_HOST` with values for your
-   deployment.
-5. Reload BunkerWeb, open the public URL, and test sign-in, an upload, a download and the web
-   editor.
+   deployment. Keep the example e-mail only for a lab. Without Office documents, delete the
+   `https://filestash-office.example.com` host from `CONTENT_SECURITY_POLICY` (step 6); with
+   them, replace it with the public hostname of your Collabora service.
+5. Save the service: BunkerWeb applies it on its own. Then do the [first run](#first-run) below.
 
 For both import methods (web UI and plugin), see the repository [installation guide](../../README.md#install).
+
+### First run
+
+A new Filestash server has no admin password and no storage backend yet, and sign-in does not work
+until both exist:
+
+1. Open the public URL. Filestash sends you to `/admin/setup`: choose the admin password.
+2. Open **Storage** in the admin console (`/admin/storage`) and click a storage tile (for example
+   `local`, `sftp` or `s3`) to enable it. Until a backend is enabled, the sign-in page shows
+   "Internal Error". The setup page also offers presets that fill in a storage backend and an
+   authentication method for you.
+3. Open the public URL again, sign in, then test an upload, a download and the web editor.
+
+> [!WARNING]
+> The admin console (`/admin`) is reachable from the internet like the rest of the service, and
+> the first visitor to open it chooses the admin password. Do step 1 as soon as the service is
+> live, and keep the password strong. After that, the admin API answers only to the admin
+> password. Restrict `/admin` to your own addresses with a rule of your own if you want more.
 
 ### Placeholders
 
@@ -72,6 +94,9 @@ The values below are examples. Replace them with your own before using the templ
 - `http://filestash:8334` → the name of the service's container on the shared Docker network and
   the port Filestash listens on (8334), or the IP address and port of the server, for example
   `http://10.0.0.5:8334`
+- `https://filestash-office.example.com` in `CONTENT_SECURITY_POLICY` → the public hostname of your
+  [Collabora service](../filestash-office/README.md), or delete it when you do not edit Office
+  documents
 
 ## Settings
 
@@ -100,28 +125,39 @@ The values below are examples. Replace them with your own before using the templ
   `server/pkg/config/config.go`) and each one costs its own BunkerWeb memory, so size the
   BunkerWeb container for that or lower `upload_pool_size`. Source lines read at Filestash commit
   `76238d7`.
-- **WebDAV:** WebDAV verbs (for example `PROPFIND`, `MKCOL`) are allowed. The application must have
-  WebDAV enabled as well; test with a WebDAV client.
+- **WebDAV:** the WebDAV verbs (for example `PROPFIND`, `MKCOL`) are allowed through BunkerWeb.
+  Filestash itself has no WebDAV server on `/`, `/webdav` or `/dav` (they answer `405`). It serves
+  WebDAV only on shared links (`/s/<share id>`, a `PROPFIND` there answers `401` for an unknown
+  link). To mount a shared link from a WebDAV client, add `^/s/` to `ANTIBOT_IGNORE_URI`, because
+  a client cannot solve the challenge; that also lets a script open shared-link pages without
+  the challenge. Mounting a shared link from a WebDAV client was not tested.
 - **Bad behavior:** responses with status 400, 401, 403, 405 and 444 count toward a temporary IP
   ban. Make sure normal clients do not trigger these regularly.
 - **Anti-bot:** `ANTIBOT_IGNORE_URI` (`^/api/`) skips the challenge for the Filestash API because
   API clients cannot solve it. That path is protected only by the application and the other
-  security features. A WebDAV client that connects through another path cannot solve the challenge
-  either: add its path to `ANTIBOT_IGNORE_URI`.
+  security features. The admin API (`/admin/api/`) keeps the challenge. A client that connects
+  through another path, such as a WebDAV client on a shared link, cannot solve the challenge
+  either: add its path to `ANTIBOT_IGNORE_URI` (see **WebDAV** above).
 - **Upstream headers:** `KEEP_UPSTREAM_HEADERS` keeps two headers Filestash sets itself. The
   `Content-Security-Policy` locks down the files Filestash serves for preview, so an uploaded HTML
   or SVG file cannot run scripts. `X-Frame-Options` is sent by Filestash unless the admin allows
   embedding in the admin console. BunkerWeb's defaults replace them otherwise.
+- **Content security policy:** Filestash sends no policy on the page that opens the Office editor,
+  so `CONTENT_SECURITY_POLICY` applies there. BunkerWeb's default `form-action 'self'` blocks the
+  form that sends the document to Collabora, and the editor stays on its loading screen. The
+  template adds your Collabora hostname to `form-action`: replace the example host, or delete it
+  when you do not use Office documents.
 - **Compression:** `USE_GZIP` is on so that `GZIP_PROXIED` takes effect.
 - **Allowlist:** `WHITELIST_IP` is not set by the template. Set it on the service only for the IP
   addresses or ranges that may bypass the security checks, and review the list regularly.
-- **ModSecurity rule IDs:** the template's rules use IDs 9855101 to 9855103, inside its block
+- **ModSecurity rule IDs:** the template's rules use IDs 9855101 to 9855111, inside its block
   9855000 to 9855999 of the range BunkerWeb reserves for community templates (see "Rule IDs" in
   [`TEMPLATE_GUIDE.md`](../../TEMPLATE_GUIDE.md)). Rules you add yourself belong in 1 to 99999.
 
 ### Web service - Front service
 
-Point the template at your Filestash hostname.
+Point the template at your Filestash hostname and your own e-mail. Turn Let's Encrypt off for a name
+that is not public.
 
 | Setting              | Value                   | Description                                                 |
 | -------------------- | ----------------------- | ----------------------------------------------------------- |
@@ -149,7 +185,8 @@ Direct the reverse proxy at Filestash and keep long uploads and WebSockets alive
 
 ### HTTP - Filestash specific settings
 
-Allow the WebDAV verbs and large uploads, and let Filestash serve its own files.
+Allow the verbs Filestash uses for WebDAV on shared links, large uploads, and let Filestash serve its
+own files.
 
 | Setting           | Value                                                                       | Description                                              |
 | ----------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- |
@@ -183,11 +220,12 @@ Challenge browsers but skip the API, which clients cannot solve, and ban repeate
 
 ### Security - Headers and exposure
 
-Keep the security headers Filestash sets itself on served files and pages.
+Keep the headers Filestash sets itself, and let the editor form reach your Collabora host.
 
 | Setting                   | Value                                   | Description                                                            |
 | ------------------------- | --------------------------------------- | ---------------------------------------------------------------------- |
 | `KEEP_UPSTREAM_HEADERS`   | `Content-Security-Policy X-Frame-Options` | Upstream headers that BunkerWeb passes through instead of overwriting. |
+| `CONTENT_SECURITY_POLICY` | `object-src 'none'; form-action 'self' https://filestash-office.example.com; frame-ancestors 'self';` | Policy BunkerWeb sends on pages that Filestash gives none. Replace the example host with your Collabora hostname, or delete it when you do not edit Office documents. |
 | `INTERCEPTED_ERROR_CODES` | `404 405 413 429 500 501 502 503 504`   | Status codes answered with BunkerWeb error pages when BunkerWeb itself generates them (for example 405 from `ALLOWED_METHODS`, 413, 429). Upstream errors pass through unchanged because `REVERSE_PROXY_INTERCEPT_ERRORS` is `no`. |
 | `USE_ROBOTSTXT`           | `yes`                                   | Whether BunkerWeb serves a generated robots.txt file.                  |
 
@@ -202,8 +240,8 @@ Compress proxied responses; Filestash serves its own files.
 
 ### Security - WAF tuning
 
-Allow the editor save and the uploads that the CRS content type check rejects, one request at a
-time.
+Let uploads, the editor save, sign-in and folder paths through the checks that reject them, one
+request at a time.
 
 Custom configs: `modsec-crs/filestash_false_positives.conf`
 
@@ -214,7 +252,7 @@ type.
 
 | Type         | File in repository                                                      | Reference in `template.json`                  | Purpose                                                                  |
 | ------------ | ----------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------ |
-| `modsec-crs` | `templates/filestash/configs/modsec-crs/filestash_false_positives.conf` | `modsec-crs/filestash_false_positives.conf`   | Removes CRS rule 920420 for the editor save and the upload requests only, plus 920340 and 920640 for the single request upload. |
+| `modsec-crs` | `templates/filestash/configs/modsec-crs/filestash_false_positives.conf` | `modsec-crs/filestash_false_positives.conf`   | Removes CRS rule 920420 for the editor save and the upload requests only, plus 920340 and 920640 for the single request upload. Removes CRS rule 930120 for the path arguments of sign-in, sharing, browsing, editing, renaming and the Office editor, each on the route and method Filestash uses, and 942550 for one admin preset field. |
 
 CRS rule 920420 rejects a request whose `Content-Type` is not in the CRS allowed list. Filestash
 sends three requests that hit it. Each rule matches one method and one anchored path, so the rest
@@ -231,6 +269,29 @@ example a small `.bin`, with no `Content-Type` at all:
 The CRS does not inspect these bodies either way, because no body processor is armed for their
 types. The global allowed content type list is not changed.
 
+CRS rule 930120 (OS file access attempt) rejects a path that names a system folder, such as `/tmp/`
+or `/var/www/`, in any argument. Filestash is a file manager: users type such a folder as the start
+folder at sign-in, open it, upload to it and share it, so the rule fires on normal use. Only the
+arguments that carry a folder or file path skip it, and only on the route and the method that
+Filestash uses for that action. Every other CRS rule still reads those arguments (directory
+traversal, shell, SQL and script text), and the same text on another route, with another method
+or in another argument is still answered `403`:
+
+| Rule ID   | Method and route                                                                                                | Action in Filestash                                              | Argument that skips 930120 |
+| --------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------- |
+| `9855104` | `POST /api/session`                                                                                             | sign-in with a start folder                                      | JSON field `path`          |
+| `9855111` | `PUT /api/share/<id>`                                                                                           | create a shared link                                             | JSON field `path`          |
+| `9855105` | `GET /api/files/ls`, `/api/files/cat`, `/api/files/search`, `/api/files/zip`, `/api/share`, `/api/metadata`, `/api/wopi/iframe`, `/api/codemirror/pull` | open a folder, open or download a file, search, zip download, list the shared links of a file, tag dialog, Office editor, live text editor | `path` |
+| `9855107` | `HEAD` and `OPTIONS /api/files/cat`                                                                             | the browser's checks before it opens a file                      | `path`                     |
+| `9855108` | `POST /api/files/cat`, `/api/files/touch`, `/api/files/mkdir`, `/api/files/rm`, `/api/files/save`, `/api/codemirror/push`, `/api/codemirror/reset` | editor save, new file, new folder, delete, upload, live text editor | `path` |
+| `9855109` | `PATCH /api/files/save`                                                                                         | chunked upload                                                   | `path`                     |
+| `9855110` | `POST /api/files/mv`                                                                                            | rename                                                           | `from`, `to`               |
+
+Rule `9855106` removes the SQL injection rule 942550 for the field
+`middleware.attribute_mapping.params` of `POST /admin/api/config`, which the admin console sends
+when you apply the "Local files" or "S3 - Use your AWS credentials" preset (a small JSON text that
+the CRS reads as SQL).
+
 ## Docker Compose example
 
 This example runs Filestash and the Collabora server used by the
@@ -239,7 +300,8 @@ BunkerWeb reaches them over the external `bw-services` network, and a published 
 TLS, the WAF and the rate limits. Replace `filestash.example.com` and
 `filestash-office.example.com` with your own hostnames, and keep them identical to the
 `SERVER_NAME` of the matching BunkerWeb service. Skip the `wopi_server` service if you do not edit
-Office documents.
+Office documents, and remove the three `OFFICE_*` lines from the `app` service too: they point at a
+host that no longer exists.
 
 > [!NOTE]
 > `bw-services` is an external network. If your BunkerWeb stack does not define it yet, create
@@ -270,7 +332,7 @@ services:
     image: collabora/code:24.04.10.2.1
     restart: always
     environment:
-      - "extra_params=--o:ssl.enable=false"
+      - "extra_params=--o:ssl.enable=false --o:ssl.termination=true --o:net.frame_ancestors=https://filestash.example.com"
       - aliasgroup1=http://app:8334
     networks:
       default:
@@ -298,8 +360,17 @@ networks:
   [filestash-office](../filestash-office/README.md) template, over HTTPS. This template only
   routes `SERVER_NAME`: create a separate BunkerWeb service with its own TLS certificate for that
   hostname.
-- **`ssl.enable=false`:** Collabora serves plain HTTP because BunkerWeb terminates TLS, so proxy
-  it with an `http://` upstream.
+- **`ssl.enable=false` and `ssl.termination=true`:** the first makes Collabora serve plain HTTP
+  because BunkerWeb terminates TLS, so you proxy it with an `http://` upstream. The second tells it
+  that TLS ends at the proxy, so it hands the browser `wss://` addresses. Without it the editor
+  opens but the document never loads: the browser refuses the `ws://` address Collabora announces.
+- **`net.frame_ancestors`:** Collabora only lets a page embed the editor when its hostname is
+  listed here. Set it to `https://` plus the hostname of the BunkerWeb service that uses the
+  filestash template (the one in `APPLICATION_URL`). Without it the browser blocks the editor
+  frame and the page stays on its loading screen.
+- **Content security policy:** the Filestash service must also allow the form that opens the editor
+  to reach the Collabora hostname: `CONTENT_SECURITY_POLICY` of the filestash template does it
+  once you put your Collabora hostname in `form-action`.
 
 ## Validation
 
@@ -325,6 +396,7 @@ After applying the template:
 - Confirm the BunkerWeb scheduler reload completes without a template or unknown-setting error.
 - Sign in, save a file in the web editor, then upload a small file and a file larger than a few
   megabytes, and download them again.
+- With Office documents: open a `.docx` from Filestash, type in it and save it with `Ctrl+S`.
 - Check BunkerWeb logs for rate-limit, bad behavior, and ModSecurity events before changing
   security controls.
 
@@ -334,11 +406,30 @@ After applying the template:
   in a step, every config file present.
 - `pre-commit run --files` on the template files (Prettier, Codespell, Gitleaks and the whitespace
   hooks).
-- A live request matrix on `bunkerity/bunkerweb-all-in-one:1.6.17` with an echo backend in place of
-  Filestash: the three excluded requests (`POST /api/files/cat`, `POST /api/files/save` with and
-  without a `Content-Type`, `PATCH /api/files/save`) reach the backend, and the same payloads on
-  another path, another method or another parameter, or with an attack in the query string, are
-  still answered 403.
+- The template JSON and the config file imported through a BunkerWeb 1.6.17 web UI that runs its
+  own CRS in block mode (Templates → Create template → Raw → Save): no ModSecurity rule fired, and
+  a service created from it in easy mode applied.
+- A live Filestash (`machines/filestash:latest`, build `b6fe63f4f01e`) behind BunkerWeb 1.6.17 in a
+  real browser: admin setup and storage backend, sign-in with the start folders `/tmp/` and
+  `/var/www/`, browsing folders, uploads of 2 KB, 6 MB and 120 MB files (the last one chunked with
+  `upload_chunk_size` 50), the web editor save and the admin presets. Before the rules
+  `9855104` to `9855106` the sign-in, the folder listing and two presets were answered `403`; with
+  them they work.
+- A second pass in Chrome through the Filestash web interface, signed in with the start folder `/`
+  and working in `/tmp/`, wrote down the route and method of each action: sign-in, list, open,
+  edit, save, new file, new folder, rename, delete, upload, zip download, search, tags, sharing
+  (list and create a link) and the Office editor. Rules `9855104` to `9855111` bind each path
+  argument to those routes and methods. A matrix of 39 requests sent from the Chrome tab (21 the
+  web interface sends, with a system folder in the path, and 18 with the same text on another
+  route, with another method or in another argument) gives the expected result: the first 21 reach
+  Filestash and the other 18 are answered `403` by the CRS (930120, and 930100, 930110 and 932160
+  for a path with `../`). Two actions answered `403` with the first version of these rules: the
+  tag dialog (`GET /api/metadata`) and the creation of a shared link (`PUT /api/share/<id>`), and
+  so did the live text editor (`/api/codemirror/*`) on a file in a system folder.
+- A live request matrix on `bunkerity/bunkerweb-all-in-one:1.6.17`: the three excluded requests
+  (`POST /api/files/cat`, `POST /api/files/save` with and without a `Content-Type`,
+  `PATCH /api/files/save`) reach Filestash, and the same payloads on another path, another method
+  or another parameter, or with an attack in the query string, are still answered 403.
 - A memory measurement on the same image with the template at `MAX_CLIENT_SIZE=2g`: a 300 MB raw
   `POST /api/files/save` and a 300 MB `PATCH /api/files/save` both returned 200, with the BunkerWeb
   container peaking at about 1.8 GiB (idle: about 0.2 GiB).
@@ -346,8 +437,10 @@ After applying the template:
   BunkerWeb, a 90 MB `POST /api/files/save` returned 200 (container peak about 1 GiB, idle about
   0.35 GiB), and a 50 MB `PATCH /api/files/save` with `Content-Type: application/offset+octet-stream`
   returned 200 (peak about 0.7 GiB).
+- Opening, editing and saving a `.docx` through the [filestash-office](../filestash-office/README.md)
+  template on two hostnames, with the Compose example above.
 
-Not tested: a live Filestash server, a real browser upload, the Collabora editor, WebDAV clients.
+Not tested: a WebDAV client on a shared link, Let's Encrypt, and the other storage backends.
 
 ---
 

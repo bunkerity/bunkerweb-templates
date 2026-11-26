@@ -20,13 +20,13 @@
     "REVERSE_PROXY_URL": "/",
     "REVERSE_PROXY_HOST": "http://mywp",
     "MAX_CLIENT_SIZE": "50m",
-    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|DELETE",
+    "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE",
     "USE_LIMIT_REQ": "yes",
     "LIMIT_REQ_URL": "/",
     "LIMIT_REQ_RATE": "50r/s",
     "LIMIT_REQ_URL_1": "/wp-login.php",
     "LIMIT_REQ_RATE_1": "2r/s",
-    "INTERCEPTED_ERROR_CODES": "400 401 403 404 405 413 429 501 502 503 504",
+    "INTERCEPTED_ERROR_CODES": "403 405 413 429 501 502 503 504",
     "USE_WHITELIST": "yes",
     "WHITELIST_IP": "",
     "WHITELIST_RDNS": ".google.com .googlebot.com .yandex.ru .yandex.net .yandex.com .search.msn.com .baidu.com .baidu.jp .crawl.yahoo.net .fwd.linkedin.com",
@@ -44,7 +44,7 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Point the template at your WordPress hostname(s).",
+      "subtitle": "Enter your WordPress hostname(s). Turn Let's Encrypt off for a name that is not public.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -87,7 +87,7 @@
     },
     {
       "title": "SEO - Web crawlers whitelisting",
-      "subtitle": "Whitelist user agents for web crawlers to allow access.",
+      "subtitle": "Let crawlers matched by IP, reverse DNS or ASN skip every security check.",
       "settings": [
         "USE_WHITELIST",
         "WHITELIST_IP",

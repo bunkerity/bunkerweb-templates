@@ -49,7 +49,8 @@ endpoint and OAuth flow that MCP clients (ChatGPT, Claude, Cursor) use.
   the first workspace needs one of the other providers.
 - Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its
   certificate (the default HTTP challenge needs inbound port 80). For existing certificate files,
-  use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+  use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`. The
+  guided steps do not hold them: edit the service in Advanced mode.
 
 ## Configure Outline for the proxy
 
@@ -62,7 +63,7 @@ and `X-Forwarded-Host` (with the port).
 | `URL`                                                            | `https://outline.example.com` | Sign-in redirects, cookies, the CSP and the WebSocket origin are built from it. No trailing slash. Hosting under a sub-path is not supported upstream ([issue 9161](https://github.com/outline/outline/issues/9161)).    |
 | `PROXY_IP_HEADER`                                                | `X-Real-IP`                   | Outline reads the first `X-Forwarded-For` entry, which a client can supply. See below.                                                                                                                                  |
 | `PROXY_HEADERS_TRUSTED`                                          | `true` (the default)          | With `false` Outline ignores the forwarded scheme and IP: every user appears as BunkerWeb, and its CSRF cookie falls back to a weaker form (Outline logs a warning, `server/services/web.ts:34-46`).                                                                   |
-| `FORCE_HTTPS`                                                    | `true` (the default)          | Keep it when BunkerWeb serves HTTPS on port 443. Set `false` when another proxy ends TLS in front of BunkerWeb or HTTPS uses a custom port (see below).                                                                 |
+| `FORCE_HTTPS`                                                    | `true` (the default)          | Keep it when BunkerWeb serves HTTPS on port 443. Set `false` when another proxy ends TLS in front of BunkerWeb, HTTPS uses a custom port, or you test over plain HTTP (see below).                                                                 |
 | `FILE_STORAGE_UPLOAD_MAX_SIZE`                                   | `26214400`                    | Unset, Outline accepts attachments up to 1,000,000 bytes only (`server/env.ts:748-751`). `26214400` (25 MiB) fits the template's `MAX_CLIENT_SIZE=26m`.                                                                |
 | `FILE_STORAGE_IMPORT_MAX_SIZE`, `FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE` | `26214400` or lower   | Both fall back to the upload limit (`server/env.ts:758-762`, `775-779`). A value above `MAX_CLIENT_SIZE` makes BunkerWeb answer `413` first.                                                                            |
 | `RATE_LIMITER_*`                                                 | keep the defaults             | Outline's own limiter is on by default at 1000 requests per 60 seconds (`server/env.ts:570-582`). Signed-in browser sessions are keyed on the user id, so people behind one address do not share a bucket.             |
@@ -88,21 +89,37 @@ asked for it (`server/utils/jwt.ts:138`). Measured through BunkerWeb:
 Outline's `301` to `https://host/` (the port of a custom public port is dropped) and a plain HTTP
 `POST` got `405`. A forged `X-Forwarded-Proto: https` over HTTP changed nothing, because BunkerWeb
 always sets that header from its own connection. So when another proxy terminates TLS in front of
-BunkerWeb, Outline sees `http`: set `FORCE_HTTPS=false` there and let that proxy redirect. Over HTTPS
+BunkerWeb, Outline sees `http`: set `FORCE_HTTPS=false` there and let that proxy redirect. A lab that
+serves plain HTTP only needs `FORCE_HTTPS=false` as well: with `true` Outline sends the plain HTTP
+`GET` to `https://`, as measured above. Over HTTPS
 Outline names its CSRF cookie `__Host-csrfToken` and BunkerWeb adds `Secure`.
 
 ## Install
 
 Import `template.json` and `configs/modsec-crs/outline_false_positives.conf` using the repository
 [installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=outline`, then change only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the upstream
-URL without a trailing slash or path). In the web UI raw import, the template name must be unique,
-and the config dialog lists the file as `modsec_crs/outline_false_positives.conf`: upload
-`outline_false_positives.conf` there and press Done before Save.
+`USE_TEMPLATE=outline` (in the web UI, pick **Outline** in the **Templates** dropdown above the
+steps, the default is `Low`), then change only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the
+upstream URL without a trailing slash or path). In the web UI raw import, the template name must be
+unique, and the config dialog lists the file as `modsec_crs/outline_false_positives.conf`: upload
+`outline_false_positives.conf` there and press Done before Save. Saving the service applies it, there
+is no separate reload.
+
+> [!WARNING]
+> BunkerWeb 1.6.17's web UI answers `403` when you import this template, and when you create or edit a
+> service that uses it, if the web UI is itself protected by BunkerWeb's CRS (the setup wizard default).
+> The long `PERMISSIONS_POLICY` value trips the CRS. Until a BunkerWeb release fixes it, set the web UI
+> service's Security mode to `detect` (Advanced mode, General) for the import and for each save of this
+> service, then set it back to `block`.
+
+> [!NOTE]
+> Step 1 ships `AUTO_LETS_ENCRYPT=yes`. For a name that is not public (a lab, an internal host) switch
+> it off. BunkerWeb 1.6.17 drops that switch on the first save of a new service: edit the service and
+> switch it off again.
 
 Before enabling blocking on your instance:
 
-1. Set service `SECURITY_MODE=detect` and reload.
+1. Set the service's Security mode to `detect` (Advanced mode, General) and save.
 2. Sign in, write documents with code blocks and tables, comment, search for code, open a second
    tab, upload an attachment, and connect an MCP client while reading BunkerWeb logs.
 3. Confirm the included exclusions match the targets in your logs. Narrow or add exceptions only
@@ -120,12 +137,12 @@ as one hit and decays after about a minute.
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `REVERSE_PROXY_URL=/`, `REVERSE_PROXY_WS=yes`                 | Proxy the app and upgrade `/realtime` (Socket.IO) and `/collaboration` (live editing). Without it both answer `400`/`200`.                                                                                                       |
 | `REVERSE_PROXY_INTERCEPT_ERRORS=no`                           | Keep Outline's own JSON errors. With `yes`, BunkerWeb swaps every upstream `401`/`404` for its HTML page and the editor breaks.                                                                                                  |
-| `COOKIE_FLAGS_1=csrfToken SameSite=Lax`, `COOKIE_FLAGS_2=__Host-csrfToken SameSite=Lax`, `COOKIE_FLAGS_3=lastSignedIn SameSite=Strict` | The editor reads its CSRF cookie in JavaScript (`csrfToken` over HTTP, `__Host-csrfToken` over HTTPS) and the sign-in page reads `lastSignedIn`. A named flag replaces BunkerWeb's default `* HttpOnly SameSite=Lax` for that cookie only: every other cookie keeps `HttpOnly`, and the session cookie `accessToken` is `HttpOnly` as Outline sets it. With the default on the CSRF cookie too, Outline rejects every write. |
+| `COOKIE_FLAGS_1=csrfToken SameSite=Lax`, `COOKIE_FLAGS_2=__Host-csrfToken SameSite=Lax`, `COOKIE_FLAGS_3=lastSignedIn SameSite=Strict` | The editor reads its CSRF cookie in JavaScript (`csrfToken` over HTTP, `__Host-csrfToken` over HTTPS) and the sign-in page reads `lastSignedIn`. In easy mode (step 3) they show as three fields without a label. A named flag replaces BunkerWeb's default `* HttpOnly SameSite=Lax` for that cookie only: every other cookie keeps `HttpOnly`, and the session cookie `accessToken` is `HttpOnly` as Outline sets it. With the default on the CSRF cookie too, Outline rejects every write. |
 | `LIMIT_REQ_RATE=100r/s`                                       | A cold page load made up to 185 requests in one second. The default `2r/s` answers `429` after the second request.                                                                                                               |
 | `LIMIT_CONN_MAX_HTTP1=100`                                    | Every open document holds two WebSockets (`/realtime` and `/collaboration`; two connections established after 100 seconds on one tab). The default `10` per client address refused the 11th held socket with `429`. `100` is 50 open documents per address. |
 | `MAX_CLIENT_SIZE=26m`                                         | Attachments up to Outline's 25 MiB limit. At the default `10m` a 20 MiB upload gets `413`.                                                                                                                                       |
 | `MODSECURITY_REQ_BODY_NO_FILES_LIMIT=5m`                      | Outline saves documents as JSON (its own limit is 5 MB). At the default `128 KiB` a 1 MB document gets `400` (rule `200002`).                                                                                                    |
-| `PERMISSIONS_POLICY` (BunkerWeb's default plus five changes)  | The default denies `fullscreen`, `picture-in-picture`, `encrypted-media` and both passkey features. The template sets `fullscreen=*`, `picture-in-picture=*`, `encrypted-media=*` and `publickey-credentials-create/get=(self)`. |
+| `PERMISSIONS_POLICY` (BunkerWeb's default plus five changes)  | The default denies `fullscreen`, `picture-in-picture`, `encrypted-media` and both passkey features. The template sets `fullscreen=*`, `picture-in-picture=*`, `encrypted-media=*` and `publickey-credentials-create/get=(self)`. The web UI lists the value as 93 entries: those five are the ones that differ from the default. |
 | `BLACKLIST_IGNORE_USER_AGENT=^openai-mcp/ ^openai-connectors-oauth/` | BunkerWeb's user-agent blacklist matches `openai`, so ChatGPT's MCP connector got `403` on `/mcp` and the OAuth endpoints.                                                                                              |
 | `SERVE_FILES=no`                                              | Fetch content from Outline rather than local files.                                                                                                                                                                              |
 
@@ -149,35 +166,41 @@ The value copies BunkerWeb 1.6.17's default list: if a later BunkerWeb adds feat
 
 `configs/modsec-crs/outline_false_positives.conf` is a service-scoped **modsec-crs** config. Every
 exclusion is one chained rule: the exact path (anchored, `t:normalizePath`) and the method
-`POST` (`GET` for the search page). It removes named rules from one argument.
+`POST` (`GET` for the search page). It removes named rules from one argument, except `9867105`
+(comments), which removes its rules for the whole request.
 
 | Id      | Path                                | Argument skipped                      | Rules removed from it                                          |
 | ------- | ----------------------------------- | ------------------------------------- | -------------------------------------------------------------- |
 | `9867100` | `/api/auth.config`                  | request basename                      | `920440` (the sign-in page asks for `auth.config`)             |
 | `9867101` | `/api/documents.create`, `.update`  | `json.text`                           | 23 rules from the `930`, `932`, `933`, `941`, `942` families   |
 | `9867102` | `/api/documents.create`, `.update`  | `json.title`                          | `930120 932160 941100 941110 941160 941390 942100 942350`      |
-| `9867103` | `/api/documents.search`, `.search_titles` | `json.query`                    | ten `930`, `932`, `941`, `942` rules                           |
+| `9867103` | `/api/documents.search`, `.search_titles` | `json.query`                    | fourteen `930`, `932`, `933`, `941`, `942` rules               |
 | `9867104` | `/api/collections.create`, `.update` | `json.description`                   | twelve `930`, `932`, `941`, `942` rules                        |
-| `9867105` | `/api/comments.create`, `.update`   | the whole body (see below)            | 21 injection rules, by id                                      |
+| `9867105` | `/api/comments.create`, `.update`   | the whole request (see below)         | 21 injection rules, by id                                      |
 | `9867106` | `/mcp`                              | `json.params.arguments.text`          | the same 23 rules as `9867101`                                   |
 | `9867107` | `/mcp`                              | `json.params.arguments.query`         | `942100 942350`                                                |
 | `9867108` | `/oauth/register`                   | first four `json.redirect_uris` items | `931100 934110` (loopback redirect URIs)                       |
 | `9867109` | `/oauth/authorize`, `/oauth/token`  | `redirect_uri`                        | `931100 934110`                                                |
 | `9867110` | `/api/oauthClients.info`            | `json.redirectUri`                    | `931100 934110`                                                |
 | `9867111` | `/api/oauthClients.create`, `.update` | first four `json.redirectUris` items | `931100 934110`                                               |
-| `9867112` | `/search` (the page, `GET`)         | `query`                               | `942100`                                                       |
+| `9867112` | `/search` (the page, `GET`)         | `q`                                   | the fourteen rules of `9867103`                                |
 | `9867113` | `/api/hooks.slack`                  | `text` (the `/outline` command)       | 14 `930`, `932`, `941`, `942` rules                            |
 
 Wiki text holds SQL, shell pipelines, HTML and URLs by nature, and the CRS reads them as attacks.
 The matrix recorded which rules matched which argument; only those pairs are removed.
 
-**Comments are the broad one.** A comment is ProseMirror JSON, so its text sits at
+**Comments are the broad one.** A comment is nested JSON, so its text sits at
 `json.data.content.array_N.content.array_M.text` with unbounded `N` and `M`, and this BunkerWeb
 rejects regex targets in `ctl:` (the config test fails). No target can be named, so rule `9867105`
 uses `ctl:ruleRemoveById` for 21 injection rules on the two comment-writing endpoints, with a
-comment above it. Outline validates every other field there (UUIDs). Only these two endpoints are
-affected. If you prefer a narrower rule, enumerate literal targets for the few `N` and `M` your users
-produce.
+comment above it. A removal by id skips the rule for every part of the request, not only the body.
+Measured on 2026-11-25 on `POST /api/comments.create` and `.update`: script tags, a shell command
+and SQL in the body, another JSON field, the query string, `Referer`, `Cookie` and `User-Agent` all
+passed the 21 rules, while rule `942270` (basic SQL injection) still got `403` for SQL in the body,
+the query string and a cookie, and `913100` and `920170` still applied. The same text on
+`/api/comments.list` got `403` from the same 21 rules. Outline validates every other field of the
+two requests (UUIDs). Only these two endpoints are affected. If you prefer a narrower rule,
+enumerate literal targets for the few `N` and `M` your users produce.
 
 **Cost:** the excluded arguments are no longer checked by the listed rules, so a stored-XSS or SQL
 injection payload in a document, title, comment, search, Slack command or MCP argument is not
@@ -245,12 +268,18 @@ Validate your own clients.
   `openai-connectors-oauth/1.0` for the token exchange
   ([OpenAI forum](https://community.openai.com/t/mcp-connector-creation-times-out-despite-successful-initialize-tools-list-openai-mcp-1-0-0/1369456),
   [openai/codex#47513](https://github.com/openai/codex/issues/47513)). The template lets those two
-  through the blacklist; clear `BLACKLIST_IGNORE_USER_AGENT` if you do not use ChatGPT. Claude.ai's
+  through the blacklist; if you do not use ChatGPT, turn the exception off: in step 6, or in Advanced mode under Blacklist,
+  remove the second `BLACKLIST_IGNORE_USER_AGENT` entry with its remove button, empty the first one
+  and save (emptying only one entry leaves the other pattern active; a service saved this way
+  answers `403` to both ChatGPT user agents on `/mcp`). Claude.ai's
   connector reportedly sends `Claude-User` or `python-httpx`
   ([write-up](https://www.brendanlong.com/debugging-claude-ai-mcp-connectors.html)); both and `node`
   passed. Clients must send `Accept: application/json, text/event-stream`, or Outline
   answers `406`. Other crawlers on the same list (`GPTBot`, `ChatGPT-User`, `ClaudeBot`,
-  `anthropic-ai`, `Scrapy`) stay blocked, which also keeps them off public share pages. Outline's
+  `anthropic-ai`, `Scrapy`) stay blocked, which also keeps them off public share pages. MCP search
+  arguments only skip rules `942100` and `942350`: a client that passes user-typed text gets `403`
+  for HTML tags and for a shell command such as `cat /etc/passwd | sh`, which the web search
+  accepts. Outline's
   [issue 14239](https://github.com/outline/outline/issues/14239) blames a reverse proxy that reuses
   upstream connections for ChatGPT's intermittent `400`: BunkerWeb's `REVERSE_PROXY_KEEPALIVE`
   defaults to `no`, and 100 consecutive `initialize` calls all answered `200` (also with `yes`).
@@ -262,6 +291,21 @@ Validate your own clients.
   for code ("SELECT * FROM users") got `403`, so rule `9867113` skips 14 injection rules for that one
   field. Interactive payloads and link unfurls passed unchanged. Slack sign-in callbacks have the same
   `GET` shape as the OIDC one that was tested.
+- **Searching for code.** The wiki search (the search box, and reloading or sharing a `/search?q=`
+  URL) lets through a SQL `SELECT` or `UNION SELECT`, a Python line such as
+  `import os; os.system("ls")`, and shell text such as `cat /etc/passwd | sh` or
+  `; ls -la /etc; id`. Other code still gets `403` on the search: PHP tags, `$(whoami)`,
+  `wget ... | bash`, `chmod +x ... && ...`, `../../etc/passwd`, `{{7*7}}`, `${jndi:...}`,
+  `SELECT name FROM sqlite_master` and `pg_sleep`. The same text in another argument or on another
+  route is still blocked, and an MCP client's search text keeps the narrower exception described
+  above.
+- **Searching for HTML tags.** The search page URL carries the search text, and the browser sends
+  that URL as the `Referer` of every call the page makes. A search for `<script>` text, an
+  `<img onerror=...>` tag or `javascript:` gets `403` on all of those calls (rules `941110`, `941120`,
+  `941160`, `941170` on `REQUEST_HEADERS:Referer`): the results show "Something went wrong" and the
+  sidebar fails to load until you leave the page. SQL, shell commands and tags such as `<b>` work.
+  The template does not exclude the header, because it would have to cover every route the page
+  calls, not only the search. Ten `403` answers in a minute ban the client.
 - **GitHub app.** A correctly signed `installation` event got `202`, an unsigned one `401` from
   Outline. Outline only acts on `installation`, `installation_repositories` and `repository` events
   (`plugins/github/server/GitHubIssueProvider.ts:71-90`); a repository description holding SQL or

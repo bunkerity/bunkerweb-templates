@@ -19,12 +19,12 @@
   "configs": ["modsec-crs/ntfy_false_positives.conf"],
   "steps": [
     {
-      "title": "Web service - Domains and TLS",
-      "subtitle": "Match your public hostname to ntfy's base-url.",
+      "title": "Domain and TLS",
+      "subtitle": "Use the hostname from ntfy's base-url. For a name that is not public, create the service, then open it again and turn Let's Encrypt off.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
-      "title": "Web service - Upstream and WebSockets",
+      "title": "Upstream and WebSocket",
       "subtitle": "Subscriptions use the same upstream port, including the WebSocket.",
       "settings": [
         "USE_REVERSE_PROXY",
@@ -34,27 +34,27 @@
       ]
     },
     {
-      "title": "HTTP - Publishing and attachments",
+      "title": "Methods and upload size",
       "subtitle": "Allow the methods ntfy clients use and match the attachment size limit.",
       "settings": ["ALLOWED_METHODS", "MAX_CLIENT_SIZE"]
     },
     {
-      "title": "HTTP - Request limits",
+      "title": "Request limits",
       "subtitle": "Let bursts to one topic reach ntfy's own limit of 60, and let each open topic hold a connection.",
       "settings": ["LIMIT_REQ_URL", "LIMIT_REQ_RATE", "LIMIT_CONN_MAX_HTTP1"]
     },
     {
-      "title": "HTTP - Error responses",
+      "title": "Error responses",
       "subtitle": "Pass ntfy's own JSON errors to its apps and CLI instead of BunkerWeb's error page.",
       "settings": ["REVERSE_PROXY_INTERCEPT_ERRORS"]
     },
     {
-      "title": "Security - Metrics endpoint",
+      "title": "Metrics endpoint",
       "subtitle": "Keep Prometheus /metrics private. If you scrape it through BunkerWeb, clear the field.",
       "settings": ["BLACKLIST_URI"]
     },
     {
-      "title": "Security - Review CRS exclusions",
+      "title": "CRS exclusions",
       "subtitle": "Narrow exclusions for raw bodies, message text, passwords and webhook JSON.",
       "configs": ["modsec-crs/ntfy_false_positives.conf"]
     }

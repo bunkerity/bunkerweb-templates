@@ -36,14 +36,21 @@ own forward-auth configuration.
 
 ## Prerequisites
 
-- Run authentik with its database and worker. BunkerWeb must reach the server at
-  `http://authentik:9000`; keep that HTTP upstream on a private network.
-- Mount persistent storage at `/data` for both server and worker before using file uploads.
-  The historical test returned `500` without a file management backend.
-- Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` requests a certificate;
-  the default HTTP challenge needs inbound port 80. To retain existing certificates, use
-  `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`;
-  mount those files where the scheduler can read them.
+- Run authentik with its database and worker (tested with authentik 2026.8.3). BunkerWeb must
+  reach the server at `http://authentik:9000`; keep that HTTP upstream on a private network.
+- Keep uploaded files (icons, brand logos) across container recreation, on both server and worker.
+  authentik 2026.8.3 writes them to `/media`, and `/data/media` is a link to it, so a named Docker
+  volume at `/data` does not keep them: Docker fills the volume with that link. Mount a volume at
+  `/media` (for example `media:/media` in Compose). An empty host folder at `/data`, owned by user
+  `1000`, also keeps them.
+- Point your public hostname at BunkerWeb. For a public name, keep **Automatic Let's Encrypt** on:
+  the default HTTP challenge needs inbound port 80. For a name that is not public, such as a lab
+  host, switch it off. BunkerWeb 1.6.17 ignores that switch on the first save of a new service and
+  keeps Let's Encrypt on, so save, open the service again in easy mode, switch it off again and
+  save. To keep existing certificates, do that, then switch the service to **Advanced** mode, open
+  the **Custom SSL certificate** plugin and set **Use custom certificate** (`USE_CUSTOM_SSL=yes`),
+  **Certificate path** (`CUSTOM_SSL_CERT`) and **Key path** (`CUSTOM_SSL_KEY`). The guided steps
+  do not show these fields. Mount the files where the scheduler can read them.
 - Configure authentik's `AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS` for the network/address from
   which BunkerWeb connects. Trust only actual proxies. See the upstream
   [reverse proxy guide](https://docs.goauthentik.io/install-config/reverse-proxy/).
@@ -53,12 +60,16 @@ own forward-auth configuration.
 1. Follow the repository [installation guide](../../README.md#install).
    Import `template.json` and upload `configs/modsec-crs/authentik_false_positives.conf` when
    prompted, or use the documented plugin bundle layout.
-2. Assign `USE_TEMPLATE=authentik` to your service. Change `SERVER_NAME` and **both**
-   `REVERSE_PROXY_HOST` and `REVERSE_PROXY_HOST_1` to your upstream, including port `9000`.
-   Keep upstream URLs without a trailing slash or path.
-3. Review the guided steps, reload, and test login, API writes, WebSockets and uploads.
-   Start with service `SECURITY_MODE=detect`, inspect BunkerWeb logs, then switch to `block`
-   after verifying your flows. Detect mode still enforces nginx upload limits.
+2. Create the service: **Services**, **New**, then pick **Authentik** in the **Templates** list
+   above the steps. Change `SERVER_NAME` in step 1 and **both** `REVERSE_PROXY_HOST` and
+   `REVERSE_PROXY_HOST_1` in step 2 to your upstream, including port `9000`. Keep upstream URLs
+   without a trailing slash or path. The WebSocket field of the `/ws/` entry
+   (`REVERSE_PROXY_WS_1`) is a text box in easy mode: keep `yes`.
+3. Review the guided steps and save the service: BunkerWeb applies it, and nothing else needs a
+   reload. Test login, API writes, WebSockets and uploads. A new service starts in `block` mode. To
+   start in detect mode, switch the service to **Advanced** mode, open **General** and set
+   **Security mode** to `detect`. Inspect the BunkerWeb logs, then set it back to `block` after
+   verifying your flows. Detect mode still enforces nginx upload limits.
 
 ## Settings
 
@@ -111,6 +122,12 @@ those fields on matching writes; other fields, paths, methods and CRS rules rema
 Literal `ARGS:json.*` targets also cover query/form arguments with that exact name, not only
 JSON fields. Rule `949110` remains active. Do not apply these configs globally.
 
+The exception does not cover every rule that can match these fields. A literal `<script>` tag
+in a policy expression or prompt text, or a `javascript:` URL in brand CSS, is still denied with
+`403`. Realistic CSS (imports, gradients, `data:` images), HTML help text and Python policies
+pass. To turn one exception off, open step 4 of the service in easy mode and delete that rule
+block in the editor.
+
 ## Validation
 
 On 2026-11-03, the packaged template was imported through a local test plugin into BunkerWeb
@@ -128,11 +145,18 @@ Historical scripted tests: **authentik 2026.8.3**, PostgreSQL **16.15**, BunkerW
 CRUD/preflights, Python/CSS/HTML editors, both WebSocket routes, a 21 MiB upload using a
 path-specific allowance, OIDC discovery/JWKS, authorization code, tokens, userinfo, refresh,
 introspection and client credentials. Wrong-target and wrong-path exclusion controls returned
-`403`. This template extraction is **not a fresh full-app E2E run**.
+`403`.
 
-Not verified: real browsers (including the cookie/CSP changes above), SAML, LDAP/proxy outpost
-flows, Kubernetes, multiple instances, and authentik's forwarded-client-IP trust. Test those
-before relying on them. Repeated authentik `400`, `401`, `403`, `404` and rate-limit `429`
+On 2026-11-20 and 2026-11-23 the template was imported through the web UI of BunkerWeb 1.6.17
+(all-in-one, CRS 4.29, the web UI protected by its own CRS), and a service was created in easy mode
+for authentik 2026.8.3 with PostgreSQL 16. In Chrome, login, the admin interface, API writes with
+Python, CSS and HTML in the documented fields, both WebSocket routes, a 21 MiB upload and the cookie
+flags behaved as described. Uploads survived recreating the containers with a `/media` volume or
+an empty host folder at `/data`, and did not survive with a named volume at `/data`.
+
+Not verified: SAML, LDAP/proxy outpost flows, Kubernetes, multiple instances, a real outpost
+connection, a custom certificate, and authentik's forwarded-client-IP trust. Test those before
+relying on them. Repeated authentik `400`, `401`, `403`, `404` and rate-limit `429`
 responses can trigger BunkerWeb's bad-behavior ban (default ten failures in 60 seconds,
 24-hour ban); preserving app error bodies does not disable that accounting.
 

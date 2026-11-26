@@ -21,17 +21,18 @@
     "REVERSE_PROXY_HOST": "http://nextcloud",
     "REVERSE_PROXY_WS": "no",
     "MAX_CLIENT_SIZE": "512m",
+    "LIMIT_CONN_MAX_HTTP2": "200",
     "ALLOWED_METHODS": "GET|POST|HEAD|COPY|DELETE|LOCK|MKCOL|MOVE|PROPFIND|PROPPATCH|PUT|UNLOCK|OPTIONS|REPORT|SEARCH|MKCALENDAR|ACL|PATCH",
     "USE_LIMIT_REQ": "yes",
     "LIMIT_REQ_URL": "/",
     "LIMIT_REQ_RATE": "15r/s",
-    "LIMIT_REQ_URL_1": "/apps",
+    "LIMIT_REQ_URL_1": "^/(index\\.php/)?apps/(?!mail(?:/|$)|text/session/sync$)",
     "LIMIT_REQ_RATE_1": "5r/s",
-    "LIMIT_REQ_URL_2": "/apps/text/session/sync",
+    "LIMIT_REQ_URL_2": "^/(index\\.php/)?apps/text/session/sync$",
     "LIMIT_REQ_RATE_2": "8r/s",
     "LIMIT_REQ_URL_3": "/core/preview",
-    "LIMIT_REQ_RATE_3": "5r/s",
-    "LIMIT_REQ_URL_4": "/apps/mail",
+    "LIMIT_REQ_RATE_3": "20r/s",
+    "LIMIT_REQ_URL_4": "^/(index\\.php/)?apps/mail(?:/|$)",
     "LIMIT_REQ_RATE_4": "40r/s",
     "USE_CLIENT_CACHE": "yes",
     "SERVE_FILES": "no",
@@ -44,7 +45,7 @@
   "steps": [
     {
       "title": "Web service - Front door",
-      "subtitle": "Point BunkerWeb at your Nextcloud domains and TLS options.",
+      "subtitle": "Point BunkerWeb at your Nextcloud domains and TLS options. Turn Let's Encrypt off for a name that is not public.",
       "settings": [
         "SERVER_NAME",
         "AUTO_LETS_ENCRYPT",
@@ -74,9 +75,10 @@
     },
     {
       "title": "HTTP - WebDAV uploads and sync",
-      "subtitle": "Tune upload size, WebDAV verbs, and rate limiting for Nextcloud.",
+      "subtitle": "Tune upload size, WebDAV verbs, connection and rate limits for Nextcloud.",
       "settings": [
         "MAX_CLIENT_SIZE",
+        "LIMIT_CONN_MAX_HTTP2",
         "ALLOWED_METHODS",
         "USE_LIMIT_REQ",
         "LIMIT_REQ_URL",

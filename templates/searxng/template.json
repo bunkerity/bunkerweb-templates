@@ -18,7 +18,7 @@
   "steps": [
     {
       "title": "Domains and TLS",
-      "subtitle": "Use the hostname you set as SearXNG's base_url; a mismatch breaks the redirect after saving preferences.",
+      "subtitle": "Use the hostname you set as SearXNG's base_url; a mismatch breaks the redirect after saving preferences. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -56,7 +56,7 @@
     },
     {
       "title": "Security - Review search text CRS exclusions",
-      "subtitle": "Let searches for SQL, shell, markup and path strings through the search and autocomplete query; the same text anywhere else stays blocked.",
+      "subtitle": "Let searches for code, SQL, shell, markup, URLs and path strings through the search and autocomplete query; the same text anywhere else stays blocked.",
       "configs": ["modsec-crs/searxng_false_positives.conf"]
     }
   ]

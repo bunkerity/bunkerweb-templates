@@ -27,9 +27,10 @@ that you can extend for your environment.
 ## Quick start
 
 1. Pick a template below and read its README for prerequisites.
-2. In the BunkerWeb web UI, open **Templates**, select **Create new template**, switch to **Raw**
+2. In the BunkerWeb web UI, open **Templates**, select **Create template**, switch to **Raw**
    mode and select **Upload template JSON**.
-3. Select **Save**, then choose the template in **Easy** mode when you edit a service.
+3. Select **Save**. When you add or edit a service in **Easy** mode, pick the template in the
+   **Templates** dropdown above the steps.
 
 Every step, the upload dialog and the plugin method are in [Install](#install).
 
@@ -69,6 +70,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | <img src="https://raw.githubusercontent.com/docusealco/docuseal/master/public/logo.svg" align="absmiddle" alt="" width="24" height="24" /> [DocuSeal](templates/docuseal/) | Document signing template with API-aware defaults |
 | <img src="https://raw.githubusercontent.com/usekaneo/kaneo/main/apps/web/public/favicon.svg" align="absmiddle" alt="" width="24" height="24" /> [Kaneo](templates/kaneo/) | Task board template with WebSocket and task-text WAF tuning |
 | <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/outline.svg" align="absmiddle" alt="" width="24" height="24" /> [Outline](templates/outline/) | Wiki template with realtime collaboration and MCP support |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/stirling-pdf.svg" align="absmiddle" alt="" width="24" height="24" /> [Stirling-PDF](templates/stirling-pdf/) | PDF toolbox template with big uploads, long jobs and tuned WAF rules |
 
 ### Websites and CMS
 
@@ -93,6 +95,7 @@ Every step, the upload dialog and the plugin method are in [Install](#install).
 | --- | --- |
 | <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/beszel.svg" align="absmiddle" alt="" width="24" height="24" /> [Beszel](templates/beszel/) | Monitoring hub template with WebSocket agent connections |
 | <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/grafana.svg" align="absmiddle" alt="" width="24" height="24" /> [Grafana](templates/grafana/) | Dashboard template with query and HTML-response WAF tuning |
+| <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/homepage.png" align="absmiddle" alt="" width="23" height="24" /> [Homepage](templates/homepage/) | Dashboard template with room for every tile, widget-safe ban rules and an optional authentik sign-in |
 | <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/umami-light.svg"><img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/umami.svg" align="absmiddle" alt="" width="24" height="24" /></picture> [Umami](templates/umami/) | Web analytics template with tracker and dashboard tuning |
 | <img src="https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/uptime-kuma.svg" align="absmiddle" alt="" width="24" height="24" /> [Uptime Kuma](templates/uptime-kuma/) | Monitoring template with Socket.IO polling and WebSockets |
 
@@ -144,7 +147,7 @@ repository clone.
 <br />
 
 1. Sign in to the BunkerWeb web UI with an account that can edit the configuration.
-2. Open **Templates**, select **Create new template**, and switch to **Raw** mode.
+2. Open **Templates**, select **Create template**, and switch to **Raw** mode.
 3. Select **Upload template JSON** and choose `<template-directory>/template.json`. You can instead
    paste the file's contents into the JSON editor. Confirm **Replace template** if prompted.
 4. If the **Missing Custom Configs** dialog appears, the template needs its accompanying NGINX
@@ -155,7 +158,9 @@ repository clone.
    - Wait until every item is marked **Uploaded**, then select **Done**.
 5. Review the imported JSON and configs, then select **Save**. Templates without custom configs
    skip the previous dialog.
-6. Add or edit a service in **Easy** mode, choose the new template, and review each guided step.
+6. Add or edit a service in **Easy** mode, pick the new template in the **Templates** dropdown
+   above the steps (a new service shows `Low` until you choose one; an existing service shows its
+   assigned template), and review each guided step.
    Replace example domains, upstream URLs, and other defaults with values for your deployment
    before saving the service.
 
@@ -277,7 +282,7 @@ docker exec <container> sh -c \
 | authentik                | `authentik_false_positives`   | `9851100` |
 | forgejo                  | `forgejo_false_positives`     | `9856103` |
 | forgejo (second file)    | `forgejo_protocol`            | `9856100` |
-| grafana                  | `grafana_false_positives`     | `9858501` |
+| grafana                  | `grafana_false_positives`     | `9858103` |
 | netbird                  | `netbird_false_positives`     | `9862100` |
 | opengym                  | `opengym_false_positives`     | `9866100` |
 | vaultwarden              | `vaultwarden_false_positives` | `9877100` |
