@@ -212,15 +212,18 @@ six rules. Each one names a path prefix and a method, and removes only the CRS c
 | `9882120` | `GET` or `POST` under `/sys/`                              | CRS `930130` (Seafile's system admin pages live under `/sys/`).                                                                                              |
 | `9882130` | `PUT /seafhttp/repo/<id>/commit/`, `block/`, `fs/`         | CRS `920340` and `920640` (the sync client stores commits and blocks with no Content-Type).                                                                  |
 | `9882131` | `POST /seafhttp/repo/<id>/recv-fs/`                        | The body of the request: the sync client sends binary objects labelled as a web form, and CRS rules such as `920250`, `920270` and `921150` flag some of them. |
-| `9882132` | `POST /seafhttp/repo/<id>/recv-fs/` with no query string   | The form fields the CRS reads out of that body, and CRS `920250` as a whole. A request with a query string is checked in full.                                |
+| `9882132` | `POST /seafhttp/repo/<id>/recv-fs/` with no query string   | The form fields the CRS reads out of that body, and CRS `920250` as a whole. With a query string this rule does not apply and both checks are back on.            |
 
 Cost: the same checks stay on for every other path and method (each rule has controls that return
 `403`). Under `/seafdav/` a `PUT` is accepted with any Content-Type. On the five upload addresses the
 two header checks are off, but other restricted headers are still blocked. Rules `9882131` and `9882132`
-are the widest: no CRS attack rule reads the content of a `recv-fs` body, and only a client with a valid
-repository token reaches the path. They leave the path, the headers, the cookies and the query string of
-those requests under the CRS, so an attack sent there still answers `403`. Rule `9882132` applies only
-when the request has no query string, which is how the sync client calls `recv-fs`. Delete a rule from
+are the widest: on a request with no query string, which is how the sync client calls `recv-fs`, no CRS
+attack rule reads the content of the body, and only a client with a valid repository token reaches the
+path. They leave the path, the headers, the cookies and the query string of those requests under the
+CRS, so an attack sent there still answers `403`. Rule `9882132` is the one that depends on the query
+string. When the request has one, only `9882131` applies: the CRS no longer reads the raw text of the
+body, but it reads the form fields, their names and the bytes of the body again (`920250`, `920270`,
+`921150` and the attack rules), so a binary body answers `403`. Delete a rule from
 the config if you do not use the feature (for example `9882110` without SeafDAV, or `9882130`,
 `9882131` and `9882132` without desktop sync).
 
@@ -269,7 +272,8 @@ and `/seafhttp/other/`; a `POST` to `/seafdav/`; a `PUT` of a sync block that se
 `/api2/x/sys/`, `/seafhttp/sys/x` and a `.htaccess` path; a script payload in the query of `/sys/info/`,
 in the body of an upload address and in the body of `check-fs`; and an attack in the query string,
 a cookie, the `Referer` or the `User-Agent` of a `recv-fs` request. The same payload in the body of
-`recv-fs` passes the CRS, which is the cost of rules `9882131` and `9882132`.
+`recv-fs` passes the CRS when the request has no query string, which is the cost of rules `9882131`
+and `9882132`; with a query string, such as `?v=1`, the same body answers `403`.
 
 ## Known limits
 
