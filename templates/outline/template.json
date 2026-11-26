@@ -24,7 +24,7 @@
   "steps": [
     {
       "title": "Domains and TLS",
-      "subtitle": "Match your public hostname to Outline's URL setting.",
+      "subtitle": "Match your public hostname to Outline's URL setting. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "title": "Cookies, request rate and body sizes",
-      "subtitle": "Let the editor read its CSRF cookie (every other cookie keeps HttpOnly), load without throttling and save large documents.",
+      "subtitle": "The three fields without a label are cookie flags: they let the editor read its CSRF cookie (every other cookie keeps HttpOnly). Then the request rate and the body sizes.",
       "settings": [
         "COOKIE_FLAGS_1",
         "COOKIE_FLAGS_2",
@@ -58,12 +58,12 @@
     },
     {
       "title": "Security - Browser features",
-      "subtitle": "Allow presentation mode, embed fullscreen and passkey sign-in that BunkerWeb's default policy blocks.",
+      "subtitle": "Allow presentation mode, embed fullscreen and passkey sign-in that BunkerWeb's default policy blocks. Only five of the entries differ from the default: fullscreen, picture-in-picture, encrypted-media and publickey-credentials-create and -get.",
       "settings": ["PERMISSIONS_POLICY"]
     },
     {
       "title": "Security - ChatGPT MCP connector",
-      "subtitle": "Let ChatGPT's connector past the user-agent blacklist. If you do not use ChatGPT, clear the field.",
+      "subtitle": "Let ChatGPT's connector past the user-agent blacklist. To turn it off, remove the second entry with its remove button, empty the first one and save.",
       "settings": ["BLACKLIST_IGNORE_USER_AGENT"]
     },
     {
