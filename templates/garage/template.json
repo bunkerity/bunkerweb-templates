@@ -23,7 +23,7 @@
   "steps": [
     {
       "title": "Domains and TLS",
-      "subtitle": "Match your public hostname to the S3 endpoint; set Garage's s3_region and root_domain to match your clients and bucket hosts.",
+      "subtitle": "Match your public hostname to the S3 endpoint; set Garage's s3_region and root_domain to match your clients and bucket hosts. Turn off Automatic Let's Encrypt for a name that is not public, or clients are redirected to HTTPS.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "title": "HTTP - Health check",
-      "subtitle": "Keep for uptime monitors (Garage's admin /health needs no token); clear both settings if nothing monitors it, and keep port 3903 otherwise private.",
+      "subtitle": "Keep for uptime monitors (Garage's admin /health needs no token); empty only the host if nothing monitors it (the web UI refuses an empty URL), and keep port 3903 otherwise private.",
       "settings": ["REVERSE_PROXY_URL_1", "REVERSE_PROXY_HOST_1"]
     },
     {
@@ -62,7 +62,7 @@
     },
     {
       "title": "Security - Review S3 request CRS exclusions",
-      "subtitle": "Four CRS policy checks are skipped for signed S3 requests only: content type, header names and object-key names.",
+      "subtitle": "Five exclusions skip CRS policy checks on content type, a missing content type, two header names and object-key names, for signed S3 requests only.",
       "configs": ["modsec-crs/garage_false_positives.conf"]
     }
   ],
