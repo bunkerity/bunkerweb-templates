@@ -17,8 +17,8 @@
     "LIMIT_REQ_RATE_1": "100r/s",
     "LIMIT_REQ_URL_2": "^/(mcp|mcp-server|api/v1)(/|$)",
     "LIMIT_REQ_RATE_2": "200r/s",
-    "LIMIT_REQ_URL_3": "^/rest/push$",
-    "LIMIT_REQ_RATE_3": "30r/s",
+    "LIMIT_REQ_URL_3": "^/rest/",
+    "LIMIT_REQ_RATE_3": "50r/s",
     "LIMIT_CONN_MAX_HTTP1": "100",
     "BLACKLIST_URI": "^/metrics$",
     "X_FRAME_OPTIONS": "SAMEORIGIN",
@@ -35,7 +35,7 @@
   "steps": [
     {
       "title": "Domains and TLS",
-      "subtitle": "Set your public hostname and certificate settings.",
+      "subtitle": "Set your public hostname. For a name that is not public, save the service, then edit it and turn Automatic Let's Encrypt off.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -74,8 +74,8 @@
       "settings": ["LIMIT_REQ_URL_2", "LIMIT_REQ_RATE_2"]
     },
     {
-      "title": "HTTP - Editor tabs behind one address",
-      "subtitle": "Each editor tab holds a push socket; keep unless one address never has 10 tabs.",
+      "title": "HTTP - Editor requests and tabs",
+      "subtitle": "The editor calls /rest/ in bursts and each tab holds a push socket; keep unless one address never has 10 tabs.",
       "settings": [
         "LIMIT_REQ_URL_3",
         "LIMIT_REQ_RATE_3",
@@ -94,7 +94,7 @@
     },
     {
       "title": "Security - Embedding forms and chat (optional)",
-      "subtitle": "Keep to block framing; clear X_FRAME_OPTIONS and frame-ancestors only to embed forms or chat.",
+      "subtitle": "Keep to block framing. To embed a form, pick the blank X-Frame-Options entry; for chat also add your site to frame-ancestors (see README).",
       "settings": ["X_FRAME_OPTIONS", "CONTENT_SECURITY_POLICY"]
     },
     {
