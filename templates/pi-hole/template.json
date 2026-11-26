@@ -18,9 +18,6 @@
     "MAX_CLIENT_SIZE": "100m",
     "ALLOWED_METHODS": "GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE",
     "USE_METRICS": "no",
-    "USE_REAL_IP": "yes",
-    "REAL_IP_FROM": "172.64.0.0/13 104.16.0.0/13",
-    "REAL_IP_HEADER": "CF-Connecting-IP",
     "USE_REVERSE_PROXY": "yes",
     "REVERSE_PROXY_URL_1": "/",
     "REVERSE_PROXY_HOST_1": "http://pihole-server-ip:80",
@@ -35,12 +32,12 @@
   "steps": [
     {
       "title": "Domain and TLS",
-      "subtitle": "Point the template at your Pi-hole hostname and enable certificates.",
+      "subtitle": "Point the template at your Pi-hole hostname and replace the example e-mail. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT", "EMAIL_LETS_ENCRYPT"]
     },
     {
       "title": "Reverse proxy",
-      "subtitle": "Tell BunkerWeb where your Pi-hole upstream lives and expose the admin UI and API routes.",
+      "subtitle": "Set the Pi-hole upstream, for example http://pihole:80 in one Docker network, and expose the admin UI and API routes.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_URL_1",
@@ -55,7 +52,7 @@
     },
     {
       "title": "Security and performance tuning",
-      "subtitle": "Review bad-behaviour, rate limiting, real IP, and ModSecurity exclusions for the Pi-hole admin UI and API. Defaults are relaxed for self-hosting (DNSBL off, higher ban threshold, 20r/s, metrics off) - see the README security tuning notes before tightening.",
+      "subtitle": "Review bad-behaviour, rate limiting, and ModSecurity exclusions for the Pi-hole admin UI and API. Defaults are relaxed for self-hosting (DNSBL off, higher ban threshold, 20r/s, metrics off) - see the Settings section of the README before tightening.",
       "settings": [
         "BAD_BEHAVIOR_STATUS_CODES",
         "BAD_BEHAVIOR_THRESHOLD",
@@ -67,9 +64,6 @@
         "ALLOWED_METHODS",
         "LIMIT_CONN_MAX_HTTP2",
         "LIMIT_CONN_MAX_HTTP3",
-        "USE_REAL_IP",
-        "REAL_IP_FROM",
-        "REAL_IP_HEADER",
         "USE_METRICS",
         "GZIP_PROXIED",
         "REMOVE_HEADERS"

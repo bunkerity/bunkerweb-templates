@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Let comments with a semicolon and an SQL word through the CRS on the Pi-hole domain, list, group and client routes (rule `9868107`), drop the `/admin/` and content-type exceptions no web UI action needs, remove the Cloudflare real IP settings, and document Pi-hole v6, the upstream and the Let's Encrypt e-mail
 - [@TheophileDiot] Document that DocuSeal 3.4.0 answers `OPTIONS /api/...` with `404` (call the API from a server), the whitelist route for API clients that trip bad behavior, the two-save path that turns Let's Encrypt off, and the DocuSeal version and flows tested
 - [@TheophileDiot] Document the two-save path that turns Let's Encrypt off in the Uptime Kuma template, the first-run database and administrator screens, the WebSocket text box, that WebSocket frames are not inspected, and why a Raw-mode save answers `403` on 1.6.17
 - [@TheophileDiot] Document in the Tomcat template the `RemoteIpValve` that makes Tomcat trust the proxy headers, the Manager access WAR deploys need and how to deploy large WARs, and say that the `mytomcat` upstream is a placeholder
