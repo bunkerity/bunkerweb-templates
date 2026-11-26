@@ -150,7 +150,7 @@ The values below are examples. Replace them with your own before using the templ
 - **Compression:** `USE_GZIP` is on so that `GZIP_PROXIED` takes effect.
 - **Allowlist:** `WHITELIST_IP` is not set by the template. Set it on the service only for the IP
   addresses or ranges that may bypass the security checks, and review the list regularly.
-- **ModSecurity rule IDs:** the template's rules use IDs 9855101 to 9855106, inside its block
+- **ModSecurity rule IDs:** the template's rules use IDs 9855101 to 9855111, inside its block
   9855000 to 9855999 of the range BunkerWeb reserves for community templates (see "Rule IDs" in
   [`TEMPLATE_GUIDE.md`](../../TEMPLATE_GUIDE.md)). Rules you add yourself belong in 1 to 99999.
 
@@ -252,7 +252,7 @@ type.
 
 | Type         | File in repository                                                      | Reference in `template.json`                  | Purpose                                                                  |
 | ------------ | ----------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------ |
-| `modsec-crs` | `templates/filestash/configs/modsec-crs/filestash_false_positives.conf` | `modsec-crs/filestash_false_positives.conf`   | Removes CRS rule 920420 for the editor save and the upload requests only, plus 920340 and 920640 for the single request upload. Removes CRS rule 930120 for the path arguments of sign-in, sharing, browsing and the Office editor, and 942550 for one admin preset field. |
+| `modsec-crs` | `templates/filestash/configs/modsec-crs/filestash_false_positives.conf` | `modsec-crs/filestash_false_positives.conf`   | Removes CRS rule 920420 for the editor save and the upload requests only, plus 920340 and 920640 for the single request upload. Removes CRS rule 930120 for the path arguments of sign-in, sharing, browsing, editing, renaming and the Office editor, each on the route and method Filestash uses, and 942550 for one admin preset field. |
 
 CRS rule 920420 rejects a request whose `Content-Type` is not in the CRS allowed list. Filestash
 sends three requests that hit it. Each rule matches one method and one anchored path, so the rest
@@ -272,14 +272,20 @@ types. The global allowed content type list is not changed.
 CRS rule 930120 (OS file access attempt) rejects a path that names a system folder, such as `/tmp/`
 or `/var/www/`, in any argument. Filestash is a file manager: users type such a folder as the start
 folder at sign-in, open it, upload to it and share it, so the rule fires on normal use. Only the
-arguments that carry a folder or file path skip it, on these requests. Every other CRS rule still
-reads those arguments (directory traversal, shell, SQL and script text), and the same text in any
-other argument or on any other path is still answered `403`:
+arguments that carry a folder or file path skip it, and only on the route and the method that
+Filestash uses for that action. Every other CRS rule still reads those arguments (directory
+traversal, shell, SQL and script text), and the same text on another route, with another method
+or in another argument is still answered `403`:
 
-| Rule ID   | Request                                                                      | Argument that skips 930120 |
-| --------- | ---------------------------------------------------------------------------- | -------------------------- |
-| `9855104` | `POST /api/session` (sign-in), `POST /api/share/<id>` (create a shared link) | JSON field `path`          |
-| `9855105` | any method on `/api/files/<action>`, `/api/metadata/<action>`, `/api/wopi/iframe`, `/api/share` | `path`, `from`, `to` |
+| Rule ID   | Method and route                                                                                                | Action in Filestash                                              | Argument that skips 930120 |
+| --------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------- |
+| `9855104` | `POST /api/session`                                                                                             | sign-in with a start folder                                      | JSON field `path`          |
+| `9855111` | `PUT /api/share/<id>`                                                                                           | create a shared link                                             | JSON field `path`          |
+| `9855105` | `GET /api/files/ls`, `/api/files/cat`, `/api/files/search`, `/api/files/zip`, `/api/share`, `/api/metadata`, `/api/wopi/iframe`, `/api/codemirror/pull` | open a folder, open or download a file, search, zip download, list the shared links of a file, tag dialog, Office editor, live text editor | `path` |
+| `9855107` | `HEAD` and `OPTIONS /api/files/cat`                                                                             | the browser's checks before it opens a file                      | `path`                     |
+| `9855108` | `POST /api/files/cat`, `/api/files/touch`, `/api/files/mkdir`, `/api/files/rm`, `/api/files/save`, `/api/codemirror/push`, `/api/codemirror/reset` | editor save, new file, new folder, delete, upload, live text editor | `path` |
+| `9855109` | `PATCH /api/files/save`                                                                                         | chunked upload                                                   | `path`                     |
+| `9855110` | `POST /api/files/mv`                                                                                            | rename                                                           | `from`, `to`               |
 
 Rule `9855106` removes the SQL injection rule 942550 for the field
 `middleware.attribute_mapping.params` of `POST /admin/api/config`, which the admin console sends
@@ -408,8 +414,18 @@ After applying the template:
   `/var/www/`, browsing folders, uploads of 2 KB, 6 MB and 120 MB files (the last one chunked with
   `upload_chunk_size` 50), the web editor save and the admin presets. Before the rules
   `9855104` to `9855106` the sign-in, the folder listing and two presets were answered `403`; with
-  them they work, and the same text in another argument, another path or another method is still
-  `403` (28 requests).
+  them they work.
+- A second pass in Chrome through the Filestash web interface, signed in with the start folder `/`
+  and working in `/tmp/`, wrote down the route and method of each action: sign-in, list, open,
+  edit, save, new file, new folder, rename, delete, upload, zip download, search, tags, sharing
+  (list and create a link) and the Office editor. Rules `9855104` to `9855111` bind each path
+  argument to those routes and methods. A matrix of 39 requests sent from the Chrome tab (21 the
+  web interface sends, with a system folder in the path, and 18 with the same text on another
+  route, with another method or in another argument) gives the expected result: the first 21 reach
+  Filestash and the other 18 are answered `403` by the CRS (930120, and 930100, 930110 and 932160
+  for a path with `../`). Two actions answered `403` with the first version of these rules: the
+  tag dialog (`GET /api/metadata`) and the creation of a shared link (`PUT /api/share/<id>`), and
+  so did the live text editor (`/api/codemirror/*`) on a file in a system folder.
 - A live request matrix on `bunkerity/bunkerweb-all-in-one:1.6.17`: the three excluded requests
   (`POST /api/files/cat`, `POST /api/files/save` with and without a `Content-Type`,
   `PATCH /api/files/save`) reach Filestash, and the same payloads on another path, another method
