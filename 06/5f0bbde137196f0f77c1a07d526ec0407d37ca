@@ -1,0 +1,22 @@
+templates/nextcloud/configs/modsec-crs/nextcloud_false_positives.conf
+  s_6db288590c3162::t_45469b11124230 70-73
+  s_6db288590c3162::t_ec30e9b12881a9 53
+templates/nextcloud/README.md
+  s_6db288590c3162::t_872c494df12a9e 210-214
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "065f0bbde137196f0f77c1a07d526ec0407d37ca",
+  "prompts": {},
+  "sessions": {
+    "s_6db288590c3162": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "477f578b-b0c3-4b7e-9c6b-2f6e451de45d",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
