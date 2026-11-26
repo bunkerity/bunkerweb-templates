@@ -25,18 +25,19 @@ upstream JSON errors. It keeps the CRS enabled.
 
 ## At a glance
 
-| Fact        | Value                         |
-| ----------- | ----------------------------- |
-| Template id | `uptime-kuma`                 |
-| Tested with | BunkerWeb 1.6.17, OWASP CRS 4 |
-| Configs     | 1 (modsec-crs)                |
-| Rule ids    | `9876000` to `9876999`        |
-| Upstream    | `http://uptime-kuma:3001`     |
+| Fact        | Value                                            |
+| ----------- | ------------------------------------------------ |
+| Template id | `uptime-kuma`                                    |
+| Tested with | BunkerWeb 1.6.17, OWASP CRS 4, Uptime Kuma 2.5.5 |
+| Configs     | 1 (modsec-crs)                                   |
+| Rule ids    | `9876000` to `9876999`                           |
+| Upstream    | `http://uptime-kuma:3001`                        |
 
 ## Prerequisites
 
 - Uptime Kuma reachable from BunkerWeb at `http://uptime-kuma:3001`. With Docker, attach both
-  containers to the same network; keep the application port private.
+  containers to the same network; keep the application port private. The template was tested
+  with Uptime Kuma 2.5.5 (SQLite).
 - A dedicated hostname pointing to BunkerWeb. Uptime Kuma does not support hosting the full
   application under a subdirectory; see the upstream
   [reverse proxy guide](https://github.com/louislam/uptime-kuma/wiki/Reverse-Proxy).
@@ -49,11 +50,26 @@ upstream JSON errors. It keeps the CRS enabled.
 1. Follow the repository's [installation guide](../../README.md#install).
    Import `template.json` and upload `configs/modsec-crs/uptime-kuma_false_positives.conf` when
    prompted. Keep the config type `modsec-crs`: rule 920420 runs in phase 1.
-2. Select this template for the service, or set `USE_TEMPLATE=uptime-kuma`.
-3. Replace `SERVER_NAME`, `REVERSE_PROXY_HOST` and `REVERSE_PROXY_HOST_1`. Both upstream entries
-   must point to the same Uptime Kuma instance, including its port.
-4. Begin with `SECURITY_MODE=detect`, exercise setup, login, status pages and monitor callbacks,
-   and inspect BunkerWeb logs. Switch to `block` after resolving any additional false positives.
+2. Create the service from the template: in the web UI open **Services**, **Create new service**
+   and pick **Uptime-kuma** in the **Templates** list above the steps.
+3. Step 1: replace `SERVER_NAME`. For a name that is not public, turn **Automatic Let's Encrypt**
+   off: BunkerWeb cannot get a certificate for it, and plain HTTP is redirected to HTTPS with the
+   default certificate. BunkerWeb 1.6.17 ignores that switch when you create the service, so save,
+   open the service again in easy mode, go to step 1, turn it off and save a second time. Do not
+   use Raw mode for this second save: on 1.6.17 it answers `403` when the web UI is itself
+   protected by BunkerWeb's CRS (the setup wizard default), because the CRS flags the
+   `PERMISSIONS_POLICY` value the Raw form posts (rule `942151`).
+4. Step 2: replace `REVERSE_PROXY_HOST` and `REVERSE_PROXY_HOST_1`. Both upstream entries must
+   point to the same Uptime Kuma instance, including its port. `REVERSE_PROXY_WS_1` is shown as a
+   plain text box: keep `yes`.
+5. Save the service. Saving applies it: there is no separate reload step.
+6. Begin with `SECURITY_MODE=detect`: no easy-mode step has it, so open the service in
+   **Advanced** mode, **General**, set **Security mode** to `detect` and save. Exercise setup,
+   login, status pages and monitor callbacks, and inspect BunkerWeb logs. Switch to `block` after
+   resolving any additional false positives.
+7. On first start Uptime Kuma 2 asks which database to use (embedded MariaDB, MariaDB/MySQL or
+   SQLite), then asks you to create the administrator account. Both screens work through the
+   template.
 
 ## Settings
 
@@ -67,7 +83,7 @@ upstream JSON errors. It keeps the CRS enabled.
 | `REVERSE_PROXY_INTERCEPT_ERRORS` | `no` | Preserve API JSON errors, including invalid push tokens. |
 | `REVERSE_PROXY_URL_1` | `/socket.io/` | Socket.IO polling and upgrade path. |
 | `REVERSE_PROXY_HOST_1` | `http://uptime-kuma:3001` | Same upstream for Socket.IO. |
-| `REVERSE_PROXY_WS_1` | `yes` | Forward WebSocket upgrades on that path. |
+| `REVERSE_PROXY_WS_1` | `yes` | Forward WebSocket upgrades on that path. Shown as a text box in the web UI: keep `yes`. |
 | `USE_LIMIT_REQ` | `yes` | Keep request throttling enabled. |
 | `LIMIT_REQ_URL` | `/` | Fallback request-limit rule. |
 | `LIMIT_REQ_RATE` | `50r/s` | Allow polling handshakes and page-load bursts. |
@@ -93,6 +109,14 @@ upstream JSON errors. It keeps the CRS enabled.
   guide linked above.
 
 ## Validation
+
+On 2026-11-25, the template was imported through the web UI of a BunkerWeb 1.6.17 all-in-one
+container (CRS 4.29.0) and applied to a service created in easy mode in front of Uptime Kuma 2.5.5
+(SQLite). In `block` mode the database choice, administrator creation and dashboard loaded, and a
+WebSocket upgrade on `/socket.io/` answered `101`. A frame with SQL and script text sent over that
+WebSocket raised no ModSecurity event: frames are not inspected after the upgrade. Turning
+Let's Encrypt off in a second easy-mode save changed plain HTTP from a redirect to the HTTPS
+site (`301`) to Uptime Kuma's own answer, while a Raw-mode save answered `403` (rule `942151`).
 
 On 2026-11-03, the packaged settings and exclusion were checked with the local BunkerWeb
 `:tests` image (1.6.18-rc2, libmodsecurity 3.0.17, CRS 4.30.0) against an echo backend, not a

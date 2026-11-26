@@ -20,12 +20,12 @@
   "steps": [
     {
       "title": "Web service - Front service",
-      "subtitle": "Set a dedicated hostname and configure automatic HTTPS.",
+      "subtitle": "Set a dedicated host name. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
       "title": "Web service - Upstream and Socket.IO",
-      "subtitle": "Point both upstream entries at the same Uptime Kuma instance on port 3001.",
+      "subtitle": "Point both upstream entries at the same Uptime Kuma instance on port 3001. Keep yes in the WebSocket box.",
       "settings": [
         "USE_REVERSE_PROXY",
         "REVERSE_PROXY_URL",
@@ -39,7 +39,7 @@
     },
     {
       "title": "Security - Polling and request limits",
-      "subtitle": "Allow Socket.IO polling bursts and review the narrowly scoped content-type exception.",
+      "subtitle": "Allow Socket.IO polling bursts. The editor at the end of this step holds the content-type exception that lets polling through.",
       "settings": ["USE_LIMIT_REQ", "LIMIT_REQ_URL", "LIMIT_REQ_RATE"],
       "configs": ["modsec-crs/uptime-kuma_false_positives.conf"]
     }
