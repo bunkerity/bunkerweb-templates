@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Name the **Create template** button and the easy-mode **Templates** dropdown in the import steps of the root README, as the BunkerWeb 1.6.17 web UI shows them
 - [@TheophileDiot] Narrow the Filestash CRS exceptions to the route and method each action uses (rename keeps `from` and `to`, every other action keeps `path` only), and let the tag dialog, shared link creation and the live text editor through on system folders such as `/tmp/`
 - [@TheophileDiot] Show the BunkerWeb side of the shared network in the ProjectSend template, explain the anti-bot check and `/setup` on first run and the expected temporary-file warning during uploads, name the Projectsend picker entry and the `modsec_crs` dialog folder, give the two-save path that turns Let's Encrypt off, and say what rules `920340` and `920640` check
 - [@TheophileDiot] Let comments with a semicolon and an SQL word through the CRS on the Pi-hole domain, list, group and client routes (rule `9868107`), drop the `/admin/` and content-type exceptions no web UI action needs, remove the Cloudflare real IP settings, and document Pi-hole v6, the upstream and the Let's Encrypt e-mail

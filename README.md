@@ -27,9 +27,10 @@ that you can extend for your environment.
 ## Quick start
 
 1. Pick a template below and read its README for prerequisites.
-2. In the BunkerWeb web UI, open **Templates**, select **Create new template**, switch to **Raw**
+2. In the BunkerWeb web UI, open **Templates**, select **Create template**, switch to **Raw**
    mode and select **Upload template JSON**.
-3. Select **Save**, then choose the template in **Easy** mode when you edit a service.
+3. Select **Save**. When you add or edit a service in **Easy** mode, pick the template in the
+   **Templates** dropdown above the steps.
 
 Every step, the upload dialog and the plugin method are in [Install](#install).
 
@@ -146,7 +147,7 @@ repository clone.
 <br />
 
 1. Sign in to the BunkerWeb web UI with an account that can edit the configuration.
-2. Open **Templates**, select **Create new template**, and switch to **Raw** mode.
+2. Open **Templates**, select **Create template**, and switch to **Raw** mode.
 3. Select **Upload template JSON** and choose `<template-directory>/template.json`. You can instead
    paste the file's contents into the JSON editor. Confirm **Replace template** if prompted.
 4. If the **Missing Custom Configs** dialog appears, the template needs its accompanying NGINX
@@ -157,7 +158,9 @@ repository clone.
    - Wait until every item is marked **Uploaded**, then select **Done**.
 5. Review the imported JSON and configs, then select **Save**. Templates without custom configs
    skip the previous dialog.
-6. Add or edit a service in **Easy** mode, choose the new template, and review each guided step.
+6. Add or edit a service in **Easy** mode, pick the new template in the **Templates** dropdown
+   above the steps (a new service shows `Low` until you choose one; an existing service shows its
+   assigned template), and review each guided step.
    Replace example domains, upstream URLs, and other defaults with values for your deployment
    before saving the service.
 

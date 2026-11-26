@@ -121,7 +121,7 @@ docker compose up -d
 
 1. Import `template.json` as described in the repository's
    [installation guide](../../README.md#install), or in the web UI with Templates →
-   **Create new template** → **Raw**, then upload or paste it.
+   **Create template** → **Raw**, then upload or paste it.
 2. Assign `USE_TEMPLATE=docuseal` to the service, or select **Docuseal** in the web UI.
 3. Replace `SERVER_NAME`, `EMAIL_LETS_ENCRYPT` and `REVERSE_PROXY_HOST` with values for your
    deployment. For a name that is not public, switch **Let's Encrypt** off. BunkerWeb 1.6.17 keeps
