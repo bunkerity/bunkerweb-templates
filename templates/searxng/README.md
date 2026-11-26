@@ -136,17 +136,17 @@ Measured and dropped because they made no difference or the default is harmless:
 ## CRS exception scope and cost
 
 `configs/modsec-crs/searxng_false_positives.conf` is a service-scoped **modsec-crs** config. Each
-exclusion is one chained rule: the path (anchored, `t:normalizePath`) and the method. About 860
-realistic searches (shell commands, code in a dozen languages, SQL questions, markup, template
-syntax, URLs, file paths and error messages from databases, PHP, Java, .NET, Node and Python) were
-sent to `/search` and `/autocompleter`; every CRS rule that fired on `q` was removed from `ARGS:q`
-only. All of them answer `200` with the template, in a browser and with curl.
+exclusion is one chained rule: the path (anchored, `t:normalizePath`) and the method. A list of 799
+distinct realistic searches (shell commands, code in a dozen languages, SQL questions, markup,
+template syntax, URLs, file paths and error messages from databases, PHP, Java, .NET, Node and
+Python) was sent to `/search` and `/autocompleter`; every CRS rule that fired on `q` was removed
+from `ARGS:q` only. The results of the runs on the shipped file are under "Validation".
 
-| Id        | Method and path        | Targets removed                                                                      |
-| --------- | ---------------------- | ------------------------------------------------------------------------------------ |
-| `9871101` | `GET`, `POST` `/search` | `ARGS:q` for 71 rule ids; the CRS rules tagged `attack-disclosure` on the answer     |
-| `9871103` | `GET` `/search`        | the whole URI for four rules: `920540` (`REQUEST_URI`), `930100`, `930110` (`REQUEST_URI_RAW`), `944150` (`REQUEST_LINE`) |
-| `9871102` | `GET` `/autocompleter` | the `9871101` set, the `9871103` set, and the argument names for the same 71 rule ids |
+| Id        | Method and path         | Targets removed                                                                                                           |
+| --------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `9871101` | `GET`, `POST` `/search` | `ARGS:q` for 71 rule ids; the CRS rules tagged `attack-disclosure` on the answer                                          |
+| `9871103` | `GET` `/search`         | the whole URI for four rules: `920540` (`REQUEST_URI`), `930100`, `930110` (`REQUEST_URI_RAW`), `944150` (`REQUEST_LINE`) |
+| `9871102` | `GET` `/autocompleter`  | the same URI checks as `9871103`, `ARGS:q` for the same 71 rule ids, the answer rules, and `ARGS_NAMES` for 59 of the 71  |
 
 `ARGS:q` carries the text on `GET` and on `POST` (the "method" preference), and for the `json`, `csv`
 and `rss` formats. On `GET` the raw URI and request line carry the same query string, so rule `9871103`
@@ -166,9 +166,20 @@ whatever the engines return. `949110` and `959100` are never excluded. To keep t
 results page, delete the `ctl:ruleRemoveByTag=attack-disclosure` line from the two rules.
 
 The autocompleter script puts the typed text in the URL without escaping an ampersand, so the text
-after `&` reaches BunkerWeb as argument names. Rule `9871102` removes the same ids from those names.
-A typed text such as `(&(uid=*)(userPassword=*))` still gets `403` on the suggestions request (the
-search itself works), because the argument that the ampersand creates is not `q`.
+after `&` reaches BunkerWeb as argument names. Rule `9871102` therefore removes `ARGS_NAMES` for 59
+rule ids. These are the ids that fired on a name when `ARGS_NAMES` was left out of the rule: 4 of
+them (`932160`, `932250`, `932260`, `942100`) on the 23 typed texts that hold an ampersand (310
+requests, every prefix as typed), and 59 of the 71 in all when each of the 799 searches was put
+after `x&` (`x&<text>`, 799 requests). The other 12 ids never fired on a name; four of them
+(`930100`, `930110`, `931100`, `941370`) do not read argument names at all. So a text in an
+argument name that trips one of those 12 gets `403` on `/autocompleter`, as before this rule
+existed. The names of every argument of `/autocompleter` skip the 59 rules, not only the names a
+typed ampersand creates; that is the cost of this rule. The value of
+an argument other than `q` is not excluded: a typed text such as `(&(uid=*)(userPassword=*))` still
+gets `403` on the suggestions request (the search itself works), because rule `921200` reads the
+value of the argument that the ampersand creates. So do markup or code typed after an ampersand with
+an `=` in it (`x&<a href="...">`), and a line feed (`921120`, `921150`, `921160`). A `403` on
+suggestions counts toward the bad-behavior ban.
 
 **Text that still gets `403`:** a real NUL byte in the URL (`%00` in the address, rule `920270` on the
 URI; typing the characters `%00` in the box works), the same text outside `q`, and any text that trips
@@ -184,14 +195,35 @@ on the two paths and methods only. SearXNG never runs the text: it forwards it U
 engines and prints it HTML-escaped, so a stored or reflected injection through `q` is not the risk
 that these rules cover; any other consumer of the query (your own plugin, a log pipeline) has to
 handle it. The leakage rules also no longer see the app's own error pages on those two paths. On
-`GET`, the four rules of `9871103` do not read the raw URI or the request line of `GET /search` and
-`GET /autocompleter` at all, so a payload in another parameter of that URI is stopped only by their
-`ARGS` match. To turn that off, delete rule `9871103`: searches that look like a path then get `403`.
-Every other argument, header, cookie, path and method stay under the full CRS.
+`GET`, the four rules `920540`, `930100`, `930110` and `944150` do not read the raw URI or the request
+line of `GET /search` and `GET /autocompleter` at all, so a payload in another parameter of that URI
+is stopped only by their `ARGS` match. On `GET /autocompleter` the names of all arguments also skip
+59 rules (see above).
 
-Controls: 132 requests with the same payloads where no exclusion applies; 126 got `403` from the rule
-the exclusion removes, and for the other 6 no CRS rule matched that text in that header either.
-They cover another argument on `/search` and `/autocompleter` (`GET`, `POST`), `HEAD`, a path
+To roll back, each rule on its own:
+
+- Delete rule `9871103`: the four URI checks come back on `GET /search` only, and path-like
+  searches there get `403`.
+- Delete the four `ctl:ruleRemoveTargetById=...;REQUEST_URI` / `REQUEST_URI_RAW` / `REQUEST_LINE`
+  lines in rule `9871102`: the URI checks come back on `GET /autocompleter`. Deleting `9871103` does
+  not do that.
+- Delete the 59 lines that end in `;ARGS_NAMES` in rule `9871102`: argument names on
+  `/autocompleter` are checked again, and a text with an ampersand can get `403` on suggestions.
+- Delete rule `9871102` altogether to remove every exception from `/autocompleter`; the address-bar
+  and typed-search suggestions then get `403` for any text that looks like an attack.
+
+The values of other arguments, headers, cookies, other paths and other methods stay under the full
+CRS.
+
+Controls (run on the shipped file, 2026-11-26): 132 requests with the same payloads where no
+exclusion applies; 126 got `403` from the rule the exclusion removes, and for the other 6 (shell and
+SQL text in the `Referer` and `User-Agent`) no CRS rule matched that text in that header either.
+Twelve more requests put markup, a PHP setting, a shell string, SQL and a traversal in the *name* of
+an argument. On `/search` all 12 got `403`. On `/autocompleter` the 7 that trip one of the ids
+the rule leaves out (`941120`, `941230`, `941250`, `941270`, `941280`, `941300`, `933120`) got `403`
+from that id, and the 5 that trip an id the rule removes (a `$(wget ...)` string, `x && cat
+/etc/passwd`, `<script>`, `' or '1'='1`, `../../etc/passwd`) answered `200`. Before the change
+(the 2026-11-25 `9871102`, with 71 ids on names, run again on 2026-11-26) the 7 answered `200` too. The 132 cover another argument on `/search` and `/autocompleter` (`GET`, `POST`), `HEAD`, a path
 suffix, a path prefix, `;` in the path, a different case, the text in a cookie, the `Referer` or the
 `User-Agent`, eight other paths with `q`, `POST /autocompleter`, a traversal in the image URL, an XSS
 blob in the preferences link, and the four checks that stay on the URI of a `POST /search`.
@@ -201,17 +233,49 @@ Not covered, so a payload there is blocked: the `q` argument on `/` (the address
 
 ## Validation
 
-Tested on 2026-11-18 and again on 2026-11-25: SearXNG `2026.11.13-8a53a6aa5`, Valkey 8 for the
-limiter, `bunkerity/bunkerweb-all-in-one:1.6.17` (CRS 4.29.0), default paranoia level and anomaly
-thresholds, `SECURITY_MODE=block`. On 2026-11-25 the service was created in easy mode from the
-imported template in Chrome, over HTTPS, and about 860 realistic searches (see above) went to
-`/search` and `/autocompleter`: all answered `200`, the page text and the search box kept the query,
-and the controls below still answered `403`.
+Stack: SearXNG `2026.11.13-8a53a6aa5`, Valkey 8, `bunkerity/bunkerweb-all-in-one:1.6.17` (CRS
+4.29.0), default paranoia level and anomaly thresholds, `SECURITY_MODE=block`, the service created
+in easy mode from the template imported through a CRS-protected web UI. Each result below is
+attributed to its run; the numbers apply to the shipped `searxng_false_positives.conf` only where the
+run says so.
+
+- **Run on the shipped file, 2026-11-26** (a Python `requests` script, a Chrome user agent, over HTTPS): the 799
+  distinct searches sent as `GET /search?q=` and as `GET /autocompleter?q=`, plus a canary at each
+  end: 1,602 requests, all `200`. The 23 typed texts that hold an ampersand, every prefix, sent the
+  way the page script does (310 requests): 306 `200`, 4 `403` (`921200`, on the value of the
+  argument the ampersand creates, on the last four prefixes of `(&(uid=*)(userPassword=*))`). The
+  799 searches put after `x&` (799 requests): 753 `200`, 46 `403` on the value of an argument
+  other than `q` or on a line feed or `%00`. The 2026-11-25 `9871102` (71 ids on names), run
+  again on 2026-11-26, gave the same 4 and the same 46 on the same texts, so the narrower rule
+  loses none of them.
+- **Chrome on the shipped file, 2026-11-26** (HTTPS, a desktop user agent, typed key by key so the
+  autocompleter runs, then Enter): 13 searches, namely the nine of the earlier browser run
+  (`cat /etc/shadow; rm -rf /`, `echo hello && whoami`, `powershell -enc SQBFAFgA`,
+  `javascript:alert(document.cookie)`, `select name from sqlite_master`, `fopen("data.txt", "r")`,
+  `alert(1)`, `<?php system($_GET[0]); ?>`, `getClass().forName("java.lang.Runtime")`) and four with an
+  ampersand (`ls && cat /etc/passwd`, `(&(uid=*)(userPassword=*))`, `cat /etc/shadow; rm -rf / & ls`,
+  `a & b=1`). Every search reached the results page and kept its text in the box. The 110
+  autocompleter requests answered `200`, except 2 `403` for `(&(uid=*)(userPassword=*))`. Chrome did
+  not run the 799-search list: the `requests` run covers it.
+- **Earlier runs**, three configurations, none of them the shipped file:
+  - **2026-11-18, the first template** (no `ARGS_NAMES` exclusion, 32 distinct ids on `ARGS:q`, each
+    listed for both routes, 64 lines): the request matrix, settings, browser smoke and web UI import
+    in the details below.
+  - **2026-11-25, the template before this change** (71 ids on `ARGS:q` and 71 on `ARGS_NAMES`):
+    searches in eight lists of about 860 queries with duplicates. Against the first template,
+    101 of the 602 searches in lists 1 to 4 and 6 got `403`. With the 71 ids on `ARGS:q`, the re-run
+    of those lists still had one query answered `403` on both endpoints, and so did the full
+    eight-list run; both came before the last change of that day. After that change, 177 queries
+    selected from the lists and two canary entries passed on both endpoints (358 responses, all
+    `200`). The full eight-list run was not repeated on that final file.
+  - **2026-11-26, the same 2026-11-25 file**, run again to compare with the shipped file: the
+    figures above that name it.
 
 <details>
 <summary>Evidence behind the claims above</summary>
 
-- **Request matrix** (final run on the shipped files, `evidence/matrix-final2.tsv`): 270 requests
+- **Request matrix** (2026-11-18, the first template, which had no `ARGS_NAMES` exclusion;
+  `evidence/matrix-final2.tsv`): 270 requests
   that must succeed and 28 controls, one at a time with their ModSecurity lines attributed per
   request. The same 120 seeds of the first run all pass straight to SearXNG without the WAF; the
   first two runs without the config got `403` for 49 of 145 requests, every one on the query text
@@ -222,9 +286,9 @@ and the controls below still answered `403`.
   external bang redirect, the `html`, `json`, `csv` and `rss` formats, and 14 client user agents
   (curl, `python-requests`, `httpx`, `aiohttp`, `axios`, `node-fetch`, Go, OkHttp, Perplexica, a
   SearXNG client, LiteLLM, Homepage, Wget, Java; run with the limiter off).
-- **Settings:** each non-default setting was switched back to the BunkerWeb default and the failure
-  above reproduced.
-- **Browser smoke** (Chrome through Playwright, bad behavior on, template as shipped, only
+- **Settings** (2026-11-18): each non-default setting was switched back to the BunkerWeb default and
+  the failure above reproduced.
+- **Browser smoke** (2026-11-18, Chrome through Playwright, bad behavior on, the first template, only
   `SERVER_NAME` and `REVERSE_PROXY_HOST` set). With the limiter off: searches for `' OR 1=1 --`,
   `../../etc/passwd`, `<script>alert(1)</script>`, `$(id)` and a 60-character Japanese sentence each
   rendered 8 results with the text kept in the box, the image category loaded, page 2 loaded, the
@@ -232,8 +296,8 @@ and the controls below still answered `403`.
   With the limiter and link token on: the same flow, 232 responses, all `200`. The BunkerWeb log
   for each run shows no ModSecurity denial, no ban and no `403` or `444`
   (`evidence/smoke-limiter-off.summary`, `evidence/smoke-limiter-on.summary`).
-- **Web UI import:** raw mode with `template.json` plus the config file imports and is listed
-  (7 steps, 11 settings, 1 config). On 2026-11-25 the import went through a web UI protected by
+- **Web UI import:** on 2026-11-18, raw mode with `template.json` plus the config file imported and
+  was listed (7 steps, 11 settings, 1 config). On 2026-11-25 the import went through a web UI protected by
   BunkerWeb's own CRS (JSON, config and full Save): no rule fired.
 
 </details>
