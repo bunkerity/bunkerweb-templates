@@ -49,9 +49,11 @@ Claude and ChatGPT, Git forge webhooks and single sign-on.
   the S3 endpoint with a presigned `PUT`; that request never passes BunkerWeb (confirmed with a
   Garage bucket: the BunkerWeb log shows `PUT /api/task/image-upload/<id>` and its `finalize` call,
   not the file).
-- Point your public hostname at BunkerWeb. `AUTO_LETS_ENCRYPT=yes` makes BunkerWeb request its
-  certificate (the default HTTP challenge needs inbound port 80). For existing certificate files,
-  use `AUTO_LETS_ENCRYPT=no`, `USE_CUSTOM_SSL=yes`, `CUSTOM_SSL_CERT` and `CUSTOM_SSL_KEY`.
+- Point your public hostname at BunkerWeb. With **Automatic Let's Encrypt** on (the template
+  default), BunkerWeb requests its certificate (the default HTTP challenge needs inbound port 80).
+  Turn it off for a name that is not public, such as a lab host: Let's Encrypt cannot issue a
+  certificate for it. To use your own certificate files, turn it off, open the service in
+  **Advanced** mode, **Custom SSL certificate**, switch it on and set the certificate and key.
 - Serve Kaneo at the root of the hostname: the template proxies `/` and was not tested under a
   sub-path.
 - Do not put an authentication proxy (forward auth, basic auth) in front of `/api/mcp*`,
@@ -67,13 +69,27 @@ source of `v2.49.0` (`apps/api/src` in the Kaneo repository) when marked "source
 | ---------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `KANEO_CLIENT_URL`           | the public address, `https://kaneo.example.com`    | The WebSocket check compares the `Origin` header with this value and answers `403` otherwise; links in emails and the OAuth redirect addresses are built from it (source: `ws/security.ts`, `auth.ts`).                                                                                                                                       |
 | `KANEO_API_URL`              | leave unset                                        | The bundled image derives it as `KANEO_CLIENT_URL` plus `/api`. A value that points elsewhere breaks sign-in with `Unexpected token '<'` errors (upstream issues 1454 and 1218).                                                                                                                                                                |
-| `TRUSTED_PROXIES`            | BunkerWeb's own address only, for example `172.20.0.5/32`, never a shared private range | The default is loopback only. The app then sees BunkerWeb's address as the client of every request (measured: the stored address was `172.29.93.10`, the BunkerWeb container). With BunkerWeb's address listed, the stored address is the real client (`172.29.93.1`); with `none` it is `127.0.0.1`. See the security note below.            |
+| `TRUSTED_PROXIES`            | BunkerWeb's own address only, for example `172.20.0.5/32`, never a shared private range (how to find it: below the table) | The default is loopback only. The app then sees BunkerWeb's address as the client of every request (measured: the stored address was `172.29.93.10`, the BunkerWeb container). With BunkerWeb's address listed, the stored address is the real client (`172.29.93.1`); with `none` it is `127.0.0.1`. See the security note below.            |
 | `CORS_ORIGINS`               | only extra origins, if any                         | The browser app is same-origin and needs none. A web page on another origin needs `OPTIONS` allowed as well (see "Settings and tradeoffs").                                                                                                                                                                                                  |
 | `AUTH_SECRET`                | a long random value, kept across container recreation | It signs the sessions: change it and every session ends. Not measured.                                                                                                                                                                                                                                                              |
 | S3 endpoint and bucket       | an HTTPS endpoint the browser can reach, with a bucket CORS rule that allows `PUT`, the `Content-Type` header and your exact origin | Uploads fail in the browser with `NetworkError` (upstream issue 2191). The harness used Garage with that rule.                                                                                                                                                                                                                              |
 | Registration switches        | as you need                                        | Anyone who can reach the sign-up form can create an account until you close it.                                                                                                                                                                                                                                                              |
 | SMTP                         | as you need                                        | Not tested through this template (no mail server in the harness).                                                                                                                                                                                                                                                                          |
 | `KANEO_ALLOW_PRIVATE_WEBHOOK_DESTINATIONS` | `true` only for a Forgejo or Gitea on a private network | Kaneo refuses to deliver to private addresses (source). Not tested.                                                                                                                                                                                                                                                                  |
+
+**Find BunkerWeb's address.** On the Docker host, run the command below with the name of your
+BunkerWeb container. It prints one line per network: take the address on the network Kaneo shares and
+add `/32`.
+
+```sh
+docker inspect -f '{{range $name, $net := .NetworkSettings.Networks}}{{$name}} {{$net.IPAddress}}{{println}}{{end}}' <bunkerweb container>
+```
+
+On the test stack this printed `bwt-fix-kaneo 172.28.62.10`, so `TRUSTED_PROXIES=172.28.62.10/32`.
+Recreating the BunkerWeb container can give it a new address, and the setting then no longer matches:
+the app sees BunkerWeb's address as the client of every request. Give the container a fixed address
+in your Compose file (a network with a `subnet` and an `ipv4_address` on the service) and keep
+`TRUSTED_PROXIES` equal to it.
 
 Security: `TRUSTED_PROXIES` must name only BunkerWeb. The template sets
 `REVERSE_PROXY_HEADERS=X-Forwarded-For $remote_addr`, so BunkerWeb replaces the header instead of
@@ -84,21 +100,23 @@ the Kaneo port directly: keep that port private.
 ## Install
 
 Import `template.json` and the files under `configs/` using the repository
-[installation guide](../../README.md#install), or its plugin bundle layout. Assign
-`USE_TEMPLATE=kaneo`, then change only `SERVER_NAME` and `REVERSE_PROXY_HOST` (keep the upstream
-URL without a trailing slash or path). In the web UI raw import, the config dialog lists the files
-as `modsec_crs/kaneo_false_positives.conf` and `server_http/kaneo_large_cookies.conf`: upload each
-file under its listed name.
+[installation guide](../../README.md#install), or its plugin bundle layout. Then create the
+service with **Kaneo** picked in the **Templates** list above the steps, and change only the
+server name (step 1) and the upstream address (step 2, keep the URL without a trailing slash or
+path). In the web UI raw import, the config dialog lists the files as
+`modsec_crs/kaneo_false_positives.conf` and `server_http/kaneo_large_cookies.conf`: upload each file
+under its listed name.
 
 Before enabling blocking on your instance:
 
-1. Set service `SECURITY_MODE=detect` and reload.
+1. Open the saved service in **Advanced** mode, **General**, set **Security mode** to `detect` (no
+   guided step holds it) and save. Saving applies the change; there is no separate reload.
 2. Sign in, create tasks and comments with code, SQL and markup, search, attach an image, open the
    board in two tabs, log in once with the CLI and connect one MCP client, then read the BunkerWeb
    logs.
 3. Confirm the included exclusions match the targets in your logs. Narrow or add exceptions only
    where your traffic requires them.
-4. Switch to `SECURITY_MODE=block` after those checks and repeat the workflows.
+4. Set **Security mode** back to `block` after those checks, save, and repeat the workflows.
 
 > [!IMPORTANT]
 > False positives return `403` in block mode. The template removes `400` from the bad-behavior status
@@ -152,20 +170,20 @@ HTTP requests and template syntax.
 
 | Id | Method and path | Where | Rules |
 | --- | --- | --- | --- |
-| `9860101` | `POST /api/project` | `json.name` | 29 ids, by target |
-| `9860102` | `PUT /api/project/<id>` | `json.description` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 53 ids, by target |
-| `9860103` | `POST /api/task/<id>` | `json.description`, `json.title` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 53 ids, by target |
-| `9860104` | `PUT /api/task/title/<id>` | `json.title` | 29 ids, by target |
+| `9860101` | `POST /api/project` | `json.name` | 31 ids, by target |
+| `9860102` | `PUT /api/project/<id>` | `json.description`, `json.name` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 53 ids, by target |
+| `9860103` | `POST /api/task/<id>` | `json.description`, `json.title` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 53 ids, by target; reply checks by tag |
+| `9860104` | `PUT /api/task/title/<id>` | `json.title` (+ `RESPONSE_BODY`) | 35 ids, by target; reply checks by tag |
 | `9860105` | `PUT /api/task/description/<id>` | `json.description` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 52 ids, by target |
-| `9860106` | `PUT /api/task/<id>` | `json.description`, `json.title` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 53 ids, by target |
+| `9860106` | `PUT /api/task/<id>` | `json.description`, `json.title` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 53 ids, by target; reply checks by tag |
 | `9860107` | `POST /api/task/import/<id>` | the whole request body (by id) | 52 ids, by id |
 | `9860108` | `POST/PUT /api/comment/<id>` | `json.content` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 52 ids, by target |
 | `9860109` | `POST/PUT /api/activity/comment` | `json.comment` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 52 ids, by target |
 | `9860110` | `GET /api/search` | `q` in the query string (+ `REQUEST_URI_RAW`, `RESPONSE_BODY`) | 47 ids, by target |
 | `9860111` | `GET /api/task/description-matches/<id>` | `query` (query string) | 2 ids, by target |
 | `9860112` | `GET /api/task/tasks/<id>` | `assigneeId`, `dueBefore`, `priority`, `status` | 12 ids, by target |
-| `9860113` | `POST /api/label` | `json.name` | 29 ids, by target |
-| `9860114` | `PUT /api/label/<id>` | `json.name` | 10 ids, by target |
+| `9860113` | `POST /api/label` | `json.name` | 31 ids, by target |
+| `9860114` | `PUT /api/label/<id>` | `json.name` | 31 ids, by target |
 | `9860115` | `POST/PUT /api/column/<id>` | `json.name` | 31 ids, by target |
 | `9860116` | `POST /api/custom-field` | `json.name`, `json.options.array_0` to `array_9` | 31 ids, by target |
 | `9860117` | `PUT /api/custom-field/value` | `json.value` (+ `REQUEST_BODY`, `RESPONSE_BODY`) | 52 ids, by target |
@@ -185,6 +203,19 @@ more than the argument: `921110`, `944100`, `944110` and `944130` also read the 
 (`REQUEST_BODY`), `930100` and `930110` read the raw query (`REQUEST_URI_RAW`), and `953120` reads
 the response (`RESPONSE_BODY`) because the app returns the text it just saved. Each is removed for
 that one target on its own path only.
+
+**Replies.** Kaneo answers a task edit with the saved task, so the text you wrote comes back in the
+reply, and the CRS reads replies too. A task title can quote an error message (a SQL or PHP error, a
+stack trace), which makes a data-leak rule fire on the reply, and `959100` then drops it. The three
+task rules that carry a title (`9860103`, `9860104`, `9860106`) remove every CRS rule tagged
+`attack-disclosure` from the reply of that one request. Removing only `953100`, the rule a title with
+bold tags trips, still cut the reply for 13 of 26 error messages tried (SQL, Java, Node and .NET
+errors), so the whole tag is removed. Measured: a client that sends `Accept-Encoding: gzip`, as
+browsers do, was never affected, because the compressed reply is not inspected; a client that sends
+none, such as `curl`, had its connection closed. Other routes whose reply repeats your text (descriptions, comments, project and
+label names, `GET /api/task/<id>`) keep the narrower exceptions they had. If your logs show a cut reply
+there, add `ctl:ruleRemoveTargetByTag=attack-disclosure;RESPONSE_BODY` and the same line ending in
+`RESPONSE_STATUS` to that rule.
 
 **Four exclusions remove whole rule ids for their path (marked "by id" above).** The task import
 list (`json.tasks.array_<N>.*`) and the signed webhook bodies have member names that grow with the
@@ -210,7 +241,8 @@ name an index range or a pattern. An eleventh option that holds SQL or script te
 
 Not covered, so a payload there is blocked: dropdown options from the eleventh on, other endpoints
 the matrix did not exercise, and the same text in a field the table does not name. Add one
-exclusion per argument your logs name.
+exclusion per argument your logs name: in the web UI open **Configs**, **Create Custom Config**,
+choose your service, set the type to `MODSEC_CRS`, give it a name, paste your rules and save.
 
 ## Validation
 
@@ -240,6 +272,14 @@ HTTP on a local test host.
   denial, no ban.
 - **Web UI import:** raw mode with `template.json` plus both config files imports, saves
   (10 steps, 16 settings, 2 configs) and is listed next to the plugin copy.
+- **Renames and names** (2026-11-25, Kaneo `2.49.0`, BunkerWeb `1.6.17`, service created in easy
+  mode from the imported template): renaming a task in the web UI to SQL text got `403` (rule
+  `942100`) and the old title came back after a reload; with the template the new title stays, for
+  SQL and for script text. Seven texts (SQL, script, bold tags, image tag, shell, `javascript:`)
+  sent to the seven title and name routes: 23 of 49 got `403` or a cut reply before, none after,
+  with and without `Accept-Encoding: gzip`. Task titles that name PHP functions or variables, and
+  26 pasted error messages, pass on create, rename and update; before, 16 of the 26 had their reply
+  cut. 17 of 17 controls (the same text in another argument, method or path) still got `403`.
 
 Not verified: see the list at the end of "Things to think about". Validate your own clients.
 

@@ -26,7 +26,7 @@
   "steps": [
     {
       "title": "Domains and TLS",
-      "subtitle": "Match your public hostname to Kaneo's KANEO_CLIENT_URL.",
+      "subtitle": "Match your public hostname to Kaneo's KANEO_CLIENT_URL. Turn Let's Encrypt off for a name that is not public.",
       "settings": ["SERVER_NAME", "AUTO_LETS_ENCRYPT"]
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "title": "Security - ChatGPT connector",
-      "subtitle": "Let ChatGPT's MCP connector through the user-agent blacklist. If you never connect ChatGPT, clear the field.",
+      "subtitle": "Let ChatGPT's MCP connector through the user-agent blacklist. Keep it even if you never connect ChatGPT: it only allows two user agents.",
       "settings": ["BLACKLIST_IGNORE_USER_AGENT"]
     },
     {
