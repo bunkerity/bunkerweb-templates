@@ -1,0 +1,37 @@
+CHANGELOG.md
+  s_98f5222f70a659::t_9addb7dccea16c 8
+templates/netbird/README.md
+  s_ada66561c40918::t_5d6beff3243043 12,24-28,32-39,45-57,61-80,84-85,89-101,107-124,128-129
+templates/netbird/configs/modsec-crs/netbird_false_positives.conf
+  s_ada66561c40918::t_e31b7bee95aa76 10-12,42-137
+templates/netbird/template.json
+  s_ada66561c40918::t_3e9da1f00669dc 59
+  s_ada66561c40918::t_7f94ca0d8c3ecf 95
+  s_ada66561c40918::t_b7add625fc2bc9 109
+  s_ada66561c40918::t_7327d36300c21d 126
+  s_ada66561c40918::t_3700def136bdf2 79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "d644631da6a6e778c6cab3e16161bf7efb86d9c1",
+  "prompts": {},
+  "sessions": {
+    "s_98f5222f70a659": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e186289-196f-4810-bffd-1e3ef20fc027",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    },
+    "s_ada66561c40918": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "678c985b-4d35-4c72-bd07-3eb5a47776d3",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
