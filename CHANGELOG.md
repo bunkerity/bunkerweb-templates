@@ -5,6 +5,7 @@ manual releases can pull details straight from this file.
 
 ## Unreleased
 
+- [@TheophileDiot] Stop Nextcloud folder previews and cold Files loads from answering `429` (`LIMIT_REQ_RATE_3` `20r/s`, `LIMIT_CONN_MAX_HTTP2` `200`), anchor the `LIMIT_REQ_URL` patterns so Mail keeps its own rate, keep the content of WebDAV `PUT` uploads out of the CRS attack checks (rules `9863110` and `9863111`: JSON and XML files upload again while the query string, cookies and headers stay checked), and document Nextcloud 35.0.3, upload memory, the plugin download and the `.well-known` redirect.
 - [@TheophileDiot] Let realistic searches (shell, code, SQL, markup, URLs, error messages) and results pages that echo them through the SearXNG template, and document the limiter and engine contact setup and the Let's Encrypt and detect-mode steps
 - [@TheophileDiot] Fix the n8n template: widen the editor rate limit to every `/rest/` URL, let n8n's analytics posts through the CRS so they stop banning the admin (rule `9861130`), and document embedding, plain-HTTP sign-in, Let's Encrypt and webhook-only access
 - [@TheophileDiot] Fix the NetBird template: document the global `CLIENT_BODY_TIMEOUT` for idle gRPC streams, let dashboard names and posture-check paths through the CRS (rules `9862200` to `9862211`), and name the tested NetBird version, STUN and the request limit for peers behind one address
