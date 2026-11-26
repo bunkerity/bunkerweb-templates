@@ -154,10 +154,11 @@ is removed for a whole request and `949110` is never touched.
 | Id | Scope | What is removed |
 | --- | --- | --- |
 | `9864100` | `PUT`/`POST` on `/<topic>` and `/<topic>/<id>` (not `/v1/...`) | Rules `920420` (Content-Type not allowed), `920340`/`920640` (no Content-Type with a body) and `920450` for the `Expect` header name only. |
-| `9864110` | `PUT`/`POST` on `/<topic>`, urlencoded body | `921150` on argument names, and `930120`, `932125`, `932160`, `932230`, `932235`, `932250`, `932260`, `932370` on `ARGS` and `ARGS_NAMES`. |
+| `9864110` | `PUT`/`POST` on `/<topic>`, urlencoded body (`curl -d`), **no query string** | `921150` on argument names, and `930120`, `932125`, `932160`, `932230`, `932235`, `932250`, `932260`, `932370` on the whole of `ARGS` and `ARGS_NAMES`. |
+| `9864111` | The same request **with** a query string (`?title=`, `?tags=`, `?priority=`) | The same nine rules on `ARGS_NAMES` only: query values and body values stay inspected, except an argument named `message` on `PUT`, which `9864131` still excludes. |
 | `9864120` | `POST /` (JSON publish) | The eight rules above on `ARGS:json.message` only. |
 | `9864130` | `GET /<topic>/publish\|send\|trigger` (scripts, message in the query) | The eight rules above on `ARGS:message` and `ARGS:m` only. |
-| `9864131` | `PUT /<topic>` (the web app's publish dialog with an attachment, message in the query) | The eight rules above on `ARGS:message` only. |
+| `9864131` | `PUT /<topic>` (the web app's publish dialog with an attachment, message in the query) | The eight rules above on `ARGS:message` only, whatever the `Content-Type`: a `message` in the query or in a form body of a `PUT` is excluded alike. |
 | `9864140` | `POST /_matrix/push/v1/notify` | The eight rules above on `ARGS:json.notification.content.body` only. |
 | `9864150` | `POST`/`PUT`/`DELETE` on `/v1/account`, `/v1/account/password`, `/v1/account/password/reset`, `/v1/users` | `932130`, `932230`, `932250`, `933180`, `942100`, `942540` on `ARGS:json.password` and `ARGS:json.new_password` only. |
 | `9864160` | `PUT`/`POST` on `/<topic>` with `Content-Type: application/json` | The eight rules above on `ARGS`. |
@@ -172,18 +173,35 @@ Why each exists:
   `curl -T file https://host/topic` is refused without the `920450` entry. ntfy parses nothing from
   these bodies, so no inspection is lost.
 - **Message text (`9864110` to `9864140`).** Alert text is shell and log output: paths, `ssh`,
-  `docker compose`, `systemctl`, tracebacks, `&&` and `;`. These eight rules fire on it (`932160` is the one that blocks a path such as `/etc/passwd`). Only the
-  field that carries the message loses them. SQL injection, XSS and every other rule still inspect it,
-  and `title`, `tags`, filters and every other field keep all rules.
-- **`9864110` is wider than the others.** `curl -d "message"` is urlencoded, so the whole text becomes an
-  argument *name* when it has no `=`. Names are arbitrary and cannot be listed, so `ARGS` and
-  `ARGS_NAMES` are excluded for those eight rules on that path and method.
+  `docker compose`, `systemctl`, tracebacks, `&&` and `;`. These eight rules fire on it (`932160` is
+  the one that blocks a path such as `/etc/passwd`). Only the field that carries the message loses
+  them, with one exception: `curl -d` without a query string (next bullet). SQL injection, XSS and
+  every other rule still inspect the message, and `title`, `tags`, filters and every other field
+  keep all rules.
+- **`curl -d` is wider than the others (`9864110`, `9864111`).** `curl -d "message"` is urlencoded, so
+  the whole text becomes an argument *name* when it has no `=`. Names are arbitrary and cannot be
+  listed, so with no query string `9864110` excludes the whole of `ARGS` and `ARGS_NAMES` for those
+  eight rules (and `921150`) on `PUT`/`POST /<topic>`. That includes any `title=` or `tags=` sent in the
+  body of the same form. When the request carries a query string, `9864111` takes over and
+  excludes `ARGS_NAMES` only, so `curl -d "text with /etc/passwd" "https://host/topic?title=Backup&tags=warning&priority=high"`
+  still publishes while the query values (`title`, `tags`, `click`, `actions`...) are inspected as
+  everywhere else. Two limits: a form body that holds an `=` (`exit=1 /etc/passwd`) is read as a
+  value and gets `403` from `932160` when sent with query options (send it as `text/plain`, or
+  without options), and argument names in the query string are not checked by those nine rules (ntfy
+  ignores names it does not know). On `PUT` the split has one more exception: `9864131` also applies
+  to `PUT /<topic>` and removes the eight rules from an argument named `message`, in the query or in
+  the form body, with or without query options. A `PUT` with `?message=` therefore skips them even
+  though `9864111` applies. A `POST` with shell text in `?message=` got `403` (measured
+  below, 2026-11-26).
 - **Message in the query (`9864130`, `9864131`).** ntfy reads `message` from the query on two routes: `GET
   /<topic>/publish|send|trigger` (scripts, ntfy's "publish via GET"; `m` is its alias) and `PUT /<topic>`,
   which the web app's publish dialog uses when a file is attached because the body is the file
   (`PublishDialog.jsx`: always `PUT`, only `message`). Each route has its own rule with its own method and
   path. The ntfy CLI sends `POST` with the message in the body (or an `X-Message` header with `--file`) and the
-  Android app a raw `PUT` body, so neither needs these rules. A `POST` with the message in the query, `GET /<topic>?message=`, any deeper
+  Android app a raw `PUT` body, so neither needs these rules. `9864131` matches the method and path
+  only, so on `PUT /<topic>` it removes the eight rules from any argument named `message`, whatever
+  the `Content-Type` and whether it sits in the query or in a form body. A `POST` with the message in
+  the query, `GET /<topic>?message=`, any deeper
   path and any other query parameter stay inspected. The same text under another name (`x-message`,
   `message[]`, `message2`) is blocked too. A `message` repeated in the query is excluded alike: ntfy keeps
   the first value. `ARGS_GET:message` as a `ctl` target removes nothing on BunkerWeb 1.6.17 (the rules still
@@ -205,8 +223,8 @@ Why each exists:
   `curl ... | sh` lines, which also trip `942100`, `942190` and `934110`. Only the five fields the
   github template renders lose them, and only when the URL asks for that template.
 
-**Cost:** the eight rules no longer inspect the message text, webhook bodies and password
-fields, and `920420` no longer judges text/plain on the web app's API paths. ntfy stores and relays
+**Cost:** the eight rules no longer inspect the message text (for `curl -d` without a query string,
+every form argument), webhook bodies and password fields, and `920420` no longer judges text/plain on the web app's API paths. ntfy stores and relays
 the text; it does not execute it. The risk moves to whatever *renders* messages (web app, mail, your own
 consumers): keep ntfy's web app and consumers escaping output. A `title` or a token label that
 contains shell text or a path such as `/etc/passwd` is still blocked with `403`, as is a subscribe
@@ -250,6 +268,16 @@ Tested on 2026-11-17 and 2026-11-18 with **ntfy v2.37.2** behind **BunkerWeb 1.6
   tracebacks and `docker`, `systemctl` or `scp` commands answered `200` in every form. The same text
   in `title`, in a parameter named `message2`, on `GET /<topic>?message=`, on `POST /<topic>?message=`,
   in another JSON field and in another Matrix field still got `403` from `932160`.
+- **`curl -d` with query options, 2026-11-26:** before the split of `9864110`, a urlencoded
+  `POST /<topic>` with `?title=<text with /etc/passwd>`, `?tags=`, `?message=`, `?m=`, `?click=` or
+  `?actions=` holding shell text answered `200` (the whole query string was excluded). Now each gets
+  `403` from `930120` and `932160`, while 13 realistic publishes with `?title=`, `?tags=`,
+  `?priority=`, `?p=`, `?t=`, `?click=` and `?delay=` and a message with paths, `docker compose ...
+  && ...; ssh ...`, a percent-encoded body (`--data-urlencode`) or a `PUT` answered `200`, as did the
+  same messages with no query string. The two limits above were measured: a body with `=` and query
+  options got `403`, and a path in a query argument *name* got `200`. SQL text in the body or in
+  `title` still gets `942100`. The web app's publish dialog (message with `/etc/passwd`, with and
+  without an attachment) and the 61 earlier requests of the 2026-11-23 run gave the same results.
 - **Settings:** each of `ALLOWED_METHODS`, `MAX_CLIENT_SIZE`, `LIMIT_REQ_RATE`, `LIMIT_CONN_MAX_HTTP1`,
   `REVERSE_PROXY_INTERCEPT_ERRORS` and `BLACKLIST_URI` was run with and without its value; the numbers
   are in the table above.
