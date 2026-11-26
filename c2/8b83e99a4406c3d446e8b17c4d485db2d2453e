@@ -1,0 +1,19 @@
+templates/homepage/README.md
+  s_5673ce904b7f3c::t_a96ff514459d43 219-224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "c28b83e99a4406c3d446e8b17c4d485db2d2453e",
+  "prompts": {},
+  "sessions": {
+    "s_5673ce904b7f3c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b24fc1b4-0446-4f9c-a3c3-651477a2699c",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "TheophileDiot <tdiot@bunkerity.com>"
+    }
+  }
+}
