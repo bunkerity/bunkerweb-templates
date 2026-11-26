@@ -207,9 +207,11 @@ earn a ban during normal operation.
   shell path, a snippet of HTML or a SQL query got a `403` (CRS `932160`, `941160`, `930120` and more).
   Rules `9863110` and `9863111` keep the content of those `PUT` requests out of the CRS attack checks.
   The query string, the cookies, the headers and the path of those requests are still checked, so an
-  attack sent there still answers `403`. The second rule only applies to a request with no query string:
-  the web UI and the WebDAV clients tested send none, and a `PUT` that has one is checked in full, file
-  content included. The cost is that the content of uploaded files is not checked by the WAF: use an
+  attack sent there still answers `403`. The second rule, which covers `.json` files, only applies to a
+  request with no query string: the web UI and the WebDAV clients tested send none. A `PUT` that has one
+  gets the checks on JSON content back, so a `.json` file that mentions a shell path or an HTML tag
+  answers `403` (`?v=1` is enough). An `.xml` file still uploads with a query string, because the first
+  rule does not look at it. The cost is that the content of uploaded files is not checked by the WAF: use an
   anti-virus on the Nextcloud side if you need it. The OCS API, forms, other methods and every other path
   stay inspected in full. The Content-Type and file name checks for these uploads (CRS `920340`,
   `920420`, `920440`, `920640`) come from the `nextcloud-rule-exclusions` plugin, so keep
