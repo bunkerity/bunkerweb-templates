@@ -231,18 +231,95 @@ same HTML in another variable and the inline document stayed `403`.
 A Flow's **Run Script** operation stores JavaScript in the field `options.code`, and JavaScript
 reads like an attack to the CRS. Without an exception, saving a Flow that holds the sample script
 Directus pre-fills is refused with a `403` and a generic error toast (rules `934100`, `941390`,
-`942151` on `ARGS:json.options.code`; longer scripts also fire `932130`, `932140`, `933160`,
-`942170`, `942190` and `942230`).
+`942151` on the code field; longer scripts also fire `932130`, `932140`, `933160`, `942170`,
+`942190` and `942230`).
+
+The admin app does not save a Run Script through `/operations`. **Save** in the Flow editor sends one
+`PATCH /flows/<flow id>`, a JSON body with no query string, that carries the operations inside the
+Flow: new operations in `operations.create` and `operations.update` (one entry per operation that
+is not attached to a chain), and the chain that starts at the trigger in `operation`, with `resolve`
+and `reject` nested one level deeper for each step. The rules above fire on
+`ARGS:json.operations.create.array_0.options.code`, `ARGS:json.operation.options.code` and the
+nested forms. Neither the depth of a chain nor the number of operations is bounded. A list of
+literal field names that covers a chain of four steps and ten operations in each of `create` and
+`update` takes 35 targets, and a Run Script on the fifth step of a chain would still be refused
+with a `403` and a generic error toast. So the Flow editor rule below recognizes the code field by
+its name and, when the request holds one, covers the body of that request.
 
 `configs/modsec-crs/directus_flows_script.conf` removes the XSS, SQL injection, command injection,
-PHP injection, Node.js injection and file access families from that one target, `options.code`,
-for `POST`, `PUT` and `PATCH` on `/operations` only (rule `9853100`). The same script text in an
-item field, in another field of an operation, on `/flows`, or on another path is still refused.
+PHP injection, Node.js injection and file access families on these requests:
+
+| Request                                            | Skips those checks                                     | Rule      |
+| -------------------------------------------------- | ------------------------------------------------------ | --------- |
+| `POST /operations` (Copy to Flow, API clients)     | the field `options.code`                               | `9853100` |
+| `PATCH /operations/<operation id>` (API clients)   | the field `options.code`                               | `9853101` |
+| `PATCH /flows/<flow id>` (Save in the Flow editor) | every field of the JSON body, if it holds a code field | `9853102` |
+
+The Flow editor rule needs all five of: the path is `/flows/` and a UUID, nothing after it; the
+method is `PATCH`; the `Content-Type` is `application/json`; the request has no query string; and
+the JSON body holds a Run Script code field, that is `operation.options.code`,
+`operations.create.<n>.options.code` or `operations.update.<n>.options.code`, with any number of
+`resolve` and `reject` steps in between (`operation.resolve.reject.options.code` is one). The rule
+reads the field names after the JSON body is parsed, so neither the index `<n>` nor the depth of
+the chain is limited. A save without such a field, for example a new Flow name or description,
+gets all the checks. Headers, cookies, the path, the names of the fields and every other check
+family stay on. The same field names on any other request are refused with the same script text.
+
+Measured with script text that holds `child_process` and `cat /etc/passwd`, each `403`:
+
+- `POST /items/articles` with `operation.options.code`, `operation.resolve.options.code`,
+  `operations.create.<n>.options.code` or `operations.update.<n>.options.code` in the body, and
+  `PATCH /items/articles/1` with `operation.options.code`. Before the Flow editor rule was bound to
+  its route they passed the WAF. A harmless value in `operation.options.code` on an item still
+  passes.
+- `POST /flows`, `PUT /flows/<id>`, `POST /flows/<id>`, `DELETE /flows/<id>` with a body,
+  `PATCH /flows/<id>/x`, `PATCH /flows/<id>/` and `PATCH /flows` (batch) with the code in the body.
+- `PATCH /flows/<id>` with the script in the Flow `name` or `description`, or in the `name` or
+  `options.message` of an operation (in `create`, in `update`, in `operation` and in a `resolve`
+  step), and no code field in the request.
+- `PATCH /flows/<id>` with the text in a field that is not a Run Script code field: `options.code`
+  of the Flow itself, `options.code` under another key, `operation.options.code.extra`,
+  `operations.create.<n>.options.codex` and `operations.delete`.
+- `PATCH /flows/<id>` with the code in the body and any query string (`?fields=id`), with the code in
+  a query parameter named `json.operations.create.array_0.options.code`, and with a form body.
+- `PATCH /flows/<id>` with a script in a header (`User-Agent`, `Referer`), a cookie, a field name,
+  a line break followed by `Set-Cookie:` in a value (rule `921120`) or a null byte (rule `920270`).
+- The same routes as `/operations` above with another method, another path depth, a list body, or
+  the script in `name` or `options.message`, and the field `options.code` on `POST /items/articles`.
+
+Passes on `PATCH /flows/<id>`, `200` each:
+
+- In Chrome, through the admin app (Save in the Flow editor): the sample script, a longer script
+  with `child_process` and `fetch`, and a chain of three steps with a script in `operation`,
+  `operation.resolve` and `operation.reject`.
+- In Chrome, **Edit Flow** in the Flows list with only the name and description changed to plain
+  text. The admin app sends that request with the query string `?fields[]=id`, so it gets the
+  ordinary checks, not the exception.
+- In requests sent from a script, built to the shape the admin app sends and not clicked: a chain
+  eight and twelve steps deep, sixty operations in `create` or `update` (index 59), a chain inside
+  a `create` or `update` entry, two code fields in one request, a condition step next to a script,
+  and a save of only the Flow name or description with plain text.
 
 **Cost:** the JavaScript of a Run Script operation is no longer inspected by those checks, so code
-that holds `child_process` or `cat /etc/passwd` is saved too. Directus runs it in a sandbox and only
-users who can edit Flows can write it: keep that permission for administrators. To refuse Run
-Script code again, remove the config from the service.
+that holds `child_process` or `cat /etc/passwd` is saved too. On the Flow editor request the
+exception covers the whole body, because it cannot be limited to fields whose names depend on the
+depth of the chain. So when a save holds a code field, any other text in the same request is not
+inspected either: a Flow's name or description, the name of an operation, the message of a log
+step. Measured: a script in `description`, in an operation `name` or in `options.message`, sent
+together with a code field, got `200`; the same text without a code field got `403`. A JSON key
+spelled `operation.options.code`, with the dots inside the key name, is read as a code field too.
+
+Anyone who can reach Directus can send this request. The WAF decides first and Directus checks
+afterwards whether the user may save the Flow: with no token it answered `403` (no permission on
+the collection `directus_flows`) and with an invalid one `401`, both after the WAF had let the
+request through. So the exception does not depend on who sends the request, and Directus's own
+permission check is what stops everyone else: keep the permission to edit Flows for
+administrators. Directus runs the code in a sandbox. An API client that saves a Flow with a query
+string (`PATCH /flows/<id>?fields=id`) does not get the exception: the ordinary checks run on the
+body, so a save without script-like text still passes (`{"name": "x"}` got `200`) and one that
+carries code is refused. Drop the query string, or send the code to
+`PATCH /operations/<operation id>`. To refuse Run Script code again, remove the config from the
+service.
 
 ### Passwords with symbols
 
@@ -254,12 +331,37 @@ of 600 did. None of 300 passwords made of letters, digits and `!@#$%^&*` was ref
 the user sees is a generic one.
 
 `configs/modsec-crs/directus_passwords.conf` removes the SQL injection, command injection, PHP
-injection, Java injection and template injection families from the `password` field of the
-sign-in, password reset and `/users` routes, for `POST`, `PUT` and `PATCH` only (rule `9853110`).
-With it, the same 1500 passwords, 1500 passwords of 32 characters and 600 `POST /users` calls all
-passed the WAF. The same text in another field of the sign-in route, in the `password` field of
-another route, in a query string, or in a `DELETE` is still refused, and so is a password that
-holds `<script>`, because the cross-site scripting checks still read the field.
+injection, Java injection and template injection families from one argument, the JSON field
+`password`, and only on the routes and methods that carry a password:
+
+| Route                    | Method  | Used for                                 |
+| ------------------------ | ------- | ---------------------------------------- |
+| `/auth/login`            | `POST`  | sign in                                  |
+| `/auth/password/reset`   | `POST`  | set a new password from a reset link     |
+| `/users`                 | `POST`  | create a user                            |
+| `/users/register`        | `POST`  | register, when public registration is on |
+| `/users/invite/accept`   | `POST`  | accept an invitation                     |
+| `/users/me/tfa/generate` | `POST`  | two-factor setup asks for the password   |
+| `/users/me`              | `PATCH` | change your own password                 |
+| `/users/<user id>`       | `PATCH` | change a user's password                 |
+
+Rule `9853110` covers the `POST` routes and rule `9853111` the `PATCH` routes. In Chrome, with
+`MmFtBz';Spuy-vV_PUn|L:~H` (refused by rule `942540` in any other field), the admin app's
+`PATCH /users/me`, `POST /users` and `PATCH /users/<user id>` all returned `200`. The other routes
+come from the admin app's code and were tested with curl, not clicked: the reset and invitation
+pages need a token sent by e-mail, registration is off by default, and two-factor setup was not
+reachable in the test browser. With the rule, 1500 random passwords of 24 characters and 1500 of
+32 characters sent to `POST /auth/login`, 600 sent to `POST /users` and 300 sent to
+`PATCH /users/<user id>` all passed the WAF.
+
+The same password text is still refused (`403`, rule `942540`) in another field of the same
+routes (`email`, `otp`, `first_name`), in a `password` field on any other route or method
+(`/auth/login/ldap`, `/auth/loginxyz`, `PUT /users`, `POST /users/<id>`, `POST /users/invite`,
+`POST /users/me/tfa/enable`, `/items/<collection>`), and in a `password` query parameter or form
+field of the sign-in route, because the exception names the JSON field only. A password that
+holds `<script>` is refused as well, because the cross-site scripting checks still read the field.
+A query string parameter spelled exactly `json.password` on one of the routes above is skipped
+too.
 
 **Cost:** SQL, shell, PHP, Java and template text in a password is no longer inspected. Directus
 hashes the password and never runs it as a query, a command or a template. To refuse those

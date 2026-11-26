@@ -121,7 +121,7 @@
     },
     {
       "title": "Security - WAF tuning",
-      "subtitle": "CRS 4 forbids the Expect header, which curl sends by itself on bodies over 1 KB; the first exclusion drops that one entry and keeps the rest. The second lets Flows Run Script code through on that one field, the third lets passwords with symbols through on the password field.",
+      "subtitle": "CRS 4 forbids the Expect header, which curl sends by itself on bodies over 1 KB; the first exclusion drops that one entry and keeps the rest. The second lets Flows Run Script code through on the operations routes and on the Flow editor's Save. The third lets passwords with symbols through on the password field.",
       "settings": ["USE_MODSECURITY", "MODSECURITY_SEC_RULE_ENGINE"],
       "configs": [
         "modsec-crs/directus_crs_tuning.conf",
